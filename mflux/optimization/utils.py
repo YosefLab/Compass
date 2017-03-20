@@ -6,6 +6,7 @@ Functions to be used by other optimization routines
 
 from __future__ import print_function, division
 from pulp import LpProblem, LpVariable, LpAffineExpression
+import cplex
 
 # For pyglpk need to install
 # libglpk-dev libglpk36 glpk-utils
@@ -49,6 +50,36 @@ def get_connectivity_constraints(model, rvars):
         s_constraints.append(constraint)
 
     return s_constraints
+
+
+def get_connectivity_constraints_cplex(model):
+    """
+    Uses the s_mat to define connectivity constraints
+    """
+    s_mat = model.getSMAT()
+    ex_metabolites = model.getExtracellularMetabolites()
+
+    lin_expr = []
+    senses = []
+    rhs = []
+    names = []
+
+    for metab, rx in s_mat.items():
+        if len(rx) == 0:
+            continue
+
+        if metab in ex_metabolites:
+            continue
+
+        ind = [x[0] for x in rx]
+        val = [x[1] for x in rx]
+
+        lin_expr.append(cplex.SparsePair(ind=ind, val=val))
+        senses.append('E')
+        rhs.append(0)
+        names.append(metab)
+
+    return lin_expr, senses, rhs, names
 
 
 def get_reactions(model, exchange_limit=None):
