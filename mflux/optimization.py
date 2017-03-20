@@ -3,6 +3,7 @@ Using pulp, create constrains and objectives based on models
 """
 
 from __future__ import print_function, division
+import numpy as np
 import pulp
 import time
 from pulp import LpProblem, LpMaximize, LpVariable, LpAffineExpression
@@ -37,8 +38,13 @@ def get_connectivity_constraints(model, rvars):
     """
     s_constraints = []
     s_mat = model.getSMAT()
+    ex_metabolites = model.getExtracellularMetabolites()
+
     for metab, rx in s_mat.items():
         if len(rx) == 0:
+            continue
+
+        if metab in ex_metabolites:
             continue
 
         exp = LpAffineExpression()
@@ -51,12 +57,20 @@ def get_connectivity_constraints(model, rvars):
     return s_constraints
 
 
-def get_reactions(model):
+def get_reactions(model, exchange_limit=None):
     """
     Uses the bounds in the model (global bounds) to define lpVariables
+
+    `exchange_limit` is the limit that is additionally imposed on exchange
+    reactions with the extracellular environment
+
     """
     reactions = model.getReactions()
     lbound, ubound = model.getReactionBounds()
+
+    if exchange_limit is not None:
+        lbound, ubound = model.limitUptakeReactions(lbound, ubound, exchange_limit)
+
     rvars = {}
     for reaction in reactions:
         rvar = LpVariable(reaction, lowBound=lbound[reaction], upBound=ubound[reaction])
@@ -79,7 +93,7 @@ def run_iMat(exp_data, model, debug=False):
     EPS = 1
 
     # Add reaction fluxes as variables to the problem
-    reactions, lbound, ubound, rvars = get_reactions(model)
+    reactions, lbound, ubound, rvars = get_reactions(model, exchange_limit=100)
 
     # Score the reactions
     scores = model.getReactionScores(exp_data)
@@ -89,6 +103,9 @@ def run_iMat(exp_data, model, debug=False):
     low_reactions = set()
 
     for reaction in scores:
+
+        if np.isnan(scores[reaction]): continue
+
         if scores[reaction] > RH_THRESH:
             high_reactions.add(reaction)
         elif scores[reaction] < RL_THRESH:
@@ -173,8 +190,8 @@ def run_iMat(exp_data, model, debug=False):
     problem += obj
 
     t_prep = time.time()
-    problem.solve(GLPK_CMD(msg=0))
-    # problem.solve(CPLEX_PY(msg=0))
+    # problem.solve(GLPK_CMD(msg=0))
+    problem.solve(CPLEX_PY(msg=0))
     
     t_solved = time.time()
 

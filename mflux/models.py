@@ -101,6 +101,63 @@ class MetabolicModel(object):
 
         return lbounds, ubounds
 
+    def limitUptakeReactions(self, lower_bounds, upper_bounds, limit):
+        """
+        Limits the rate of metabolite exchange.
+        Operates on the outputs of 'getReactionBounds'
+
+        Applies the limit of `limit` where the limit is non-zero
+        Directionality is preserved
+
+        Exchange reactions are defined as any reaction in which
+        one metabolite is in the extracellular compartment and another is not
+
+        Returns modified dictionaries
+        """
+
+        ex_id = self._getExtracellularCompartmentId()
+
+        for rr in self.model.getListOfReactions():
+
+            species = [x.getSpecies() for x in rr.getListOfReactants()]
+            species = species + [x.getSpecies()
+                                 for x in rr.getListOfProducts()]
+            species = [self.model.getSpecies(x) for x in species]
+
+            compartments = [x.getCompartment() for x in species]
+
+            # Count # of ex_id
+            n = 0
+            for c in compartments:
+                if c == ex_id:
+                    n += 1
+
+            if n > 0 and n < len(compartments): # This is an exchange reaction
+
+                reactionId = rr.getId()
+
+                try:
+                    old_lb = lower_bounds[reactionId]
+                    if old_lb < 0:
+                        lower_bounds[reactionId] = -1 * limit
+                    elif old_lb > 0:
+                        lower_bounds[reactionId] = limit
+                    # Do not modify if limit was equal to 0
+                except KeyError:
+                    pass
+
+                try:
+                    old_ub = upper_bounds[reactionId]
+                    if old_ub < 0:
+                        upper_bounds[reactionId] = -1 * limit
+                    elif old_ub > 0:
+                        upper_bounds[reactionId] = limit
+                    # Do not modify if limit was equal to 0
+                except KeyError:
+                    pass
+
+        return lower_bounds, upper_bounds
+
     def getSMAT(self):
         """
         Returns a sparse form of the s-matrix
@@ -109,7 +166,8 @@ class MetabolicModel(object):
             key: metabolite (species) id
             value: list of 2-tuples (reaction_id, coefficient)
 
-        coefficient is positive if metabolite is produced in the reaction, negative if consumed
+        coefficient is positive if metabolite is produced in the reaction, 
+            negative if consumed
         """
         s_mat = {}
         for rr in self.model.getListOfReactions():
@@ -140,6 +198,38 @@ class MetabolicModel(object):
                 s_mat[metabolite].append((reaction_id, coefficient))
 
         return s_mat
+
+    def getExtracellularMetabolites(self):
+        """
+        Returns a set of the IDs of extracellular metabolites
+        """
+
+        ex_id = self._getExtracellularCompartmentId()
+
+        ex_metabs = set()
+        for met in self.model.getListOfSpecies():
+            if met.getCompartment() == ex_id:
+                ex_metabs.add(met.getId())
+
+        return ex_metabs
+
+    def _getExtracellularCompartmentId(self):
+        """
+        Identifies the extracellular compartment and returns its ID
+        """
+
+        ex_id = []
+        for cp in self.model.getListOfCompartments():
+            if 'extracellular' in cp.getName():
+                ex_id.append(cp.getId())
+
+        if len(ex_id) != 1:
+            raise Exception("Can't Determine Extracellular "
+                            "Compartment in model")
+
+        ex_id = ex_id[0]
+
+        return ex_id
 
 
 def eval_Association(fbmodel, gpa, expression):
