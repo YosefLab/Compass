@@ -8,9 +8,11 @@ from . import utils
 
 import cplex
 
+__all__ = ['run_compass_preprocess']
 
-def run_compass_preprocess(model, debug=False):
-    # type: (pandas.Series, mflux.models.MetabolicModel)
+
+def run_compass_preprocess(model):
+    # type: (mflux.models.MetabolicModel)
     """
     Cplex-optimized - doesn't use PuLP
 
@@ -18,9 +20,9 @@ def run_compass_preprocess(model, debug=False):
     Results in metabolite and reaction scores.
     """
 
+
     # Add reaction fluxes as variables to the problem
-    reactions, lbound, ubound, rvars = utils.get_reactions(
-        model, exchange_limit=100)
+    model.limitUptakeReactions(limit=100)
 
     # Create Constraints
     # Add stoichiometry constraints
@@ -47,10 +49,11 @@ def run_compass_preprocess(model, debug=False):
     problem.set_results_stream(None)  # Suppress results to output
 
     # Add variables
+    reactions = list(model.reactions.values())
     problem.variables.add(
-        names=reactions,
-        ub=[ubound[x] for x in reactions],
-        lb=[lbound[x] for x in reactions])
+        names=[x.id for x in reactions],
+        ub=[x.upper_bound for x in reactions],
+        lb=[x.lower_bound for x in reactions],)
 
     # Add constraints
     problem.linear_constraints.add(

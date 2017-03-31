@@ -80,27 +80,3 @@ def get_connectivity_constraints_cplex(model):
         names.append(metab)
 
     return lin_expr, senses, rhs, names
-
-
-def get_reactions(model, exchange_limit=None):
-    """
-    Uses the bounds in the model (global bounds) to define lpVariables
-
-    `exchange_limit` is the limit that is additionally imposed on exchange
-    reactions with the extracellular environment
-
-    """
-    reactions = model.getReactions()
-    lbound, ubound = model.getReactionBounds()
-
-    if exchange_limit is not None:
-        lbound, ubound = model.limitUptakeReactions(lbound, ubound, exchange_limit)
-
-    rvars = {}
-    for reaction in reactions:
-        rvar = LpVariable(reaction, lowBound=lbound[reaction], upBound=ubound[reaction])
-        rvars[reaction] = rvar
-
-    return reactions, lbound, ubound, rvars
-
-

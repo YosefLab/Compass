@@ -4,7 +4,6 @@ For working with metabolic models
 from __future__ import print_function, division
 import os
 import libsbml
-import pandas as pd
 from .globals import RESOURCE_DIR
 
 MODEL_DIR = os.path.join(RESOURCE_DIR, 'Metabolic Models')
@@ -15,20 +14,72 @@ def load_metabolic_model(file_name):
     Loads the metabolic model from `file_name`, returning a Model object
     """
 
+    if file_name.endswith('.xml'):
+        return load_metabolic_model_xml(file_name)
+    else:
+        raise NotImplementedError("Can only handle xml currently")
+
+
+def load_metabolic_model_xml(file_name):
+
     full_path = os.path.join(MODEL_DIR, file_name)
     sbmlDocument = libsbml.readSBMLFromFile(full_path)
+    xml_model = sbmlDocument.model
 
-    model = MetabolicModel(sbmlDocument)
+    # Load Model Parameters
+    xml_params = {}
+    for pp in xml_model.getListOfParameters():
+        key = pp.getId()
+        val = pp.getValue()
+        xml_params[key] = val
 
-    return model
+    modelx = MetabolicModel()
+
+    # Add reactions
+    for rr in xml_model.getListOfReactions():
+        reaction = Reaction(xml_node=rr, xml_params=xml_params)
+        modelx.reactions[reaction.id] = reaction
+
+    # Add compartments
+    for cp in xml_model.getListOfCompartments():
+        compartment = Compartment(xml_node=cp)
+        modelx.compartments[compartment.id] = compartment
+
+    # Add species
+    for met in xml_model.getListOfSpecies():
+        species = Species(xml_node=met, model=modelx)
+        modelx.species[species.id] = species
+
+    return modelx
 
 
 class MetabolicModel(object):
 
-    def __init__(self, sbmlDocument):
-        self.sbmlDocument = sbmlDocument  # If you don't save this, get seg faults for some reason
-        self.model = sbmlDocument.model
-        self.fbmodel = self.model.getPlugin('fbc')
+    def __init__(self):
+        self.reactions = {}
+        self.species = {}
+        self.compartments = {}
+        self.objectives = {}
+
+    def getReactions(self):
+        """
+        Returns a list of reaction id's in the MetabolicModel
+        """
+        return list(self.reactions.keys())
+
+    def getReactionBounds(self):
+        """
+        Returns two dicts, each mapping reaction id -> bound
+
+        Returns:
+            lower_bounds
+            upper_bounds
+        """
+
+        lower_bounds = {x.id: x.lower_bound for x in self.reactions.values()}
+        upper_bounds = {x.id: x.upper_bound for x in self.reactions.values()}
+
+        return lower_bounds, upper_bounds
 
     def getReactionScores(self, expression):
         # type: (pandas.Series) -> dict
@@ -42,69 +93,17 @@ class MetabolicModel(object):
             val: reaction score (float)
         """
 
-        reaction_list = self.model.getListOfReactions()
         score_dict = {}
-        for reaction in reaction_list:
-            fbc_reaction = reaction.getPlugin('fbc')
 
-            gpa = fbc_reaction.getGeneProductAssociation()
-
-            if gpa is None:
-                score_dict[reaction.getId()] = float('nan')
-            else:
-                score = eval_Association(self.fbmodel, gpa.getAssociation(), expression)
-                score_dict[reaction.getId()] = score
+        for r_id, reaction in self.reactions.items():
+            score = reaction.eval_score(expression)
+            score_dict[r_id] = score
 
         return score_dict
 
-    def getReactions(self):
-        """
-        Returns a list of reaction id's in the MetabolicModel
-        """
-        r_ids = []
-        for rr in self.model.getListOfReactions():
-            r_ids.append(rr.getId())
-
-        return r_ids
-
-    def getReactionBounds(self):
-        """
-        Returns two dicts, each mapping reaction id -> bound
-
-        Returns:
-            lower_bounds
-            upper_bounds
-        """
-        # Load parameters
-        params = {}
-        for pp in self.model.getListOfParameters():
-            key = pp.getId()
-            val = pp.getValue()
-            params[key] = val
-
-        lbounds = {}
-        ubounds = {}
-        for rr in self.model.getListOfReactions():
-            fbcrr = rr.getPlugin('fbc')
-            ub = fbcrr.getUpperFluxBound()
-            if isinstance(ub, str):
-                ub = params[ub]
-
-            lb = fbcrr.getLowerFluxBound()
-            if isinstance(lb, str):
-                lb = params[lb]
-
-            reactionId = rr.getId()
-
-            lbounds[reactionId] = lb
-            ubounds[reactionId] = ub
-
-        return lbounds, ubounds
-
-    def limitUptakeReactions(self, lower_bounds, upper_bounds, limit):
+    def limitUptakeReactions(self, limit):
         """
         Limits the rate of metabolite exchange.
-        Operates on the outputs of 'getReactionBounds'
 
         Applies the limit of `limit` where the limit is non-zero
         Directionality is preserved
@@ -112,51 +111,41 @@ class MetabolicModel(object):
         Exchange reactions are defined as any reaction in which
         one metabolite is in the extracellular compartment and another is not
 
-        Returns modified dictionaries
+        Does not return anything - modifies objects in place
         """
 
         ex_id = self._getExtracellularCompartmentId()
 
-        for rr in self.model.getListOfReactions():
+        for rr in self.reactions.values():
 
-            species = [x.getSpecies() for x in rr.getListOfReactants()]
-            species = species + [x.getSpecies()
-                                 for x in rr.getListOfProducts()]
-            species = [self.model.getSpecies(x) for x in species]
+            species = list(rr.reactants.keys())
+            species = species + list(rr.products.keys())
 
-            compartments = [x.getCompartment() for x in species]
+            species = [self.species[x] for x in species]
+
+            compartments = [x.compartment for x in species]
 
             # Count # of ex_id
             n = 0
             for c in compartments:
-                if c == ex_id:
+                if c.id == ex_id:
                     n += 1
 
-            if n > 0 and n < len(compartments): # This is an exchange reaction
+            if n > 0 and n < len(compartments):  # This is an exchange reaction
 
-                reactionId = rr.getId()
+                old_lb = rr.lower_bound
+                if old_lb < 0:
+                    rr.lower_bound = -1 * limit
+                elif old_lb > 0:
+                    rr.lower_bound = limit
+                # Do not modify if limit was equal to 0
 
-                try:
-                    old_lb = lower_bounds[reactionId]
-                    if old_lb < 0:
-                        lower_bounds[reactionId] = -1 * limit
-                    elif old_lb > 0:
-                        lower_bounds[reactionId] = limit
-                    # Do not modify if limit was equal to 0
-                except KeyError:
-                    pass
-
-                try:
-                    old_ub = upper_bounds[reactionId]
-                    if old_ub < 0:
-                        upper_bounds[reactionId] = -1 * limit
-                    elif old_ub > 0:
-                        upper_bounds[reactionId] = limit
-                    # Do not modify if limit was equal to 0
-                except KeyError:
-                    pass
-
-        return lower_bounds, upper_bounds
+                old_ub = rr.upper_bound
+                if old_ub < 0:
+                    rr.upper_bound = -1 * limit
+                elif old_ub > 0:
+                    rr.upper_bound = limit
+                # Do not modify if limit was equal to 0
 
     def getSMAT(self):
         """
@@ -166,31 +155,22 @@ class MetabolicModel(object):
             key: metabolite (species) id
             value: list of 2-tuples (reaction_id, coefficient)
 
-        coefficient is positive if metabolite is produced in the reaction, 
+        coefficient is positive if metabolite is produced in the reaction,
             negative if consumed
         """
         s_mat = {}
-        for rr in self.model.getListOfReactions():
-
-            reaction_id = rr.getId()
+        for reaction_id, rr in self.reactions.items():
 
             # reactants
-            for sr in rr.getListOfReactants():
-
-                metabolite = sr.getSpecies()
-                coefficient = sr.getStoichiometry()
-                coefficient *= -1
+            for metabolite, coefficient in rr.reactants.items():
 
                 if metabolite not in s_mat:
                     s_mat[metabolite] = []
 
-                s_mat[metabolite].append((reaction_id, coefficient))
+                s_mat[metabolite].append((reaction_id, coefficient * -1))
 
             # products
-            for sr in rr.getListOfProducts():
-
-                metabolite = sr.getSpecies()
-                coefficient = sr.getStoichiometry()
+            for metabolite, coefficient in rr.products.items():
 
                 if metabolite not in s_mat:
                     s_mat[metabolite] = []
@@ -207,9 +187,9 @@ class MetabolicModel(object):
         ex_id = self._getExtracellularCompartmentId()
 
         ex_metabs = set()
-        for met in self.model.getListOfSpecies():
-            if met.getCompartment() == ex_id:
-                ex_metabs.add(met.getId())
+        for met_id, met in self.species.items():
+            if met.compartment.id == ex_id:
+                ex_metabs.add(met_id)
 
         return ex_metabs
 
@@ -219,9 +199,10 @@ class MetabolicModel(object):
         """
 
         ex_id = []
-        for cp in self.model.getListOfCompartments():
-            if 'extracellular' in cp.getName():
-                ex_id.append(cp.getId())
+
+        for cp in self.compartments.values():
+            if 'extracellular' in cp.name:
+                ex_id.append(cp.id)
 
         if len(ex_id) != 1:
             raise Exception("Can't Determine Extracellular "
@@ -232,34 +213,195 @@ class MetabolicModel(object):
         return ex_id
 
 
-def eval_Association(fbmodel, gpa, expression):
-    # type: (libsbml.FbcModelPlugin, libsbml.FbcAssociation, pandas.Series) -> float
-    """
-    Parses the relationships in a FbcAssociation and evaluates the resulting expression value
+class Reaction(object):
+    # Bounds
+    # Reactants (and coefficients)
+    # Products (and coefficients)
+    # Gene Associations
 
-    For an AND association, return the minimum
-    For an OR association, return the max
+    def __init__(self, xml_node=None, xml_params=None):
 
-    Currently, missing genes are treated as 0's.
-    """
+        if xml_node is not None and xml_params is not None:
+            Reaction.__init__xml(self, xml_node, xml_params)
 
-    if isinstance(gpa, libsbml.FbcOr):
-        vals = [eval_Association(fbmodel, x, expression) for x in gpa.getListOfAssociations()]
-        return max(vals)
+        else:
 
-    elif isinstance(gpa, libsbml.FbcAnd):
-        vals = [eval_Association(fbmodel, x, expression) for x in gpa.getListOfAssociations()]
-        return min(vals)
+            self.id = ""
+            self.upper_bound = float('nan')
+            self.lower_bound = float('nan')
+            self.reactants = {}
+            self.products = {}
+            self.gene_associations = None
 
-    elif isinstance(gpa, libsbml.GeneProductRef):
-        gp_str = gpa.getGeneProduct()
-        gp = fbmodel.getGeneProduct(gp_str)
-        gene_name = gp.getName()
+    def __init__xml(self, xml_node, xml_params):
+        """
+        Build the reaction from the xml node
 
-        try:
-            return expression[gene_name]
-        except KeyError:
-            return 0.0
+        Needs xml_params for bounds
+        """
+        self.id = xml_node.getId()
 
-    else:
-        raise ValueError("Unknown input type: " + type(gpa))
+        # Lower and upper bounds
+
+        fbcrr = xml_node.getPlugin('fbc')
+        ub = fbcrr.getUpperFluxBound()
+        if isinstance(ub, str):
+            ub = xml_params[ub]
+
+        lb = fbcrr.getLowerFluxBound()
+        if isinstance(lb, str):
+            lb = xml_params[lb]
+
+        self.upper_bound = ub
+        self.lower_bound = lb
+
+        # Reactants and products
+
+        # Reactants
+        self.reactants = {}
+        for sr in xml_node.getListOfReactants():
+
+            metabolite = sr.getSpecies()
+            coefficient = sr.getStoichiometry()
+
+            self.reactants.update({
+                metabolite: coefficient
+            })
+
+        # Products
+        self.products = {}
+        for sr in xml_node.getListOfProducts():
+
+            metabolite = sr.getSpecies()
+            coefficient = sr.getStoichiometry()
+
+            self.products.update({
+                metabolite: coefficient
+            })
+
+        # Gene Associations
+        gpa = fbcrr.getGeneProductAssociation()
+
+        if gpa is None:
+            self.gene_associations = None
+        else:
+            self.gene_associations = Association(xml_node=gpa.getAssociation())
+
+    def eval_score(self, score_dict):
+        """
+        Evalutes a reaction score.
+        Returns 'nan' if there is no gene association
+        """
+
+        if self.gene_associations is None:
+            return float('nan')
+        else:
+            return self.gene_associations.eval_score(score_dict)
+
+
+class Species(object):
+
+    def __init__(self, model, xml_node=None):
+        if xml_node is not None:
+            Species.__init__xml(self, model, xml_node)
+        else:
+            self.id = ""
+            self.compartment = ""
+
+    def __init__xml(self, model, xml_node):
+
+        self.id = xml_node.getId()
+        self.compartment = model.compartments[
+            xml_node.getCompartment()]
+
+
+class Compartment(object):
+
+    def __init__(self, xml_node=None):
+        if xml_node is not None:
+            Compartment.__init__xml(self, xml_node)
+        else:
+            self.id = ""
+            self.name = ""
+
+    def __init__xml(self, xml_node):
+
+        self.id = xml_node.getId()
+        self.name = xml_node.getName()
+
+
+class Association(object):
+
+    def __init__(self, xml_node=None):
+        if xml_node is not None:
+            Association.__init__xml(self, xml_node)
+        else:
+            self.type = ''
+            self.gene = None
+            self.children = []
+
+    def __init__xml(self, xml_node):
+
+        if isinstance(xml_node, libsbml.FbcOr):
+            self.type = 'or'
+            self.gene = None
+            self.children = [Association(xml_node=x)
+                             for x in xml_node.getListOfAssociations()]
+
+        elif isinstance(xml_node, libsbml.FbcAnd):
+            self.type = 'and'
+            self.gene = None
+            self.children = [Association(xml_node=x)
+                             for x in xml_node.getListOfAssociations()]
+
+        elif isinstance(xml_node, libsbml.GeneProductRef):
+            self.type = 'gene'
+            self.children = []
+
+            gp_str = xml_node.getGeneProduct()
+
+            fbmodel = xml_node.getSBMLDocument().model.getPlugin('fbc')
+            gp = fbmodel.getGeneProduct(gp_str)
+
+            self.gene = Gene(xml_node=gp)
+
+        else:
+            raise ValueError("Unknown input type: " + type(xml_node))
+
+    def eval_score(self, gene_scores):
+        """
+        Matches genes with scores
+        Combines 'or' associations with 'max'
+        Combines 'and' associations with 'min'
+        """
+
+        if self.type == 'and':
+            return min([x.eval_score(gene_scores) for x in self.children])
+
+        elif self.type == 'or':
+            return max([x.eval_score(gene_scores) for x in self.children])
+
+        elif self.type == 'gene':
+
+            try:
+                return gene_scores[self.gene.name]
+            except KeyError:
+                return 0.0
+
+        else:
+            raise Exception("Unknown Association Type")
+
+
+class Gene(object):
+
+    def __init__(self, xml_node=None):
+        if xml_node is not None:
+            Gene.__init__xml(self, xml_node)
+        else:
+            self.id = ''
+            self.name = ''
+
+    def __init__xml(self, xml_node):
+
+        self.id = xml_node.getId()
+        self.name = xml_node.getName().upper()
