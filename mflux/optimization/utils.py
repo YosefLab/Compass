@@ -32,13 +32,9 @@ def get_connectivity_constraints(model, rvars):
     """
     s_constraints = []
     s_mat = model.getSMAT()
-    ex_metabolites = model.getExtracellularMetabolites()
 
     for metab, rx in s_mat.items():
         if len(rx) == 0:
-            continue
-
-        if metab in ex_metabolites:
             continue
 
         exp = LpAffineExpression()
@@ -57,7 +53,6 @@ def get_connectivity_constraints_cplex(model):
     Uses the s_mat to define connectivity constraints
     """
     s_mat = model.getSMAT()
-    ex_metabolites = model.getExtracellularMetabolites()
 
     lin_expr = []
     senses = []
@@ -66,9 +61,6 @@ def get_connectivity_constraints_cplex(model):
 
     for metab, rx in s_mat.items():
         if len(rx) == 0:
-            continue
-
-        if metab in ex_metabolites:
             continue
 
         ind = [x[0] for x in rx]

@@ -5,6 +5,7 @@ from __future__ import print_function, division, absolute_import
 from tqdm import tqdm
 
 from . import utils
+from .. import models
 
 import cplex
 
@@ -23,6 +24,9 @@ def run_compass_preprocess(model):
 
     # Add reaction fluxes as variables to the problem
     model.limitUptakeReactions(limit=100)
+
+    # Split fluxes into _pos / _neg
+    model.make_unidirectional()
 
     # Create Constraints
     # Add stoichiometry constraints
@@ -100,9 +104,8 @@ def run_compass_preprocess(model):
             names=[metabolite],
         )
 
-    # For each reaction, maximize and minimize its flux
+    # For each reaction, maximize its flux
     r_max = {}
-    r_min = {}
     print("COMPASS Preprocess:  Evaluate Reaction Scores")
     for rr in tqdm(reactions):
 
@@ -110,16 +113,10 @@ def run_compass_preprocess(model):
             [(rr, 1)]
         )
 
-        # Minimize
-        problem.objective.set_sense(problem.objective.sense.minimize)
-        problem.solve()
-        value = problem.solution.get_objective_value()
-        r_min[metabolite] = value
-
         # Maximize
         problem.objective.set_sense(problem.objective.sense.maximize)
         problem.solve()
         value = problem.solution.get_objective_value()
         r_max[metabolite] = value
 
-    return m_min, m_max, r_min, r_max
+    return m_min, m_max, r_max

@@ -81,11 +81,11 @@ class MetabolicModel(object):
 
         return lower_bounds, upper_bounds
 
-    def getReactionScores(self, expression):
+    def getReactionExpression(self, expression):
         # type: (pandas.Series) -> dict
         """
         Evaluates a score for every reaction, using the expression data.
-        This is used for constraint generation.
+        This is used for constraint/penalty generation.
         If a score cannot be computed, NaN is used to fill
 
         Returns a dict:
@@ -96,7 +96,7 @@ class MetabolicModel(object):
         score_dict = {}
 
         for r_id, reaction in self.reactions.items():
-            score = reaction.eval_score(expression)
+            score = reaction.eval_expression(expression)
             score_dict[r_id] = score
 
         return score_dict
@@ -109,43 +109,29 @@ class MetabolicModel(object):
         Directionality is preserved
 
         Exchange reactions are defined as any reaction in which
-        one metabolite is in the extracellular compartment and another is not
+        metabolites are produced from nothing
 
         Does not return anything - modifies objects in place
         """
 
-        ex_id = self._getExtracellularCompartmentId()
+        exchanges = {r_id: r for r_id, r in self.reactions.items()
+                     if r.is_exchange}
 
-        for rr in self.reactions.values():
+        # Make sure all exchange reactions have reactants but no products
+        # Instead of the opposite
+        for reaction in exchanges.values():
+            if len(reaction.products) > 0 and len(reaction.reactants) == 0:
+                reaction.invert()
 
-            species = list(rr.reactants.keys())
-            species = species + list(rr.products.keys())
+        # Negative flux now means that metabolites are created
+        # Limit this rate
+        for reaction in exchanges.values():
 
-            species = [self.species[x] for x in species]
+            if reaction.lower_bound < -1 * limit:
+                reaction.lower_bound = -1 * limit
 
-            compartments = [x.compartment for x in species]
-
-            # Count # of ex_id
-            n = 0
-            for c in compartments:
-                if c.id == ex_id:
-                    n += 1
-
-            if n > 0 and n < len(compartments):  # This is an exchange reaction
-
-                old_lb = rr.lower_bound
-                if old_lb < 0:
-                    rr.lower_bound = -1 * limit
-                elif old_lb > 0:
-                    rr.lower_bound = limit
-                # Do not modify if limit was equal to 0
-
-                old_ub = rr.upper_bound
-                if old_ub < 0:
-                    rr.upper_bound = -1 * limit
-                elif old_ub > 0:
-                    rr.upper_bound = limit
-                # Do not modify if limit was equal to 0
+            if reaction.upper_bound < -1 * limit:
+                reaction.upper_bound = -1 * limit
 
     def getSMAT(self):
         """
@@ -179,38 +165,57 @@ class MetabolicModel(object):
 
         return s_mat
 
-    def getExtracellularMetabolites(self):
+    def make_unidirectional(self):
         """
-        Returns a set of the IDs of extracellular metabolites
+        Splits every reaction into a positive and negative counterpart
         """
+        uni_reactions = {}
+        for reaction in self.reactions.values():
 
-        ex_id = self._getExtracellularCompartmentId()
+            # Copy the pos_reaction
+            pos_reaction = Reaction(from_reaction=reaction)
 
-        ex_metabs = set()
-        for met_id, met in self.species.items():
-            if met.compartment.id == ex_id:
-                ex_metabs.add(met_id)
+            # Copy the negative reaction and Invert
+            neg_reaction = Reaction(from_reaction=reaction)
+            neg_reaction.invert()
 
-        return ex_metabs
+            # Adjust bounds for both
+            # Examples
+            # Positive: Original -> Clipped
+            #             0:10   -> 0:10
+            #           -10:0    -> 0:0
+            #             5:7    -> 5:7
+            #            -9:-5   -> 0:0
+            #
+            # Negative: Original -> Flipped -> Clipped
+            #             0:10   -> -10:0   -> 0:0
+            #           -10:0    ->   0:10  -> 0:10
+            #             5:7    ->  -7:-5  -> 0:0
+            #            -9:-5   ->   5:9   -> 5:9
 
-    def _getExtracellularCompartmentId(self):
-        """
-        Identifies the extracellular compartment and returns its ID
-        """
+            if pos_reaction.upper_bound < 0:
+                pos_reaction.upper_bound = 0
 
-        ex_id = []
+            if pos_reaction.lower_bound < 0:
+                pos_reaction.lower_bound = 0
 
-        for cp in self.compartments.values():
-            if 'extracellular' in cp.name:
-                ex_id.append(cp.id)
+            if neg_reaction.upper_bound < 0:
+                neg_reaction.upper_bound = 0
 
-        if len(ex_id) != 1:
-            raise Exception("Can't Determine Extracellular "
-                            "Compartment in model")
+            if neg_reaction.lower_bound < 0:
+                neg_reaction.lower_bound = 0
 
-        ex_id = ex_id[0]
+            pos_reaction.id = pos_reaction.id + "_pos"
+            neg_reaction.id = neg_reaction.id + "_neg"
 
-        return ex_id
+            uni_reactions[pos_reaction.id] = pos_reaction
+            uni_reactions[neg_reaction.id] = neg_reaction
+
+        self.reactions = uni_reactions
+
+        # Remove reactions that can't carry flux
+        self.reactions = {r_id: r for r_id, r in self.reactions.items()
+                          if r.upper_bound > 0}
 
 
 class Reaction(object):
@@ -219,12 +224,22 @@ class Reaction(object):
     # Products (and coefficients)
     # Gene Associations
 
-    def __init__(self, xml_node=None, xml_params=None):
+    def __init__(self, xml_node=None, xml_params=None,
+                 from_reaction=None):
 
         if xml_node is not None and xml_params is not None:
             Reaction.__init__xml(self, xml_node, xml_params)
 
-        else:
+        elif from_reaction is not None:  # Copy constructor
+
+            self.id = from_reaction.id
+            self.upper_bound = from_reaction.upper_bound
+            self.lower_bound = from_reaction.lower_bound
+            self.reactants = from_reaction.reactants.copy()
+            self.products = from_reaction.products.copy()
+            self.gene_associations = from_reaction.gene_associations
+
+        else:  # Placeholders
 
             self.id = ""
             self.upper_bound = float('nan')
@@ -287,16 +302,43 @@ class Reaction(object):
         else:
             self.gene_associations = Association(xml_node=gpa.getAssociation())
 
-    def eval_score(self, score_dict):
+    def eval_expression(self, expression):
         """
-        Evalutes a reaction score.
+        Evalutes a reaction expression.
         Returns 'nan' if there is no gene association
         """
 
         if self.gene_associations is None:
             return float('nan')
         else:
-            return self.gene_associations.eval_score(score_dict)
+            return self.gene_associations.eval_expression(expression)
+
+    def invert(self):
+        """
+        Inverts the directionality of the reaction in-place
+        """
+
+        products = self.products
+        reactants = self.reactants
+
+        self.reactants = products
+        self.products = reactants
+
+        lower = self.lower_bound
+        upper = self.upper_bound
+
+        self.upper_bound = lower * -1
+        self.lower_bound = upper * -1
+
+    @property
+    def is_exchange(self):
+
+        if len(self.products) == 0 and len(self.reactants) > 0:
+            return True
+        elif len(self.reactants) == 0 and len(self.products) > 0:
+            return True
+        else:
+            return False
 
 
 class Species(object):
@@ -368,23 +410,23 @@ class Association(object):
         else:
             raise ValueError("Unknown input type: " + type(xml_node))
 
-    def eval_score(self, gene_scores):
+    def eval_expression(self, expression):
         """
         Matches genes with scores
-        Combines 'or' associations with 'max'
+        Combines 'or' associations with 'sum'
         Combines 'and' associations with 'min'
         """
 
         if self.type == 'and':
-            return min([x.eval_score(gene_scores) for x in self.children])
+            return min([x.eval_expression(expression) for x in self.children])
 
         elif self.type == 'or':
-            return max([x.eval_score(gene_scores) for x in self.children])
+            return sum([x.eval_expression(expression) for x in self.children])
 
         elif self.type == 'gene':
 
             try:
-                return gene_scores[self.gene.name]
+                return expression[self.gene.name]
             except KeyError:
                 return 0.0
 
