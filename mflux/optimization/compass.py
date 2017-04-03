@@ -39,7 +39,7 @@ def run_compass(model, expression):
 
     # Run/load pre-processes
 
-    m_min, m_max, r_max = run_compass_preprocess(model, problem)
+    m_uptake, m_secrete, r_max = run_compass_preprocess(model, problem)
 
     # For each cell/sample
     # Eval expression scores
@@ -60,7 +60,7 @@ def run_compass(model, expression):
             model, problem, r_max, reaction_penalties)
 
         uptake_scores, secretion_scores = compass_exchange(
-            model, problem, reaction_penalties)
+            model, problem, m_uptake, m_secrete, reaction_penalties)
 
         all_reaction_scores[sample] = pd.Series(reaction_scores)
         all_uptake_scores[sample] = pd.Series(uptake_scores)
@@ -90,7 +90,7 @@ def eval_reaction_penalties(model, expression_data):
     return reaction_penalties
 
 
-def compass_exchange(model, problem, reaction_penalties):
+def compass_exchange(model, problem, m_uptake, m_secrete, reaction_penalties):
     """
     Iterates through metabolites, finding each's max
     uptake and secretion potentials.
@@ -193,15 +193,17 @@ def compass_exchange(model, problem, reaction_penalties):
             old_secretion_upper[rxn_id] = old_ub
             problem.variables.set_upper_bounds(rxn_id, 0.0)
 
-        # Maximize secretion
-        problem.objective.set_linear(
-            [(secretion_rxn, 1)]
-        )
+        # # Maximize secretion
+        # problem.objective.set_linear(
+        #     [(secretion_rxn, 1)]
+        # )
 
-        # Maximize
-        problem.objective.set_sense(problem.objective.sense.maximize)
-        problem.solve()
-        secretion_max = problem.solution.get_objective_value()
+        # # Maximize
+        # problem.objective.set_sense(problem.objective.sense.maximize)
+        # problem.solve()
+        # secretion_max = problem.solution.get_objective_value()
+
+        secretion_max = m_secrete[metabolite.id]
 
         # Set contraint of max secretion with BETA*max
         problem.linear_constraints.add(
@@ -249,15 +251,17 @@ def compass_exchange(model, problem, reaction_penalties):
             old_secretion_upper[rxn_id] = old_ub
             problem.variables.set_upper_bounds(rxn_id, 0.0)
 
-        # Maximize uptake
-        problem.objective.set_linear(
-            [(uptake_rxn, 1)]
-        )
+        # # Maximize uptake
+        # problem.objective.set_linear(
+        #     [(uptake_rxn, 1)]
+        # )
 
-        # Maximize
-        problem.objective.set_sense(problem.objective.sense.maximize)
-        problem.solve()
-        uptake_max = problem.solution.get_objective_value()
+        # # Maximize
+        # problem.objective.set_sense(problem.objective.sense.maximize)
+        # problem.solve()
+        # uptake_max = problem.solution.get_objective_value()
+
+        uptake_max = m_uptake[metabolite.id]
 
         # Set contraint of max uptake with BETA*max
         problem.linear_constraints.add(
@@ -509,22 +513,22 @@ def run_compass_preprocess(model, problem, use_cache=True):
         with open(cache_file) as fin:
             out = json.load(fin)
 
-        m_min = out['m_min']
-        m_max = out['m_max']
+        m_uptake = out['m_uptake']
+        m_secrete = out['m_secrete']
         r_max = out['r_max']
 
     # Otherwise, run and store results
-    m_min, m_max = preprocess_metabolites(model, problem)
+    m_uptake, m_secrete = preprocess_metabolites(model, problem)
 
     r_max = preprocess_reactions(model, problem)
 
     cache_data = {
-        'm_min': m_min,
-        'm_max': m_max,
+        'm_uptake': m_uptake,
+        'm_secrete': m_secrete,
         'r_max': r_max
     }
 
     with open(cache_file, 'w') as fout:
         json.dump(cache_data, fout, indent=1)
 
-    return m_min, m_max, r_max
+    return m_uptake, m_secrete, r_max
