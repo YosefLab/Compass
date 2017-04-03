@@ -33,7 +33,8 @@ def load_metabolic_model_xml(file_name):
         val = pp.getValue()
         xml_params[key] = val
 
-    modelx = MetabolicModel()
+    name = os.path.basename(file_name)
+    modelx = MetabolicModel(name)
 
     # Add reactions
     for rr in xml_model.getListOfReactions():
@@ -55,7 +56,8 @@ def load_metabolic_model_xml(file_name):
 
 class MetabolicModel(object):
 
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
         self.reactions = {}
         self.species = {}
         self.compartments = {}
@@ -428,7 +430,7 @@ class Association(object):
             try:
                 return expression[self.gene.name]
             except KeyError:
-                return 0.0
+                return float('nan')
 
         else:
             raise Exception("Unknown Association Type")
