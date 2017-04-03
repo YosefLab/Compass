@@ -103,7 +103,7 @@ class MetabolicModel(object):
 
         return score_dict
 
-    def limitUptakeReactions(self, limit):
+    def limitExchangeReactions(self, limit):
         """
         Limits the rate of metabolite exchange.
 
@@ -132,8 +132,8 @@ class MetabolicModel(object):
             if reaction.lower_bound < -1 * limit:
                 reaction.lower_bound = -1 * limit
 
-            if reaction.upper_bound < -1 * limit:
-                reaction.upper_bound = -1 * limit
+            #if reaction.upper_bound < limit:
+            #    reaction.upper_bound = limit
 
     def getSMAT(self):
         """

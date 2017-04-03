@@ -19,6 +19,7 @@ if not os.path.isdir(PREPROCESS_CACHE_DIR):
     os.mkdir(PREPROCESS_CACHE_DIR)
 
 BETA = 0.95  # Used to constrain model near optimal point
+EXCHANGE_LIMIT = 1000.0  # Limit for exchange reactions
 
 
 def run_compass(model, expression):
@@ -26,10 +27,9 @@ def run_compass(model, expression):
     """
     Runs COMPASS on many samples
     """
-    EXCHANGE_LIMIT = 100
 
     # Limit exchange reactions
-    model.limitUptakeReactions(limit=EXCHANGE_LIMIT)
+    model.limitExchangeReactions(limit=EXCHANGE_LIMIT)
 
     # Split fluxes into _pos / _neg
     model.make_unidirectional()
@@ -150,7 +150,7 @@ def compass_exchange(model, problem, m_uptake, m_secrete, reaction_penalties):
             # Add uptake reaction to the problem as a variable
             problem.variables.add(
                 names=[uptake_rxn],
-                ub=[1000.0],
+                ub=[EXCHANGE_LIMIT],
                 lb=[0.0],)
 
             # Add it to the metabolites constraint
@@ -164,7 +164,7 @@ def compass_exchange(model, problem, m_uptake, m_secrete, reaction_penalties):
             # Add secretion reaction to the problem as a variable
             problem.variables.add(
                 names=[secretion_rxn],
-                ub=[1000.0],
+                ub=[EXCHANGE_LIMIT],
                 lb=[0.0],)
 
             # Add it to the metabolites constraint
