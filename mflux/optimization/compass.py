@@ -11,7 +11,7 @@ from . import utils
 
 import cplex
 
-__all__ = ['run_compass_preprocess']
+__all__ = ['run_compass_preprocess', 'run_compass']
 
 from ..globals import RESOURCE_DIR
 PREPROCESS_CACHE_DIR = os.path.join(RESOURCE_DIR, 'COMPASS')
@@ -194,6 +194,7 @@ def compass_exchange(model, problem, m_uptake, m_secrete, reaction_penalties):
             problem.variables.set_upper_bounds(rxn_id, 0.0)
 
         # # Maximize secretion
+        # utils.reset_objective(problem)
         # problem.objective.set_linear(
         #     [(secretion_rxn, 1)]
         # )
@@ -213,6 +214,7 @@ def compass_exchange(model, problem, m_uptake, m_secrete, reaction_penalties):
             names=['SECRETION_OPT'])
 
         # Find minimimum penalty
+        utils.reset_objective(problem)
         problem.objective.set_linear(
             list(reaction_penalties.iteritems())
         )
@@ -252,6 +254,7 @@ def compass_exchange(model, problem, m_uptake, m_secrete, reaction_penalties):
             problem.variables.set_upper_bounds(rxn_id, 0.0)
 
         # # Maximize uptake
+        # utils.reset_objective(problem)
         # problem.objective.set_linear(
         #     [(uptake_rxn, 1)]
         # )
@@ -271,6 +274,7 @@ def compass_exchange(model, problem, m_uptake, m_secrete, reaction_penalties):
             names=['UPTAKE_OPT'])
 
         # Find minimimum penalty
+        utils.reset_objective(problem)
         problem.objective.set_linear(
             list(reaction_penalties.iteritems())
         )
@@ -316,6 +320,7 @@ def compass_reactions(model, problem, r_max, reaction_penalties):
     """
 
     # Create overall penalty as the objective function to minimize
+    utils.reset_objective(problem)
     problem.objective.set_linear(
         list(reaction_penalties.iteritems())
     )
@@ -445,6 +450,8 @@ def preprocess_metabolites(model, problem):
         # Set new objective
         sp = metabolite_constraint['lin_expr']
         ind, val = sp.unpack()
+
+        utils.reset_objective(problem)
         problem.objective.set_linear(
             [(i, v) for i, v in zip(ind, val)]
         )
@@ -483,6 +490,23 @@ def preprocess_reactions(model, problem):
     print("COMPASS Preprocess:  Evaluate Reaction Scores")
     for rr in tqdm(model.reactions.keys()):
 
+        partner_rr = None
+        # Get partner reaction if it exists
+        if rr.endswith('_pos'):
+            partner_rr = rr.rsplit("_pos", 1)[0] + "_neg"
+        elif rr.endswith('_neg'):
+            partner_rr = rr.rsplit("_neg", 1)[0] + "_pos"
+        else:
+            partner_rr = None
+
+        if partner_rr not in model.reactions:  # Some reactions are pruned
+            partner_rr = None
+
+        if partner_rr is not None:
+            old_ub = problem.variables.get_upper_bounds(partner_rr)
+            problem.variables.set_upper_bounds(partner_rr, 0.0)
+
+        utils.reset_objective(problem)
         problem.objective.set_linear(
             [(rr, 1)]
         )
@@ -492,6 +516,10 @@ def preprocess_reactions(model, problem):
         problem.solve()
         value = problem.solution.get_objective_value()
         r_max[rr] = value
+
+        # Turn partner reaction back on
+        if partner_rr is not None:
+            problem.variables.set_upper_bounds(partner_rr, old_ub)
 
     return r_max
 
@@ -517,18 +545,20 @@ def run_compass_preprocess(model, problem, use_cache=True):
         m_secrete = out['m_secrete']
         r_max = out['r_max']
 
-    # Otherwise, run and store results
-    m_uptake, m_secrete = preprocess_metabolites(model, problem)
+    else:
 
-    r_max = preprocess_reactions(model, problem)
+        # Otherwise, run and store results
+        m_uptake, m_secrete = preprocess_metabolites(model, problem)
 
-    cache_data = {
-        'm_uptake': m_uptake,
-        'm_secrete': m_secrete,
-        'r_max': r_max
-    }
+        r_max = preprocess_reactions(model, problem)
 
-    with open(cache_file, 'w') as fout:
-        json.dump(cache_data, fout, indent=1)
+        cache_data = {
+            'm_uptake': m_uptake,
+            'm_secrete': m_secrete,
+            'r_max': r_max
+        }
+
+        with open(cache_file, 'w') as fout:
+            json.dump(cache_data, fout, indent=1)
 
     return m_uptake, m_secrete, r_max

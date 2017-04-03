@@ -72,3 +72,15 @@ def get_connectivity_constraints_cplex(model):
         names.append(metab)
 
     return lin_expr, senses, rhs, names
+
+
+def reset_objective(problem):
+    """
+    Clears all the objective coefficients for the current problem
+    by setting all to 0
+    """
+
+    names = problem.variables.get_names()
+    zeros = [0 for x in names]
+
+    problem.objective.set_linear(zip(names, zeros))
