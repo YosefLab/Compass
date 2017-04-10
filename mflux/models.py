@@ -4,20 +4,25 @@ For working with metabolic models
 from __future__ import print_function, division
 import os
 import libsbml
+import json
+import re
 from .globals import RESOURCE_DIR
 
 MODEL_DIR = os.path.join(RESOURCE_DIR, 'Metabolic Models')
 
 
-def load_metabolic_model(file_name):
+def load_metabolic_model(file_name, species='homo sapiens'):
     """
     Loads the metabolic model from `file_name`, returning a Model object
     """
 
     if file_name.endswith('.xml'):
         return load_metabolic_model_xml(file_name)
+    elif file_name.endswith('_mat'):
+        return load_metabolic_model_matlab(file_name, species)
     else:
-        raise NotImplementedError("Can only handle xml currently")
+        raise NotImplementedError(
+            "Can only handle .xml files or _mat directories")
 
 
 def load_metabolic_model_xml(file_name):
@@ -48,10 +53,135 @@ def load_metabolic_model_xml(file_name):
 
     # Add species
     for met in xml_model.getListOfSpecies():
-        species = Species(xml_node=met, model=modelx)
+        species = Species(xml_node=met)
         modelx.species[species.id] = species
 
     return modelx
+
+
+def load_metabolic_model_matlab(folder_name, species):
+    """
+    folder_name: str
+        Name of the folder containing the model
+    species: str
+        Species name.  either 'homo sapiens' or 'mus musculus'
+    """
+
+    # First load Genes
+    top_dir = os.path.join(MODEL_DIR, folder_name)
+    model_dir = os.path.join(top_dir, 'model')
+
+    with open(os.path.join(model_dir, 'model.genes.json')) as fin:
+        gene_ids = json.load(fin)
+
+    with open(os.path.join(top_dir, 'non2uniqueEntrez.json')) as fin:
+        gtx = json.load(fin)
+
+    if species == 'homo sapiens':
+
+        with open(os.path.join(top_dir, 'uniqueHumanGeneSymbol.json')) as fin:
+            gene_symbols = json.load(fin)
+
+        alt_symbols = [[] for x in gene_symbols]
+
+    elif species == 'mus musculus':
+
+        with open(os.path.join(top_dir, 'uniqueMouseGeneSymbol.json')) as fin:
+            gene_symbols = json.load(fin)
+
+        with open(os.path.join(top_dir, 'uniqueMouseGeneSymbol_all')) as fin:
+            alt_symbols = json.load(fin)
+
+    else:
+        raise Exception(
+            'Unsupported species.  Supported: `homo sapies`, `mus musculus`')
+
+    genes = []
+    for i, gid in enumerate(gene_ids):
+
+        gene = Gene()
+
+        gene.id = gid
+        non_i = gtx[i]-1
+        gene.name = gene_symbols[non_i].upper()
+        gene.alt_symbols = [x.upper() for x in alt_symbols[non_i]]
+        genes.append(gene)
+
+    # Then reactions (evaluate gene rules)
+    with open(os.path.join(model_dir, 'model.rxns.json')) as fin:
+        rxns = json.load(fin)
+    with open(os.path.join(model_dir, 'model.rxnNames.json')) as fin:
+        rxnNames = json.load(fin)
+    with open(os.path.join(model_dir, 'model.lb.json')) as fin:
+        lbs = json.load(fin)
+    with open(os.path.join(model_dir, 'model.ub.json')) as fin:
+        ubs = json.load(fin)
+    with open(os.path.join(model_dir, 'model.subSystems.json')) as fin:
+        subSystems = json.load(fin)
+    with open(os.path.join(model_dir, 'model.rules.json')) as fin:
+        rules = json.load(fin)
+
+    groups = zip(rxns, rxnNames, lbs, ubs, subSystems, rules)
+    reactions = []
+    for rxn, name, lb, ub, subsystem, rule in groups:
+
+        reaction = Reaction()
+        reaction.id = rxn
+        reaction.name = name
+        reaction.upper_bound = ub
+        reaction.lower_bound = lb
+        reaction.subsystem = subsystem
+
+        # Eval the rule
+        reaction.gene_associations = _eval_rule_str(rule, genes)
+        reactions.append(reaction)
+
+    # Then metabolites
+    with open(os.path.join(model_dir, 'model.mets.json')) as fin:
+        met_ids = json.load(fin)
+    with open(os.path.join(model_dir, 'model.metNames.json')) as fin:
+        metNames = json.load(fin)
+    with open(os.path.join(model_dir, 'model.metFormulas.json')) as fin:
+        metFormulas = json.load(fin)
+
+    species = []
+    compartment_re = re.compile("\[(.+)\]")
+    for met_id, name, formula in zip(met_ids, metNames, metFormulas):
+
+        met = Species()
+        met.id = met_id
+        met.name = name
+        met.formula = formula
+        met.compartment = compartment_re.search(met.id).group(1)
+
+        species.append(met)
+
+    # Then Smat
+    with open(os.path.join(model_dir, 'model.S.json')) as fin:
+        Smat = json.load(fin)
+        for entry in Smat:
+            i = entry[0]
+            j = entry[1]
+            coef = entry[2]
+
+            species_id = species[i-1].id
+            reaction = reactions[j-1]
+
+            if coef > 0:
+                reaction.products[species_id] = coef
+            else:
+                reaction.reactants[species_id] = abs(coef)
+
+    reactions = {r.id: r for r in reactions}
+    species = {s.id: s for s in species}
+    name = folder_name
+
+    model = MetabolicModel(name)
+    model.reactions = reactions
+    model.species = species
+
+    return model
+
 
 
 class MetabolicModel(object):
@@ -132,7 +262,7 @@ class MetabolicModel(object):
             if reaction.lower_bound < -1 * limit:
                 reaction.lower_bound = -1 * limit
 
-            #if reaction.upper_bound < limit:
+            # if reaction.upper_bound < limit:
             #    reaction.upper_bound = limit
 
     def getSMAT(self):
@@ -235,6 +365,8 @@ class Reaction(object):
         elif from_reaction is not None:  # Copy constructor
 
             self.id = from_reaction.id
+            self.name = from_reaction.name
+            self.subsystem = from_reaction.subsystem
             self.upper_bound = from_reaction.upper_bound
             self.lower_bound = from_reaction.lower_bound
             self.reactants = from_reaction.reactants.copy()
@@ -244,6 +376,8 @@ class Reaction(object):
         else:  # Placeholders
 
             self.id = ""
+            self.name = ""
+            self.subsystem = ""
             self.upper_bound = float('nan')
             self.lower_bound = float('nan')
             self.reactants = {}
@@ -257,6 +391,8 @@ class Reaction(object):
         Needs xml_params for bounds
         """
         self.id = xml_node.getId()
+        self.name = xml_node.getName()
+        self.subsystem = ""
 
         # Lower and upper bounds
 
@@ -345,18 +481,22 @@ class Reaction(object):
 
 class Species(object):
 
-    def __init__(self, model, xml_node=None):
+    def __init__(self, xml_node=None):
         if xml_node is not None:
-            Species.__init__xml(self, model, xml_node)
+            Species.__init__xml(self, xml_node)
         else:
             self.id = ""
+            self.name = ""
             self.compartment = ""
+            self.formula = ""
 
-    def __init__xml(self, model, xml_node):
+    def __init__xml(self, xml_node):
 
         self.id = xml_node.getId()
-        self.compartment = model.compartments[
-            xml_node.getCompartment()]
+        self.name = xml_node.getName()
+        self.compartment = xml_node.getCompartment()
+        self.formula = xml_node.getPlugin('fbc') \
+            .getChemicalFormula()
 
 
 class Compartment(object):
@@ -428,7 +568,7 @@ class Association(object):
         elif self.type == 'gene':
 
             try:
-                return expression[self.gene.name]
+                return self.gene.eval_expression(expression)
             except KeyError:
                 return float('nan')
 
@@ -444,8 +584,149 @@ class Gene(object):
         else:
             self.id = ''
             self.name = ''
+            self.alt_symbols = []
 
     def __init__xml(self, xml_node):
 
         self.id = xml_node.getId()
         self.name = xml_node.getName().upper()
+        self.alt_symbols = []
+
+    def eval_expression(self, expression):
+        """
+        Get the expression for this gene in the expression vector
+
+        Prefer match by name.  Alternately, match by alt_symbols
+        """
+
+        if self.name == '':
+            return float('nan')
+
+        if self.name in expression.index:
+            return expression[self.name]
+
+        for symbol in self.alt_symbols:
+            if symbol in expression.index:
+                return expression[symbol]
+
+        return float('nan')
+
+
+_TOKEN_RE = re.compile('x\(\d+\)|\(|\)|\||&')
+def _eval_rule_str(rule, genes):
+
+    # Return None if there is no gene-product rule
+    if len(rule) == 0:
+        return None
+
+    # State machine
+    token_elem = _TOKEN_RE.findall(rule)
+
+    # Remove parenthesis, replace with tuples
+    group_stack = []
+    current_group = []
+    for term in token_elem:
+        if term == '(':
+            # Start a new group
+            group_stack.append(current_group)
+            current_group = []
+        elif term == ')':
+            # End the group
+            prev_group = group_stack.pop()
+            prev_group.append(tuple(current_group))
+            current_group = prev_group
+        else:
+            current_group.append(term)
+
+    elem = tuple(current_group)
+
+    return _eval_node(elem, genes)
+
+
+_ELEM_RE = re.compile('x\((\d+)\)')
+
+
+def _eval_node(elem, genes):
+
+    # resolve each node
+    # x(2343) -> association of type gene
+    # tuple -> association
+    # operator -> operator
+    # end state is list of associations and operators
+    resolved = []
+    for node in elem:
+        if isinstance(node, tuple):
+            resolved.append(_eval_node(node, genes))
+        elif isinstance(node, str):
+            elem_match = _ELEM_RE.fullmatch(node)
+
+            if elem_match:
+                index = int(elem_match.group(1)) - 1
+                gene = genes[index]
+
+                assoc = Association()
+                assoc.type = 'gene'
+                assoc.gene = gene
+                resolved.append(assoc)
+
+            else:
+                assert (node == '|' or node == '&')
+                resolved.append(node)  # must be an operator
+        elif isinstance(node, Association):
+            resolved.append(node)
+
+        else:
+            raise Exception("Unknown Note type: " + str(node))
+
+    if len(resolved) == 1:
+        return resolved[0]
+
+    # must be alternating Association and operators
+    assert len(resolved) % 2 == 1
+
+    # Look for cases of all | or all & to avoid deep nesting
+    found_or = '|' in resolved
+    found_and = '&' in resolved
+
+    if found_or and not found_and:
+        nodes = [x for i, x in enumerate(resolved) if i % 2 == 0]
+
+        assoc = Association()
+        assoc.type = 'or'
+        assoc.children = nodes
+        return assoc
+
+    elif not found_or and found_and:
+        nodes = [x for i, x in enumerate(resolved) if i % 2 == 0]
+
+        assoc = Association()
+        assoc.type = 'and'
+        assoc.children = nodes
+        return assoc
+
+    elif found_or and found_and:
+        # partition on | and recurse
+        i = resolved.index('|')
+        left = tuple(resolved[0:i])
+        right = tuple(resolved[i + 1:])
+
+        left = _eval_node(left, genes)
+        right = _eval_node(right, genes)
+
+        assoc = Association()
+        assoc.type = 'or'
+        assoc.children = [left, right]
+        return assoc
+
+    else:
+        raise Exception("Bad node: " + str(resolved))
+
+
+
+# def print_node(node, indent=0):
+#     print(" "*indent + node.type)
+#     if len(node.children) > 0:
+#         for x in node.children:
+#             print_node(x, indent+4)
+#     if node.type == 'gene':
+#         print(" "*indent, node.gene.id, gene_ids.index(node.gene.id)+1)

@@ -11,7 +11,7 @@ from . import utils
 
 import cplex
 
-__all__ = ['run_compass_preprocess', 'run_compass']
+__all__ = ['run_compass']
 
 from ..globals import RESOURCE_DIR
 PREPROCESS_CACHE_DIR = os.path.join(RESOURCE_DIR, 'COMPASS')
@@ -37,10 +37,6 @@ def run_compass(model, expression):
     # Build model into cplex problem
     problem = build_cplex_problem(model)
 
-    # Run/load pre-processes
-
-    m_uptake, m_secrete, r_max = run_compass_preprocess(model, problem)
-
     # For each cell/sample
     # Eval expression scores
     # Eval reaction penalties
@@ -57,10 +53,10 @@ def run_compass(model, expression):
         reaction_penalties = eval_reaction_penalties(model, expression_data)
 
         reaction_scores = compass_reactions(
-            model, problem, r_max, reaction_penalties)
+            model, problem, reaction_penalties)
 
         uptake_scores, secretion_scores = compass_exchange(
-            model, problem, m_uptake, m_secrete, reaction_penalties)
+            model, problem, reaction_penalties)
 
         all_reaction_scores[sample] = pd.Series(reaction_scores)
         all_uptake_scores[sample] = pd.Series(uptake_scores)
@@ -90,7 +86,7 @@ def eval_reaction_penalties(model, expression_data):
     return reaction_penalties
 
 
-def compass_exchange(model, problem, m_uptake, m_secrete, reaction_penalties):
+def compass_exchange(model, problem, reaction_penalties):
     """
     Iterates through metabolites, finding each's max
     uptake and secretion potentials.
@@ -126,6 +122,9 @@ def compass_exchange(model, problem, m_uptake, m_secrete, reaction_penalties):
         secretion_rxn = None
         extra_secretion_rxns = []
 
+        added_uptake = False     # Did we add an uptake reaction?
+        added_secretion = False  #  "  "   "  "  secretion reaction? 
+
         # Metabolites represented by a constraint: get associated reactions
         sp = problem.linear_constraints.get_rows(met_id)
         rxn_ids = problem.variables.get_names(sp.ind)
@@ -144,22 +143,9 @@ def compass_exchange(model, problem, m_uptake, m_secrete, reaction_penalties):
                 else:
                     extra_secretion_rxns.append(reaction.id)
 
-        if uptake_rxn is None:
-            uptake_rxn = "ADDED_UPTAKE"
-
-            # Add uptake reaction to the problem as a variable
-            problem.variables.add(
-                names=[uptake_rxn],
-                ub=[EXCHANGE_LIMIT],
-                lb=[0.0],)
-
-            # Add it to the metabolites constraint
-            rxn_index = problem.variables.get_indices(uptake_rxn)
-            sp.ind.append(rxn_index)
-            sp.val.append(1.0)
-
         if secretion_rxn is None:
-            secretion_rxn = "ADDED_SECRETION"
+            added_secretion = True
+            secretion_rxn = met_id + "_SECRETION"
 
             # Add secretion reaction to the problem as a variable
             problem.variables.add(
@@ -172,6 +158,22 @@ def compass_exchange(model, problem, m_uptake, m_secrete, reaction_penalties):
             sp.ind.append(rxn_index)
             sp.val.append(-1.0)
 
+        if uptake_rxn is None:
+            added_uptake = True
+            uptake_rxn = met_id + "_UPTAKE"
+
+            # Add uptake reaction to the problem as a variable
+            problem.variables.add(
+                names=[uptake_rxn],
+                ub=[EXCHANGE_LIMIT],
+                lb=[0.0],)
+
+            # Add it to the metabolite's constraint
+            rxn_index = problem.variables.get_indices(uptake_rxn)
+            sp.ind.append(rxn_index)
+            sp.val.append(1.0)
+
+
         all_uptake = [uptake_rxn] + extra_uptake_rxns
         all_secretion = [secretion_rxn + extra_secretion_rxns]
 
@@ -179,34 +181,25 @@ def compass_exchange(model, problem, m_uptake, m_secrete, reaction_penalties):
         # Optimal Secretion
         # -----------------
 
-        # Close all uptake
+        # Close all uptake, storing their upper-bounds to restore later
         old_uptake_upper = {}
         for rxn_id in all_uptake:
             old_ub = problem.variables.get_upper_bounds(rxn_id)
             old_uptake_upper[rxn_id] = old_ub
             problem.variables.set_upper_bounds(0.0)
 
-        # Close extra secretion
+        # Close extra secretion, storing upper-bounds to restore later
         old_secretion_upper = {}
         for rxn_id in extra_secretion_rxns:
             old_ub = problem.variables.get_upper_bounds(rxn_id)
             old_secretion_upper[rxn_id] = old_ub
             problem.variables.set_upper_bounds(rxn_id, 0.0)
 
-        # # Maximize secretion
-        # utils.reset_objective(problem)
-        # problem.objective.set_linear(
-        #     [(secretion_rxn, 1)]
-        # )
 
-        # # Maximize
-        # problem.objective.set_sense(problem.objective.sense.maximize)
-        # problem.solve()
-        # secretion_max = problem.solution.get_objective_value()
+        # Get max of secretion reaction
+        secretion_max = maximize_reaction(model, problem, secretion_rxn)
 
-        secretion_max = m_secrete[metabolite.id]
-
-        # Set contraint of max secretion with BETA*max
+        # Set contraint of max secretion to BETA*max
         problem.linear_constraints.add(
             lin_expr=[cplex.SparsePair(ind=[secretion_rxn], val=[1.0])],
             senses=['R'],
@@ -253,18 +246,8 @@ def compass_exchange(model, problem, m_uptake, m_secrete, reaction_penalties):
             old_secretion_upper[rxn_id] = old_ub
             problem.variables.set_upper_bounds(rxn_id, 0.0)
 
-        # # Maximize uptake
-        # utils.reset_objective(problem)
-        # problem.objective.set_linear(
-        #     [(uptake_rxn, 1)]
-        # )
-
-        # # Maximize
-        # problem.objective.set_sense(problem.objective.sense.maximize)
-        # problem.solve()
-        # uptake_max = problem.solution.get_objective_value()
-
-        uptake_max = m_uptake[metabolite.id]
+        # Get max of uptake reaction
+        uptake_max = maximize_reaction(model, problem, uptake_rxn)
 
         # Set contraint of max uptake with BETA*max
         problem.linear_constraints.add(
@@ -296,16 +279,16 @@ def compass_exchange(model, problem, m_uptake, m_secrete, reaction_penalties):
             problem.variables.set_upper_bounds(rxn_id, old_ub)
 
         # Remove added uptake and secretion reactions
-        if uptake_rxn == "ADDED_UPTAKE":
+        if added_uptake:
             problem.variables.delete(uptake_rxn)
 
-        if secretion_rxn == "ADDED_SECRETION":
+        if added_secretion:
             problem.variables.delete(secretion_rxn)
 
     return uptake_scores, secretion_scores
 
 
-def compass_reactions(model, problem, r_max, reaction_penalties):
+def compass_reactions(model, problem, reaction_penalties):
     """
     Iterates through reactions, holding each near
     its max value while minimizing penalty.
@@ -329,11 +312,6 @@ def compass_reactions(model, problem, r_max, reaction_penalties):
     reaction_scores = {}
 
     for reaction in model.reactions.values():
-
-        # If Reaction can't carry flux anyways, just continue
-        if r_max[reaction.id] == 0:
-            reaction_scores[reaction.id] = 0
-            continue
 
         # Get partner reaction or None if it's been pruned already
         if reaction.id.endswith('_pos'):
@@ -359,20 +337,28 @@ def compass_reactions(model, problem, r_max, reaction_penalties):
             old_partner_ub = problem.variables.get_upper_bounds(partner_id)
             problem.variables.set_upper_bounds(partner_id, 0.0)
 
-        problem.linear_constraints.add(
-            lin_expr=[cplex.SparsePair(ind=[reaction.id], val=[1.0])],
-            senses=['R'],
-            rhs=[BETA * r_max[reaction.id]],
-            names=['REACTION_OPT'])
+        r_max = maximize_reaction(model, problem, reaction.id)
 
-        # Minimize Penalty
-        problem.objective.set_sense(problem.objective.sense.minimize)
-        problem.solve()
-        value = problem.solution.get_objective_value()
-        reaction_scores[reaction.id] = value
+        # If Reaction can't carry flux anyways, just continue
+        if r_max == 0:
+            reaction_scores[reaction.id] = 0
 
-        # Remove Constraint
-        problem.linear_constraints.delete('REACTION_OPT')
+        else:
+
+            problem.linear_constraints.add(
+                lin_expr=[cplex.SparsePair(ind=[reaction.id], val=[1.0])],
+                senses=['R'],
+                rhs=[BETA * r_max],
+                names=['REACTION_OPT'])
+
+            # Minimize Penalty
+            problem.objective.set_sense(problem.objective.sense.minimize)
+            problem.solve()
+            value = problem.solution.get_objective_value()
+            reaction_scores[reaction.id] = value
+
+            # Remove Constraint
+            problem.linear_constraints.delete('REACTION_OPT')
 
         # Restore limit of partner reaction to old state
         if partner_reaction is not None:
@@ -417,148 +403,60 @@ def build_cplex_problem(model):
         rhs=c_rhs,
         names=c_names)
 
-
     return problem
 
 
-def preprocess_metabolites(model, problem):
-    # type: (mflux.models.MetabolicModel, cplex.Cplex)
-    """
-    Preprocesses the metabolite limits for secretion and uptake
-    """
-
-    # For each metabolite, maximize and minimize its prouduction
-    # Each metabolite is a constraint.  For each constraint, run the problem
-    # Without that constraint, using the constraint as the objective fxn
-
-    m_max = {} # corresponds to secretion
-    m_min = {} # corresponds to uptake
-    print("COMPASS Preprocess:  Evaluate Metabolite Scores")
-    for metabolite in tqdm(model.species.keys()):
-
-        # Save the constraint to re-add later
-        metabolite_constraint = {
-            "lin_expr": problem.linear_constraints.get_rows(metabolite),
-            "rhs": problem.linear_constraints.get_rhs(metabolite),
-            "sense": problem.linear_constraints.get_senses(metabolite),
-            "name": metabolite
-        }
-
-        # Remove the constraint from the problem
-        problem.linear_constraints.delete(metabolite)
-
-        # Set new objective
-        sp = metabolite_constraint['lin_expr']
-        ind, val = sp.unpack()
-
-        utils.reset_objective(problem)
-        problem.objective.set_linear(
-            [(i, v) for i, v in zip(ind, val)]
-        )
-
-        # Minimize
-        problem.objective.set_sense(problem.objective.sense.minimize)
-        problem.solve()
-        value = problem.solution.get_objective_value()
-        m_min[metabolite] = value
-
-        # Maximize
-        problem.objective.set_sense(problem.objective.sense.maximize)
-        problem.solve()
-        value = problem.solution.get_objective_value()
-        m_max[metabolite] = value
-
-        # Add the constraint back in
-        problem.linear_constraints.add(
-            lin_expr=[metabolite_constraint['lin_expr']],
-            senses=[metabolite_constraint['sense']],
-            rhs=[metabolite_constraint['rhs']],
-            names=[metabolite_constraint['name']],
-        )
-
-    return m_min, m_max
-
-
-def preprocess_reactions(model, problem):
-    # type: (mflux.models.MetabolicModel, cplex.Cplex)
-    """
-    Preprocesses the reaction limits
+def maximize_reaction(model, problem, rxn, use_cache=True):
+    """Maximizes the current reaction in the problem
+    Attempts to retrieve the value from cache if its in cache
     """
 
-    # For each reaction, maximize its flux
-    r_max = {}
-    print("COMPASS Preprocess:  Evaluate Reaction Scores")
-    for rr in tqdm(model.reactions.keys()):
+    # Load from cache if it exists and return
+    if use_cache:
+        cache = _load_cache(model)
+        if rxn in cache:
+            return cache[rxn]
 
-        partner_rr = None
-        # Get partner reaction if it exists
-        if rr.endswith('_pos'):
-            partner_rr = rr.rsplit("_pos", 1)[0] + "_neg"
-        elif rr.endswith('_neg'):
-            partner_rr = rr.rsplit("_neg", 1)[0] + "_pos"
+    # Maximize the reaction
+    utils.reset_objective(problem)
+    problem.objective.set_linear(rxn, 1.0)
+    problem.objective.set_sense(problem.objective.sense.maximize)
+
+    problem.solve()
+    rxn_max = problem.solution.get_objective_value()
+
+    # Save the result
+    cache = _load_cache(model)
+    cache[rxn] = rxn_max
+
+    return rxn_max
+
+
+_cache = {}
+def _load_cache(model):
+    global _cache
+
+    if model.name not in _cache:
+
+        cache_file = os.path.join(PREPROCESS_CACHE_DIR,
+                                  model.name + ".preprocess")
+
+        if os.path.exists(cache_file):
+            with open(cache_file) as fin:
+                out = json.load(fin)
+
+            _cache[model.name] = out
+
         else:
-            partner_rr = None
+            _cache[model.name] = {}
 
-        if partner_rr not in model.reactions:  # Some reactions are pruned
-            partner_rr = None
-
-        if partner_rr is not None:
-            old_ub = problem.variables.get_upper_bounds(partner_rr)
-            problem.variables.set_upper_bounds(partner_rr, 0.0)
-
-        utils.reset_objective(problem)
-        problem.objective.set_linear(
-            [(rr, 1)]
-        )
-
-        # Maximize
-        problem.objective.set_sense(problem.objective.sense.maximize)
-        problem.solve()
-        value = problem.solution.get_objective_value()
-        r_max[rr] = value
-
-        # Turn partner reaction back on
-        if partner_rr is not None:
-            problem.variables.set_upper_bounds(partner_rr, old_ub)
-
-    return r_max
+    return _cache[model.name]
 
 
-def run_compass_preprocess(model, problem, use_cache=True):
-    # type: (mflux.models.MetabolicModel)
-    """
-    Cplex-optimized - doesn't use PuLP
+def _save_cache(model):
+    global _cache
 
-    Run's COMPASS' preprocessing procedure on a model.
-    Results in metabolite and reaction scores.
-    """
+    cache_data = _cache[model.name]
 
-    # Check if preprocessed results exist already
-    # Load if they do
-    cache_file = os.path.join(PREPROCESS_CACHE_DIR, model.name + ".preprocess")
-
-    if os.path.exists(cache_file):
-        with open(cache_file) as fin:
-            out = json.load(fin)
-
-        m_uptake = out['m_uptake']
-        m_secrete = out['m_secrete']
-        r_max = out['r_max']
-
-    else:
-
-        # Otherwise, run and store results
-        m_uptake, m_secrete = preprocess_metabolites(model, problem)
-
-        r_max = preprocess_reactions(model, problem)
-
-        cache_data = {
-            'm_uptake': m_uptake,
-            'm_secrete': m_secrete,
-            'r_max': r_max
-        }
-
-        with open(cache_file, 'w') as fout:
-            json.dump(cache_data, fout, indent=1)
-
-    return m_uptake, m_secrete, r_max
+    with open(cache_file, 'w') as fout:
+        json.dump(cache_data, fout, indent=1)
