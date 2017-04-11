@@ -304,6 +304,16 @@ class MetabolicModel(object):
         uni_reactions = {}
         for reaction in self.reactions.values():
 
+            if reaction.is_pos_unidirectional:  # just ensure suffix and continue
+
+                if (not reaction.id.endswith('_pos')) and \
+                        (not reaction.id.endswith('_neg')):
+                    reaction.id = reaction.id + "_pos"
+
+                uni_reactions[reaction.id] = reaction
+
+                continue
+
             # Copy the pos_reaction
             pos_reaction = Reaction(from_reaction=reaction)
 
@@ -340,14 +350,17 @@ class MetabolicModel(object):
             pos_reaction.id = pos_reaction.id + "_pos"
             neg_reaction.id = neg_reaction.id + "_neg"
 
-            uni_reactions[pos_reaction.id] = pos_reaction
-            uni_reactions[neg_reaction.id] = neg_reaction
+            # Only add reactions if they can carry flux
+            if pos_reaction.upper_bound > 0:
+                neg_reaction.reverse_reaction = pos_reaction
+                uni_reactions[pos_reaction.id] = pos_reaction
+
+            if neg_reaction.upper_bound > 0:
+                pos_reaction.reverse_reaction = neg_reaction
+                uni_reactions[neg_reaction.id] = neg_reaction
 
         self.reactions = uni_reactions
 
-        # Remove reactions that can't carry flux
-        self.reactions = {r_id: r for r_id, r in self.reactions.items()
-                          if r.upper_bound > 0}
 
 
 class Reaction(object):
@@ -372,6 +385,7 @@ class Reaction(object):
             self.reactants = from_reaction.reactants.copy()
             self.products = from_reaction.products.copy()
             self.gene_associations = from_reaction.gene_associations
+            self.reverse_reaction = from_reaction.reverse_reaction
 
         else:  # Placeholders
 
@@ -383,6 +397,7 @@ class Reaction(object):
             self.reactants = {}
             self.products = {}
             self.gene_associations = None
+            self.reverse_reaction = None
 
     def __init__xml(self, xml_node, xml_params):
         """
@@ -393,6 +408,7 @@ class Reaction(object):
         self.id = xml_node.getId()
         self.name = xml_node.getName()
         self.subsystem = ""
+        self.reverse_reaction = None
 
         # Lower and upper bounds
 
@@ -474,6 +490,15 @@ class Reaction(object):
         if len(self.products) == 0 and len(self.reactants) > 0:
             return True
         elif len(self.reactants) == 0 and len(self.products) > 0:
+            return True
+        else:
+            return False
+
+    @property
+    def is_pos_unidirectional(self):
+
+        if (self.upper_bound > 0 and
+                self.lower_bound == 0):
             return True
         else:
             return False

@@ -77,6 +77,7 @@ def eval_reaction_penalties(model, expression_data):
     """
 
     reaction_expression = model.getReactionExpression(expression_data)
+    reaction_expression = pd.Series(reaction_expression)
     reaction_expression[reaction_expression < 0] = 0
 
     reaction_penalties = 1 / (1 + reaction_expression)
@@ -128,7 +129,7 @@ def compass_exchange(model, problem, reaction_penalties):
         # Metabolites represented by a constraint: get associated reactions
         sp = problem.linear_constraints.get_rows(met_id)
         rxn_ids = problem.variables.get_names(sp.ind)
-        reactions = [model.reaction[x] for x in rxn_ids]
+        reactions = [model.reactions[x] for x in rxn_ids]
 
         for reaction in reactions:
             if reaction.is_exchange and met_id in reaction.products:
@@ -173,9 +174,8 @@ def compass_exchange(model, problem, reaction_penalties):
             sp.ind.append(rxn_index)
             sp.val.append(1.0)
 
-
         all_uptake = [uptake_rxn] + extra_uptake_rxns
-        all_secretion = [secretion_rxn + extra_secretion_rxns]
+        all_secretion = [secretion_rxn] + extra_secretion_rxns
 
         # -----------------
         # Optimal Secretion
@@ -186,7 +186,7 @@ def compass_exchange(model, problem, reaction_penalties):
         for rxn_id in all_uptake:
             old_ub = problem.variables.get_upper_bounds(rxn_id)
             old_uptake_upper[rxn_id] = old_ub
-            problem.variables.set_upper_bounds(0.0)
+            problem.variables.set_upper_bounds(rxn_id, 0.0)
 
         # Close extra secretion, storing upper-bounds to restore later
         old_secretion_upper = {}
@@ -313,27 +313,12 @@ def compass_reactions(model, problem, reaction_penalties):
 
     for reaction in model.reactions.values():
 
-        # Get partner reaction or None if it's been pruned already
-        if reaction.id.endswith('_pos'):
-            partner_id = reaction.id.rsplit("_pos", 1)[0] + "_neg"
-            if partner_id in model.reactions:
-                partner_reaction = model.reactions[partner_id]
-            else:
-                partner_reaction = None
-
-        elif reaction.id.endswith('_neg'):
-            partner_id = reaction.id.rsplit("_neg", 1)[0] + "_pos"
-            if partner_id in model.reactions:
-                partner_reaction = model.reactions[partner_id]
-            else:
-                partner_reaction = None
-
-        else:
-            raise Exception("Reaction missing _pos or _neg suffix")
+        partner_reaction = reaction.reverse_reaction
 
         # Set partner reaction upper-limit to 0 in problem
         # Store old limit for later to restore
         if partner_reaction is not None:
+            partner_id = partner_reaction.id
             old_partner_ub = problem.variables.get_upper_bounds(partner_id)
             problem.variables.set_upper_bounds(partner_id, 0.0)
 
@@ -362,6 +347,7 @@ def compass_reactions(model, problem, reaction_penalties):
 
         # Restore limit of partner reaction to old state
         if partner_reaction is not None:
+            partner_id = partner_reaction.id
             problem.variables.set_upper_bounds(partner_id, old_partner_ub)
 
     return reaction_scores
@@ -457,6 +443,9 @@ def _save_cache(model):
     global _cache
 
     cache_data = _cache[model.name]
+
+    cache_file = os.path.join(PREPROCESS_CACHE_DIR,
+                              model.name + ".preprocess")
 
     with open(cache_file, 'w') as fout:
         json.dump(cache_data, fout, indent=1)
