@@ -381,7 +381,7 @@ def build_cplex_problem(model):
 
     # Add stoichiometry constraints
     c_lin_expr, c_senses, c_rhs, c_names = (
-        utils.get_connectivity_constraints_cplex(model))
+        utils.get_connectivity_constraints(model))
 
     problem.linear_constraints.add(
         lin_expr=c_lin_expr,
