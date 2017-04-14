@@ -344,6 +344,11 @@ def compass_reactions(model, problem, reaction_penalties):
                 names=['REACTION_OPT'])
 
             # Minimize Penalty
+            utils.reset_objective(problem)
+            problem.objective.set_linear(
+                list(reaction_penalties.iteritems())
+            )
+
             problem.objective.set_sense(problem.objective.sense.minimize)
             problem.solve()
             value = problem.solution.get_objective_value()
