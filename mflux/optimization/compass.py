@@ -151,7 +151,7 @@ def compass_exchange(model, problem, reaction_penalties):
             # Add secretion reaction to the problem as a variable
             problem.variables.add(
                 names=[secretion_rxn],
-                ub=[EXCHANGE_LIMIT],
+                ub=[model.maximum_flux],
                 lb=[0.0],)
 
             # Add it to the metabolites constraint

@@ -192,6 +192,7 @@ class MetabolicModel(object):
         self.species = {}
         self.compartments = {}
         self.objectives = {}
+        self._maximum_flux = None
 
     def getReactions(self):
         """
@@ -361,6 +362,24 @@ class MetabolicModel(object):
 
         self.reactions = uni_reactions
 
+    def _calc_max_flux(self):
+        """
+        Determines the max (absolute) flux of the model
+        """
+        max_flux = 0
+        for reaction in self.reactions.values():
+            max_flux = max(abs(reaction.lower_bound),
+                           abs(reaction.upper_bound),
+                           max_flux)
+
+        self._maximum_flux = max_flux
+
+    @property
+    def maximum_flux(self):
+        if self._maximum_flux is None:
+            self._calc_max_flux()
+
+        return self._maximum_flux
 
 
 class Reaction(object):
