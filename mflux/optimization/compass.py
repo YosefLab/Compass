@@ -6,6 +6,7 @@ import os
 import json
 import pandas as pd
 from tqdm import tqdm
+from random import shuffle
 
 from . import utils
 
@@ -110,7 +111,9 @@ def compass_exchange(model, problem, reaction_penalties):
 
     secretion_scores = {}
     uptake_scores = {}
-    for metabolite in model.species.values():
+    metabolites = list(model.species.values())
+    shuffle(metabolites)
+    for metabolite in metabolites:
 
         met_id = metabolite.id
 
@@ -315,7 +318,9 @@ def compass_reactions(model, problem, reaction_penalties):
     # Iterate through Reactions
     reaction_scores = {}
 
-    for reaction in model.reactions.values():
+    reactions = list(model.reactions.values())
+    shuffle(reactions)
+    for reaction in reactions:
 
         if reaction.is_exchange:
             continue
