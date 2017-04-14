@@ -387,6 +387,9 @@ def build_cplex_problem(model):
     problem.set_warning_stream(None)  # Suppress Warnings
     problem.set_results_stream(None)  # Suppress results to output
 
+    # Set Parameters for the Cplex solver
+    problem.parameters.emphasis.numerical.set(True)
+
     # Add variables
     reactions = list(model.reactions.values())
     problem.variables.add(
