@@ -36,7 +36,7 @@ def run_compass(model, expression):
     model.make_unidirectional()
 
     # Build model into cplex problem
-    problem = build_cplex_problem(model)
+    problem = initialize_cplex_problem(model)
 
     # For each cell/sample
     # Eval expression scores
@@ -370,7 +370,7 @@ def compass_reactions(model, problem, reaction_penalties):
     return reaction_scores
 
 
-def build_cplex_problem(model):
+def initialize_cplex_problem(model):
     # type: (mflux.models.MetabolicModel)
     """
     Builds and returns a cplex problem representing our metabolic model
@@ -401,7 +401,7 @@ def build_cplex_problem(model):
 
     # Add stoichiometry constraints
     c_lin_expr, c_senses, c_rhs, c_names = (
-        utils.get_connectivity_constraints(model))
+        utils.get_steadystate_constraints(model))
 
     problem.linear_constraints.add(
         lin_expr=c_lin_expr,

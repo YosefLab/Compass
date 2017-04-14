@@ -8,7 +8,7 @@ from __future__ import print_function, division
 import cplex
 
 
-def get_connectivity_constraints(model):
+def get_steadystate_constraints(model):
     """
     Uses the s_mat to define connectivity constraints
     """
