@@ -317,6 +317,9 @@ def compass_reactions(model, problem, reaction_penalties):
 
     for reaction in model.reactions.values():
 
+        if reaction.is_exchange:
+            continue
+
         partner_reaction = reaction.reverse_reaction
 
         # Set partner reaction upper-limit to 0 in problem
