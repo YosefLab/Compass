@@ -17,12 +17,14 @@ def load_metabolic_model(file_name, species='homo sapiens'):
     """
 
     if file_name.endswith('.xml'):
-        return load_metabolic_model_xml(file_name)
+        model = load_metabolic_model_xml(file_name)
     elif file_name.endswith('_mat'):
-        return load_metabolic_model_matlab(file_name, species)
+        model = load_metabolic_model_matlab(file_name, species)
     else:
         raise NotImplementedError(
             "Can only handle .xml files or _mat directories")
+
+    return model
 
 
 def load_metabolic_model_xml(file_name):
