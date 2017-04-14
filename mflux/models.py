@@ -254,17 +254,17 @@ class MetabolicModel(object):
         # Instead of the opposite
         for reaction in exchanges.values():
             if len(reaction.products) > 0 and len(reaction.reactants) == 0:
-                reaction.invert()
+                # Metabolites created as products - limit forward flux
+                if reaction.upper_bound > limit:
+                    reaction.upper_bound = limit
 
-        # Negative flux now means that metabolites are created
-        # Limit this rate
-        for reaction in exchanges.values():
+            elif len(reaction.products) == 0 and len(reaction.reactants) > 0:
+                # Metabolites created as reactants - limit reverse flux
+                if reaction.lower_bound < -1*limit:
+                    reaction.lower_bound = -1*limit
 
-            if reaction.lower_bound < -1 * limit:
-                reaction.lower_bound = -1 * limit
-
-            # if reaction.upper_bound < limit:
-            #    reaction.upper_bound = limit
+            else:
+                raise Exception("Should not occur")
 
     def getSMAT(self):
         """
