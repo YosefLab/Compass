@@ -216,7 +216,7 @@ class MetabolicModel(object):
 
         return lower_bounds, upper_bounds
 
-    def getReactionExpression(self, expression):
+    def getReactionExpression(self, expression, and_function=min, or_function=sum):
         # type: (pandas.Series) -> dict
         """
         Evaluates a score for every reaction, using the expression data.
@@ -231,7 +231,7 @@ class MetabolicModel(object):
         score_dict = {}
 
         for r_id, reaction in self.reactions.items():
-            score = reaction.eval_expression(expression)
+            score = reaction.eval_expression(expression, and_function, or_function)
             score_dict[r_id] = score
 
         return score_dict
@@ -477,7 +477,7 @@ class Reaction(object):
         else:
             self.gene_associations = Association(xml_node=gpa.getAssociation())
 
-    def eval_expression(self, expression):
+    def eval_expression(self, expression, and_function, or_function):
         """
         Evalutes a reaction expression.
         Returns 'nan' if there is no gene association
@@ -486,7 +486,7 @@ class Reaction(object):
         if self.gene_associations is None:
             return float('nan')
         else:
-            return self.gene_associations.eval_expression(expression)
+            return self.gene_associations.eval_expression(expression, and_function, or_function)
 
     def invert(self):
         """
@@ -598,7 +598,7 @@ class Association(object):
         else:
             raise ValueError("Unknown input type: " + type(xml_node))
 
-    def eval_expression(self, expression):
+    def eval_expression(self, expression, and_function, or_function):
         """
         Matches genes with scores
         Combines 'or' associations with 'sum'
@@ -606,10 +606,14 @@ class Association(object):
         """
 
         if self.type == 'and':
-            return min([x.eval_expression(expression) for x in self.children])
+            return and_function(
+                    [x.eval_expression(expression) for x in self.children]
+                    )
 
         elif self.type == 'or':
-            return sum([x.eval_expression(expression) for x in self.children])
+            return or_function(
+                    [x.eval_expression(expression) for x in self.children]
+                    )
 
         elif self.type == 'gene':
 
