@@ -174,6 +174,10 @@ def compass_exchange(model, problem, reaction_penalties):
             sp.ind.append(rxn_index)
             sp.val.append(1.0)
 
+        # Modify the constraint in the problem
+        #   e.g. Add the metabolites connections
+        problem.linear_constraints.set_linear_components(met_id, sp)
+
         all_uptake = [uptake_rxn] + extra_uptake_rxns
         all_secretion = [secretion_rxn] + extra_secretion_rxns
 
