@@ -456,3 +456,11 @@ def _save_cache(model):
 
     with open(cache_file, 'w') as fout:
         json.dump(cache_data, fout, indent=1)
+
+
+def _clear_cache(model):
+    global _cache
+
+    _cache[model.name] = {}
+
+    _save_cache(model)
