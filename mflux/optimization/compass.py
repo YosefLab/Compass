@@ -4,9 +4,13 @@ Run the procedure for COMPASS
 from __future__ import print_function, division, absolute_import
 import os
 import json
+import io
 import pandas as pd
 from tqdm import tqdm
 from random import shuffle
+import logging
+
+logger = logging.getLogger("mflux")
 
 from . import utils
 
@@ -28,6 +32,7 @@ def run_compass(model, expression):
     """
     Runs COMPASS on many samples
     """
+    logger.info("Running COMPASS on model: %s", model.name)
 
     # Limit exchange reactions
     model.limitExchangeReactions(limit=EXCHANGE_LIMIT)
@@ -47,7 +52,9 @@ def run_compass(model, expression):
     all_uptake_scores = {}
     all_secretion_scores = {}
 
-    for sample in expression.columns:
+    for i, sample in enumerate(expression.columns):
+        logger.info("Processing Sample %i/%i: %s", i,
+                     len(expression.columns), sample)
 
         expression_data = expression[sample]
 
