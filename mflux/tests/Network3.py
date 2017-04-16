@@ -103,16 +103,16 @@ def create_model():
 
     # Create some genes
     gene1 = Gene()
-    gene1.id = 'a'
-    gene1.name = 'a'
+    gene1.id = 'g1'
+    gene1.name = 'g1'
 
     gene4 = Gene()
-    gene4.id = 'b'
-    gene4.name = 'b'
+    gene4.id = 'g4'
+    gene4.name = 'g4'
 
     gene3 = Gene()
-    gene3.id = 'c'
-    gene3.name = 'c'
+    gene3.id = 'g3'
+    gene3.name = 'g3'
 
     # Associate with some reactions
     assc1 = Association()
@@ -134,10 +134,6 @@ def create_model():
     model = MetabolicModel('TestNetwork3')
     model.reactions = reactions
     model.species = species
-
-    # Create blank expression object
-    expression = pd.DataFrame()
-    expression['S1'] = pd.Series([1, 2, 1], index=['a', 'b', 'c'])
 
     from mflux.optimization.compass import EXCHANGE_LIMIT
     model.limitExchangeReactions(limit=EXCHANGE_LIMIT)
@@ -258,7 +254,7 @@ def create_model():
         model.reactions['E3_neg'].upper_bound
     )
 
-    return model, expression, expected_max
+    return model, expected_max
 
 
 def run_model(model, expression, clear_cache=True):
@@ -299,9 +295,14 @@ def eval_preproc(expected_max, preproc):
 
     return errors
 
+# Create a Default expression object
+expression = pd.DataFrame()
+expression['S1'] = pd.Series([1, 1, 5], index=['g1', 'g3', 'g4'])
+
+
 # Run 1000 times and look for errors
 for x in tqdm(range(1000)):
-    model, expression, expected_max = create_model()
+    model, expected_max = create_model()
     results, preproc = run_model(model, expression)
     errors = eval_preproc(expected_max, preproc)
 
@@ -343,3 +344,15 @@ print(all_uptake.var(axis=1))
 all_secretion = pd.concat(all_secretion, axis=1, ignore_index=True)
 print('\nSecretion Variance:  ')
 print(all_secretion.var(axis=1))
+
+
+# Does expression work the way it should?
+# Create a Mixed expression object
+multi_expression = pd.DataFrame()
+multi_expression['S1'] = pd.Series([10, 2, 5], index=['g1', 'g3', 'g4'])
+multi_expression['S2'] = pd.Series([10, 5, 2], index=['g1', 'g3', 'g4'])
+
+
+
+model, expected_max = create_model()
+results, preproc = run_model(model, multi_expression)
