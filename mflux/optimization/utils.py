@@ -44,3 +44,4 @@ def reset_objective(problem):
     zeros = [0 for x in names]
 
     problem.objective.set_linear(zip(names, zeros))
+    problem.objective.set_name('none')

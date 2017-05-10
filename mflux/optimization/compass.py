@@ -237,12 +237,14 @@ def compass_exchange(model, problem, reaction_penalties):
             names=['SECRETION_OPT'])
 
         # Find minimimum penalty
-        utils.reset_objective(problem)
-        problem.objective.set_linear(
-            list(reaction_penalties.iteritems())
-        )
+        if(problem.objective.get_name() != 'reaction_penalties'):
+            utils.reset_objective(problem)
+            problem.objective.set_linear(
+                list(reaction_penalties.iteritems())
+            )
+            problem.objective.set_name('reaction_penalties')
+            problem.objective.set_sense(problem.objective.sense.minimize)
 
-        problem.objective.set_sense(problem.objective.sense.minimize)
         problem.solve()
         value = problem.solution.get_objective_value()
         secretion_scores[met_id] = value
@@ -287,12 +289,14 @@ def compass_exchange(model, problem, reaction_penalties):
             names=['UPTAKE_OPT'])
 
         # Find minimimum penalty
-        utils.reset_objective(problem)
-        problem.objective.set_linear(
-            list(reaction_penalties.iteritems())
-        )
+        if(problem.objective.get_name() != 'reaction_penalties'):
+            utils.reset_objective(problem)
+            problem.objective.set_linear(
+                list(reaction_penalties.iteritems())
+            )
+            problem.objective.set_name('reaction_penalties')
+            problem.objective.set_sense(problem.objective.sense.minimize)
 
-        problem.objective.set_sense(problem.objective.sense.minimize)
         problem.solve()
         value = problem.solution.get_objective_value()
         uptake_scores[met_id] = value
@@ -332,18 +336,12 @@ def compass_reactions(model, problem, reaction_penalties):
         value: minimum penalty achieved
     """
 
-    # Create overall penalty as the objective function to minimize
-    utils.reset_objective(problem)
-    problem.objective.set_linear(
-        list(reaction_penalties.iteritems())
-    )
-
     # Iterate through Reactions
     reaction_scores = {}
 
     reactions = list(model.reactions.values())
     shuffle(reactions)
-    for reaction in reactions:
+    for reaction in tqdm(reactions):
 
         if reaction.is_exchange:
             continue
@@ -372,12 +370,14 @@ def compass_reactions(model, problem, reaction_penalties):
                 names=['REACTION_OPT'])
 
             # Minimize Penalty
-            utils.reset_objective(problem)
-            problem.objective.set_linear(
-                list(reaction_penalties.iteritems())
-            )
+            if(problem.objective.get_name() != 'reaction_penalties'):
+                utils.reset_objective(problem)
+                problem.objective.set_linear(
+                    list(reaction_penalties.iteritems())
+                )
+                problem.objective.set_name('reaction_penalties')
+                problem.objective.set_sense(problem.objective.sense.minimize)
 
-            problem.objective.set_sense(problem.objective.sense.minimize)
             problem.solve()
             value = problem.solution.get_objective_value()
             reaction_scores[reaction.id] = value
@@ -432,6 +432,9 @@ def initialize_cplex_problem(model):
         rhs=c_rhs,
         names=c_names)
 
+    # Initialize the objective
+    utils.reset_objective(problem)
+
     return problem
 
 
@@ -449,6 +452,7 @@ def maximize_reaction(model, problem, rxn, use_cache=True):
     # Maximize the reaction
     utils.reset_objective(problem)
     problem.objective.set_linear(rxn, 1.0)
+    problem.objective.set_name(rxn)
     problem.objective.set_sense(problem.objective.sense.maximize)
 
     problem.solve()
