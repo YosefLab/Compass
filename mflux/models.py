@@ -817,7 +817,12 @@ def _eval_node(elem, genes):
 
     elif found_or and found_and:
         # partition on | and recurse
-        i = resolved.index('|')
+
+        # Find a middle | to keep trees balanced
+        or_indices = [i for i,e in enumerate(resolved) if e == "|"]
+        mid = int(len(or_indices)/2)
+        i = or_indices[mid]
+
         left = tuple(resolved[0:i])
         right = tuple(resolved[i + 1:])
 
