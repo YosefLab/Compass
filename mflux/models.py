@@ -138,6 +138,26 @@ def load_metabolic_model_matlab(folder_name, species):
         reaction.gene_associations = _eval_rule_str(rule, genes)
         reactions.append(reaction)
 
+    # Other optional reaction files
+
+    # KEGG IDs
+    fname = os.path.join(model_dir, 'model.rxnKeggID.json')
+    if os.path.exists(fname):
+        with open(fname) as fin:
+            kegg = json.load(fin)
+
+        for i, reaction in enumerate(reactions):
+            reaction.xref['KEGG'] = kegg[i]
+
+    # EC Numbers
+    fname = os.path.join(model_dir, 'model.rxnECNumbers.json')
+    if os.path.exists(fname):
+        with open(fname) as fin:
+            ec = json.load(fin)
+
+        for i, reaction in enumerate(reactions):
+            reaction.xref['EC'] = ec[i]
+
     # Then metabolites
     with open(os.path.join(model_dir, 'model.mets.json')) as fin:
         met_ids = json.load(fin)
@@ -157,6 +177,16 @@ def load_metabolic_model_matlab(folder_name, species):
         met.compartment = compartment_re.search(met.id).group(1)
 
         species.append(met)
+
+    # Other optional metabolite files
+    # KEGG IDs
+    fname = os.path.join(model_dir, 'model.metKeggID.json')
+    if os.path.exists(fname):
+        with open(fname) as fin:
+            kegg = json.load(fin)
+
+        for i, met in enumerate(species):
+            met.xref['KEGG'] = kegg[i]
 
     # Then Smat
     with open(os.path.join(model_dir, 'model.S.json')) as fin:
@@ -407,6 +437,7 @@ class Reaction(object):
             self.products = from_reaction.products.copy()
             self.gene_associations = from_reaction.gene_associations
             self.reverse_reaction = from_reaction.reverse_reaction
+            self.xref = from_reaction.xref
 
         else:  # Placeholders
 
@@ -419,6 +450,7 @@ class Reaction(object):
             self.products = {}
             self.gene_associations = None
             self.reverse_reaction = None
+            self.xref = {}
 
     def __init__xml(self, xml_node, xml_params):
         """
@@ -430,6 +462,7 @@ class Reaction(object):
         self.name = xml_node.getName()
         self.subsystem = ""
         self.reverse_reaction = None
+        self.xref = {}
 
         # Lower and upper bounds
 
@@ -535,6 +568,7 @@ class Species(object):
             self.name = ""
             self.compartment = ""
             self.formula = ""
+            self.xref = {}
 
     def __init__xml(self, xml_node):
 
@@ -543,6 +577,7 @@ class Species(object):
         self.compartment = xml_node.getCompartment()
         self.formula = xml_node.getPlugin('fbc') \
             .getChemicalFormula()
+        self.xref = {}
 
 
 class Compartment(object):
