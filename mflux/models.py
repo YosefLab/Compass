@@ -521,6 +521,15 @@ class Reaction(object):
         else:
             return self.gene_associations.eval_expression(expression, and_function, or_function)
 
+    def list_genes(self):
+        """
+        Return all the genes associated with the reaction
+        """
+        if self.gene_associations is None:
+            return []
+        else:
+            return list(self.gene_associations.list_genes())
+
     def invert(self):
         """
         Inverts the directionality of the reaction in-place
@@ -659,6 +668,21 @@ class Association(object):
 
         else:
             raise Exception("Unknown Association Type")
+
+    def list_genes(self):
+        """
+        Returns all the genes in the association
+        """
+        if self.type == 'gene':
+            return {self.gene}
+
+        else:
+            genes = set()
+
+            for child in self.children:
+                genes.union(child.list_genes())
+
+            return genes
 
 
 class Gene(object):
