@@ -32,6 +32,10 @@ def run_compass(model, expression):
     """
     Runs COMPASS on many samples
     """
+
+    if isinstance(expression, pd.Series):
+        expression = pd.DataFrame(expression)
+
     logger.info("Running COMPASS on model: %s", model.name)
 
     # Limit exchange reactions
@@ -120,9 +124,21 @@ def compass_exchange(model, problem, reaction_penalties):
     uptake_scores = {}
     metabolites = list(model.species.values())
     shuffle(metabolites)
-    for metabolite in metabolites:
+
+
+    all_names = set(problem.linear_constraints.get_names())
+
+    for metabolite in tqdm(metabolites):
 
         met_id = metabolite.id
+
+        if met_id not in all_names:
+            # This can happen if the metabolite does not participate in any reaction
+            # As a result, it won't be in any constraints - happened in RECON2
+
+            uptake_scores[met_id] = 0.0
+            secretion_scores[met_id] = 0.0
+            continue
 
         # Rectify exchange reactions
         # Either find existing pos and neg exchange reactions
