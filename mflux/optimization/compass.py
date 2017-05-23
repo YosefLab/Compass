@@ -4,7 +4,6 @@ Run the procedure for COMPASS
 from __future__ import print_function, division, absolute_import
 import os
 import json
-import io
 import pandas as pd
 from tqdm import tqdm
 from random import shuffle
@@ -25,7 +24,7 @@ if not os.path.isdir(PREPROCESS_CACHE_DIR):
     os.mkdir(PREPROCESS_CACHE_DIR)
 
 BETA = 0.95  # Used to constrain model near optimal point
-EXCHANGE_LIMIT = 1000.0  # Limit for exchange reactions
+EXCHANGE_LIMIT = 1.0  # Limit for exchange reactions
 
 
 def run_compass(model, expression):
@@ -92,6 +91,7 @@ def eval_reaction_penalties(model, expression_data):
     reaction_expression = model.getReactionExpression(expression_data)
     reaction_expression = pd.Series(reaction_expression)
     reaction_expression[reaction_expression < 0] = 0
+    reaction_expression[pd.isnull(reaction_expression)] = 0
 
     reaction_penalties = 1 / (1 + reaction_expression)
 
