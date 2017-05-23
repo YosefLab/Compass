@@ -7,9 +7,36 @@ import libsbml
 import json
 import re
 from .globals import RESOURCE_DIR
+from math import isnan
 
 MODEL_DIR = os.path.join(RESOURCE_DIR, 'Metabolic Models')
 
+# ----------------------------------------
+# Functions for aggregation (and/or)
+# ----------------------------------------
+
+def min_w_nan(vals):
+    """
+    Min which propagates nan.
+    Normal python 'min' ignores nan.
+    """
+    if any([isnan(x) for x in vals]):
+        return float('nan')
+    else:
+        return min(vals)
+
+
+def sum_wo_nan(vals):
+    """
+    Max which ignores nan.
+    Normal python sum propagates nan.
+    """
+    vals = [x for x in vals if not isnan(x)]
+    return sum(vals)
+
+# ----------------------------------------
+# Loading models from either XML or MATLAB outputs
+# ----------------------------------------
 
 def load_metabolic_model(file_name, species='homo sapiens'):
     """
@@ -214,6 +241,9 @@ def load_metabolic_model_matlab(folder_name, species):
 
     return model
 
+# ----------------------------------------
+# Model class and related classes
+# ----------------------------------------
 
 
 class MetabolicModel(object):
@@ -246,7 +276,9 @@ class MetabolicModel(object):
 
         return lower_bounds, upper_bounds
 
-    def getReactionExpression(self, expression, and_function=min, or_function=sum):
+    def getReactionExpression(self, expression,
+                              and_function=min_w_nan,
+                              or_function=sum_wo_nan):
         # type: (pandas.Series) -> dict
         """
         Evaluates a score for every reaction, using the expression data.
@@ -722,6 +754,9 @@ class Gene(object):
 
         return float('nan')
 
+# ----------------------------------------
+# Utility functions
+# ----------------------------------------
 
 _TOKEN_RE = re.compile('x\(\d+\)|\(|\)|\||&')
 def _eval_rule_str(rule, genes):
