@@ -6,6 +6,7 @@ import os
 import libsbml
 import json
 import re
+import pandas as pd
 from .globals import RESOURCE_DIR
 from math import isnan
 
@@ -167,23 +168,14 @@ def load_metabolic_model_matlab(folder_name, species):
 
     # Other optional reaction files
 
-    # KEGG IDs
-    fname = os.path.join(model_dir, 'model.rxnKeggID.json')
+    # Meta-data
+    fname = os.path.join(model_dir, 'rxnMeta.txt')
     if os.path.exists(fname):
-        with open(fname) as fin:
-            kegg = json.load(fin)
+        # quoting=3 setting ignores " in file
+        rxnMeta = pd.read_table(fname, index_col=0, quoting=3)
 
         for i, reaction in enumerate(reactions):
-            reaction.xref['KEGG'] = kegg[i]
-
-    # EC Numbers
-    fname = os.path.join(model_dir, 'model.rxnECNumbers.json')
-    if os.path.exists(fname):
-        with open(fname) as fin:
-            ec = json.load(fin)
-
-        for i, reaction in enumerate(reactions):
-            reaction.xref['EC'] = ec[i]
+            reaction.meta = rxnMeta.loc[reaction.id].to_dict()
 
     # Then metabolites
     with open(os.path.join(model_dir, 'model.mets.json')) as fin:
@@ -206,14 +198,15 @@ def load_metabolic_model_matlab(folder_name, species):
         species.append(met)
 
     # Other optional metabolite files
-    # KEGG IDs
-    fname = os.path.join(model_dir, 'model.metKeggID.json')
+
+    # Meta-data
+    fname = os.path.join(model_dir, 'metMeta.txt')
     if os.path.exists(fname):
-        with open(fname) as fin:
-            kegg = json.load(fin)
+        # quoting=3 setting ignores " in file
+        metMeta = pd.read_table(fname, index_col=0, quoting=3)
 
         for i, met in enumerate(species):
-            met.xref['KEGG'] = kegg[i]
+            met.meta = metMeta.loc[met.id].to_dict()
 
     # Then Smat
     with open(os.path.join(model_dir, 'model.S.json')) as fin:
@@ -445,6 +438,20 @@ class MetabolicModel(object):
 
         return self._maximum_flux
 
+    @property
+    def reaction_meta(self):
+        out = pd.DataFrame()
+        rows = [pd.Series(x.meta, name=x.id) for x in self.reactions.values()]
+        out = out.append(rows)
+        return out
+
+    @property
+    def species_meta(self):
+        out = pd.DataFrame()
+        rows = [pd.Series(x.meta, name=x.id) for x in self.species.values()]
+        out = out.append(rows)
+        return out
+
 
 class Reaction(object):
     # Bounds
@@ -469,7 +476,7 @@ class Reaction(object):
             self.products = from_reaction.products.copy()
             self.gene_associations = from_reaction.gene_associations
             self.reverse_reaction = from_reaction.reverse_reaction
-            self.xref = from_reaction.xref
+            self.meta = from_reaction.meta
 
         else:  # Placeholders
 
@@ -482,7 +489,7 @@ class Reaction(object):
             self.products = {}
             self.gene_associations = None
             self.reverse_reaction = None
-            self.xref = {}
+            self.meta = {}
 
     def __init__xml(self, xml_node, xml_params):
         """
@@ -494,7 +501,7 @@ class Reaction(object):
         self.name = xml_node.getName()
         self.subsystem = ""
         self.reverse_reaction = None
-        self.xref = {}
+        self.meta = {}
 
         # Lower and upper bounds
 
@@ -609,7 +616,7 @@ class Species(object):
             self.name = ""
             self.compartment = ""
             self.formula = ""
-            self.xref = {}
+            self.meta = {}
 
     def __init__xml(self, xml_node):
 
@@ -618,7 +625,7 @@ class Species(object):
         self.compartment = xml_node.getCompartment()
         self.formula = xml_node.getPlugin('fbc') \
             .getChemicalFormula()
-        self.xref = {}
+        self.meta = {}
 
 
 class Compartment(object):
