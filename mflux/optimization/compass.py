@@ -13,6 +13,7 @@ import logging
 logger = logging.getLogger("mflux")
 
 from . import utils
+from ..globals import NUM_THREADS
 
 import cplex
 
@@ -412,6 +413,7 @@ def initialize_cplex_problem(model):
 
     # Set Parameters for the Cplex solver
     problem.parameters.emphasis.numerical.set(True)
+    problem.parameters.threads.set(NUM_THREADS)
 
     # Add variables
     reactions = list(model.reactions.values())
