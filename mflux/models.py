@@ -118,7 +118,7 @@ def load_metabolic_model_matlab(folder_name, species):
         with open(os.path.join(top_dir, 'uniqueMouseGeneSymbol.json')) as fin:
             gene_symbols = json.load(fin)
 
-        with open(os.path.join(top_dir, 'uniqueMouseGeneSymbol_all')) as fin:
+        with open(os.path.join(top_dir, 'uniqueMouseGeneSymbol_all.json')) as fin:
             alt_symbols = json.load(fin)
 
     else:
@@ -748,9 +748,16 @@ class Gene(object):
         if self.name in expression.index:
             return expression[self.name]
 
+        # Average expression across found alt_symbols
+        found_symbols = 0
+        agg_expression = 0
         for symbol in self.alt_symbols:
             if symbol in expression.index:
-                return expression[symbol]
+                agg_expression += expression[symbol]
+                found_symbols += 1
+
+        if found_symbols > 0:
+            return agg_expression / found_symbols
 
         return float('nan')
 
@@ -874,10 +881,10 @@ def _eval_node(elem, genes):
 
 
 
-# def print_node(node, indent=0):
-#     print(" "*indent + node.type)
-#     if len(node.children) > 0:
-#         for x in node.children:
-#             print_node(x, indent+4)
-#     if node.type == 'gene':
-#         print(" "*indent, node.gene.id, gene_ids.index(node.gene.id)+1)
+def _print_node(node, expression, indent=0):
+    print(" "*indent + node.type, node.eval_expression(expression, min_w_nan, sum_wo_nan))
+    if len(node.children) > 0:
+        for x in node.children:
+            _print_node(x, expression, indent+4)
+    if node.type == 'gene':
+        print(" "*indent, node.gene.id, node.gene.name, node.gene.alt_symbols)
