@@ -419,6 +419,21 @@ class MetabolicModel(object):
 
         self.reactions = uni_reactions
 
+    def load_media(self, media_file):
+        """
+        Loads information in the media file and uses it to
+        modify exchange reaction bounds
+
+        Media file contains a JSON dict with keys corresponding to
+        reaction IDs and values corresponding to reaction
+        upper-bounds
+        """
+        with open(media_file) as fin:
+            media = json.load(fin)
+
+        for rid, ub in media.items():
+            self.reactions[rid].upper_bound = ub
+
     def _calc_max_flux(self):
         """
         Determines the max (absolute) flux of the model

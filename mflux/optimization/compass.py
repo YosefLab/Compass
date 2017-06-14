@@ -27,7 +27,7 @@ BETA = 0.95  # Used to constrain model near optimal point
 EXCHANGE_LIMIT = 1.0  # Limit for exchange reactions
 
 
-def run_compass(model, expression):
+def run_compass(model, expression, media=None, num_processes=1):
     # type: (mflux.models.MetabolicModel, pandas.DataFrame)
     """
     Runs COMPASS on many samples
@@ -44,6 +44,9 @@ def run_compass(model, expression):
     # Split fluxes into _pos / _neg
     model.make_unidirectional()
 
+    if media is not None:
+        model.load_media(media)
+
     # Build model into cplex problem
     problem = initialize_cplex_problem(model)
 
@@ -52,11 +55,8 @@ def run_compass(model, expression):
     # Eval reaction penalties
     # Eval Metabolite secretion/uptake penalties
 
-    all_reaction_scores = {}
-    all_uptake_scores = {}
-    all_secretion_scores = {}
-
-    for i, sample in enumerate(expression.columns):
+    def loop_fun(sample):
+        i = list(expression.columns).index(sample)+1
         logger.info("Processing Sample %i/%i: %s", i,
                      len(expression.columns), sample)
 
@@ -70,13 +70,29 @@ def run_compass(model, expression):
         uptake_scores, secretion_scores = compass_exchange(
             model, problem, reaction_penalties)
 
-        all_reaction_scores[sample] = pd.Series(reaction_scores)
-        all_uptake_scores[sample] = pd.Series(uptake_scores)
-        all_secretion_scores[sample] = pd.Series(secretion_scores)
+        reaction_scores = pd.Series(reaction_scores, name=sample)
+        uptake_scores = pd.Series(uptake_scores, name=sample)
+        secretion_scores = pd.Series(secretion_scores, name=sample)
 
-    reaction_table = pd.DataFrame(all_reaction_scores)
-    uptake_table = pd.DataFrame(all_uptake_scores)
-    secretion_table = pd.DataFrame(all_secretion_scores)
+        return reaction_scores, uptake_scores, secretion_scores
+
+    if num_processes == 1:
+
+        result = list(map(loop_fun, expression.columns))
+
+    else:
+
+        p = Pool(num_processes)
+        result = list(p.map(loop_fun, expression.columns))
+        p.close()
+
+    # 'result' is a list of 3-tuples
+    # each with (reaction_scores, uptake_scores, secretion_scores)
+    # as pandas Series.  Now join into DataFrames
+
+    reaction_table = pd.concat([x[0] for x in result], axis=1)
+    uptake_table = pd.concat([x[1] for x in result], axis=1)
+    secretion_table = pd.concat([x[2] for x in result], axis=1)
 
     return reaction_table, uptake_table, secretion_table
 
