@@ -108,7 +108,7 @@ for x in tqdm(range(1000)):
     # Reactions
     # E1, E4 only go forward
     # R2 and R3 are found to only go forward
-    from mflux.optimization.compass import EXCHANGE_LIMIT
+    from mflux.compass import EXCHANGE_LIMIT
     model.limitExchangeReactions(limit=EXCHANGE_LIMIT)
     model.make_unidirectional()
 
@@ -156,7 +156,7 @@ for x in tqdm(range(1000)):
         model.reactions['R1_pos'].upper_bound,
         model.reactions['R2_pos'].upper_bound)
 
-    from mflux.optimization import compass
+    from mflux import compass
     compass._clear_cache(model)
     out = compass.run_compass(model, expression)
 

@@ -18,7 +18,7 @@ import numpy as np
 from tqdm import tqdm
 from mflux.models import (MetabolicModel, Reaction,
                           Species, Association, Gene)
-from mflux.optimization import compass
+from mflux import compass
 
 MODEL_UB = 10000
 MODEL_LB = -10000
@@ -135,7 +135,7 @@ def create_model():
     model.reactions = reactions
     model.species = species
 
-    from mflux.optimization.compass import EXCHANGE_LIMIT
+    from mflux.compass import EXCHANGE_LIMIT
     model.limitExchangeReactions(limit=EXCHANGE_LIMIT)
     model.make_unidirectional()
 

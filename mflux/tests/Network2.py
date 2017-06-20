@@ -131,7 +131,7 @@ for x in tqdm(range(1000)):
     expression = pd.DataFrame()
     expression['S1'] = pd.Series([1, 2, 1], index=['a', 'b', 'c'])
 
-    from mflux.optimization.compass import EXCHANGE_LIMIT
+    from mflux.compass import EXCHANGE_LIMIT
     model.limitExchangeReactions(limit=EXCHANGE_LIMIT)
     model.make_unidirectional()
 
@@ -209,7 +209,7 @@ for x in tqdm(range(1000)):
         model.reactions['R2_pos'].upper_bound,
         model.reactions['E2_pos'].upper_bound)
 
-    from mflux.optimization import compass
+    from mflux import compass
     compass._clear_cache(model)
     out = compass.run_compass(model, expression)
 

@@ -2,29 +2,114 @@
 Run the procedure for COMPASS
 """
 from __future__ import print_function, division, absolute_import
-import os
-import json
 import pandas as pd
 from tqdm import tqdm
 from random import shuffle
+from multiprocessing import Pool
 import logging
+import os
+
+from .. import utils
+from ..globals import NUM_THREADS
+from .. import models
+from . import cache
+from . import penalties
+
+import cplex
+TEST_MODE = True
 
 logger = logging.getLogger("mflux")
 
-from . import utils
-from ..globals import NUM_THREADS
-
-import cplex
-
 __all__ = ['run_compass']
-
-from ..globals import RESOURCE_DIR
-PREPROCESS_CACHE_DIR = os.path.join(RESOURCE_DIR, 'COMPASS')
-if not os.path.isdir(PREPROCESS_CACHE_DIR):
-    os.mkdir(PREPROCESS_CACHE_DIR)
 
 BETA = 0.95  # Used to constrain model near optimal point
 EXCHANGE_LIMIT = 1.0  # Limit for exchange reactions
+
+
+def singleSampleCompass(data, model, media, directory, lambda_, sample_index):
+    """
+    Run Compass on a single column of data
+
+    Parameters
+    ==========
+    data : str
+       Full path to data file
+
+    model : str
+        Name of metabolic model to use
+
+    media : str or None
+        Name of media to use
+
+    directory : str
+        Where to store results and log info.  Is created if it doesn't exist.
+
+    lambda_ : float
+        Degree of smoothing for single cells.  Valid range from 0 to 1.
+
+    sample_index : int
+        Which sample to run on
+    """
+
+    if not os.path.isdir(directory):
+        os.makedirs(directory)
+
+    expression = pd.read_table(data, index_col=0)
+    model = models.load_metabolic_model(model)
+    logger.info("Running COMPASS on model: %s", model.name)
+
+    # Limit exchange reactions
+    model.limitExchangeReactions(limit=EXCHANGE_LIMIT)
+
+    # Split fluxes into _pos / _neg
+    model.make_unidirectional()
+
+    if media is not None:
+        model.load_media(media)
+
+    # Build model into cplex problem
+    problem = initialize_cplex_problem(model)
+
+    expression_data = expression.iloc[:, sample_index]
+    sample_name = expression.columns[sample_index]
+
+    logger.info("Processing Sample %i/%i: %s", sample_index,
+                len(expression.columns), sample_name)
+
+    # Run core compass algorithm
+
+    # Evaluate reaction penalties
+    logger.info("Evaluating Reaction Penalties...")
+
+    if lambda_ == 0:
+        reaction_penalties = penalties.eval_reaction_penalties(
+            model, expression_data)
+    else:
+        reaction_penalties = penalties.eval_reaction_penalties_shared(
+            model, expression, sample_index, lambda_)
+
+    logger.info("Evaluating Reaction Scores...")
+    reaction_scores = compass_reactions(
+        model, problem, reaction_penalties)
+
+    logger.info("Evaluating Secretion/Uptake Scores...")
+    uptake_scores, secretion_scores = compass_exchange(
+        model, problem, reaction_penalties)
+
+    # Output results to file
+
+    reaction_scores = pd.Series(reaction_scores, name=sample_name)
+    uptake_scores = pd.Series(uptake_scores, name=sample_name)
+    secretion_scores = pd.Series(secretion_scores, name=sample_name)
+
+    reaction_scores.to_csv(os.path.join(directory, 'reactions.txt'),
+                           sep="\t", header=True)
+    uptake_scores.to_csv(os.path.join(directory, 'uptake.txt'),
+                         sep="\t", header=True)
+    secretion_scores.to_csv(os.path.join(directory, 'secretions.txt'),
+                            sep="\t", header=True)
+
+    logger.info('COMPASS Completed Successfully')
 
 
 def run_compass(model, expression, media=None, num_processes=1):
@@ -35,6 +120,9 @@ def run_compass(model, expression, media=None, num_processes=1):
 
     if isinstance(expression, pd.Series):
         expression = pd.DataFrame(expression)
+
+    if isinstance(model, str):
+        model = models.load_metabolic_model(model)
 
     logger.info("Running COMPASS on model: %s", model.name)
 
@@ -58,11 +146,12 @@ def run_compass(model, expression, media=None, num_processes=1):
     def loop_fun(sample):
         i = list(expression.columns).index(sample)+1
         logger.info("Processing Sample %i/%i: %s", i,
-                     len(expression.columns), sample)
+                    len(expression.columns), sample)
 
         expression_data = expression[sample]
 
-        reaction_penalties = eval_reaction_penalties(model, expression_data)
+        reaction_penalties = penalties.eval_reaction_penalties(
+            model, expression_data)
 
         reaction_scores = compass_reactions(
             model, problem, reaction_penalties)
@@ -97,25 +186,6 @@ def run_compass(model, expression, media=None, num_processes=1):
     return reaction_table, uptake_table, secretion_table
 
 
-def eval_reaction_penalties(model, expression_data):
-    # type: (mflux.models.MetabolicModel, pandas.Series)
-    """
-    Determines reaction penalties, on the given model, for
-    the given expression data
-    """
-
-    reaction_expression = model.getReactionExpression(expression_data)
-    reaction_expression = pd.Series(reaction_expression)
-    reaction_expression[reaction_expression < 0] = 0
-    reaction_expression[pd.isnull(reaction_expression)] = 0
-
-    reaction_penalties = 1 / (1 + reaction_expression)
-
-    reaction_penalties = reaction_penalties.dropna()
-
-    return reaction_penalties
-
-
 def compass_exchange(model, problem, reaction_penalties):
     """
     Iterates through metabolites, finding each's max
@@ -140,8 +210,9 @@ def compass_exchange(model, problem, reaction_penalties):
     secretion_scores = {}
     uptake_scores = {}
     metabolites = list(model.species.values())
+    if TEST_MODE:
+        metabolites = metabolites[0:50]
     shuffle(metabolites)
-
 
     all_names = set(problem.linear_constraints.get_names())
 
@@ -150,8 +221,9 @@ def compass_exchange(model, problem, reaction_penalties):
         met_id = metabolite.id
 
         if met_id not in all_names:
-            # This can happen if the metabolite does not participate in any reaction
-            # As a result, it won't be in any constraints - happened in RECON2
+            # This can happen if the metabolite does not participate
+            # in any reaction. As a result, it won't be in any
+            # constraints - happens in RECON2
 
             uptake_scores[met_id] = 0.0
             secretion_scores[met_id] = 0.0
@@ -167,7 +239,7 @@ def compass_exchange(model, problem, reaction_penalties):
         extra_secretion_rxns = []
 
         added_uptake = False     # Did we add an uptake reaction?
-        added_secretion = False  #  "  "   "  "  secretion reaction? 
+        added_secretion = False  # "   "   "  "  secretion reaction?
 
         # Metabolites represented by a constraint: get associated reactions
         sp = problem.linear_constraints.get_rows(met_id)
@@ -241,7 +313,6 @@ def compass_exchange(model, problem, reaction_penalties):
             old_ub = problem.variables.get_upper_bounds(rxn_id)
             old_secretion_upper[rxn_id] = old_ub
             problem.variables.set_upper_bounds(rxn_id, 0.0)
-
 
         # Get max of secretion reaction
         secretion_max = maximize_reaction(model, problem, secretion_rxn)
@@ -357,6 +428,8 @@ def compass_reactions(model, problem, reaction_penalties):
     reaction_scores = {}
 
     reactions = list(model.reactions.values())
+    if TEST_MODE:
+        reactions = reactions[0:100]
     shuffle(reactions)
     for reaction in tqdm(reactions):
 
@@ -463,9 +536,9 @@ def maximize_reaction(model, problem, rxn, use_cache=True):
 
     # Load from cache if it exists and return
     if use_cache:
-        cache = _load_cache(model)
-        if rxn in cache:
-            return cache[rxn]
+        model_cache = cache.load(model)
+        if rxn in model_cache:
+            return model_cache[rxn]
 
     # Maximize the reaction
     utils.reset_objective(problem)
@@ -477,48 +550,7 @@ def maximize_reaction(model, problem, rxn, use_cache=True):
     rxn_max = problem.solution.get_objective_value()
 
     # Save the result
-    cache = _load_cache(model)
-    cache[rxn] = rxn_max
+    model_cache = cache.load(model)
+    model_cache[rxn] = rxn_max
 
     return rxn_max
-
-
-_cache = {}
-def _load_cache(model):
-    global _cache
-
-    if model.name not in _cache:
-
-        cache_file = os.path.join(PREPROCESS_CACHE_DIR,
-                                  model.name + ".preprocess")
-
-        if os.path.exists(cache_file):
-            with open(cache_file) as fin:
-                out = json.load(fin)
-
-            _cache[model.name] = out
-
-        else:
-            _cache[model.name] = {}
-
-    return _cache[model.name]
-
-
-def _save_cache(model):
-    global _cache
-
-    cache_data = _cache[model.name]
-
-    cache_file = os.path.join(PREPROCESS_CACHE_DIR,
-                              model.name + ".preprocess")
-
-    with open(cache_file, 'w') as fout:
-        json.dump(cache_data, fout, indent=1)
-
-
-def _clear_cache(model):
-    global _cache
-
-    _cache[model.name] = {}
-
-    _save_cache(model)

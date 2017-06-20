@@ -1,5 +1,5 @@
 """
-optimization/utils.py
+utils.py
 
 Functions to be used by other optimization routines
 """
