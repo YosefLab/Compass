@@ -251,6 +251,7 @@ class MetabolicModel(object):
         self.compartments = {}
         self.objectives = {}
         self._maximum_flux = None
+        self.media = 'None'
 
     def getReactions(self):
         """
@@ -443,6 +444,8 @@ class MetabolicModel(object):
 
         for rid, ub in media.items():
             self.reactions[rid].upper_bound = ub
+
+        self.media = media_name
 
     def _calc_max_flux(self):
         """
