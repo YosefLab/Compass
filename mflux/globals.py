@@ -11,6 +11,7 @@ _this_directory = os.path.dirname(os.path.abspath(__file__))
 RESOURCE_DIR = os.path.join(_this_directory, "Resources")
 
 NUM_THREADS = 1
+TEST_MODE = False
 
 
 # Logging
