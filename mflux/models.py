@@ -39,15 +39,16 @@ def sum_wo_nan(vals):
 # Loading models from either XML or MATLAB outputs
 # ----------------------------------------
 
-def load_metabolic_model(file_name, species='homo sapiens'):
+
+def load_metabolic_model(model_name, species='homo sapiens'):
     """
     Loads the metabolic model from `file_name`, returning a Model object
     """
 
-    if file_name.endswith('.xml'):
-        model = load_metabolic_model_xml(file_name)
-    elif file_name.endswith('_mat'):
-        model = load_metabolic_model_matlab(file_name, species)
+    if model_name.endswith('_xml'):
+        model = load_metabolic_model_xml(model_name)
+    elif model_name.endswith('_mat'):
+        model = load_metabolic_model_matlab(model_name, species)
     else:
         raise NotImplementedError(
             "Can only handle .xml files or _mat directories")
@@ -55,9 +56,12 @@ def load_metabolic_model(file_name, species='homo sapiens'):
     return model
 
 
-def load_metabolic_model_xml(file_name):
+def load_metabolic_model_xml(model_name):
 
-    full_path = os.path.join(MODEL_DIR, file_name)
+    model_dir = os.path.join(MODEL_DIR, model_name)
+    model_file = [x for x in os.path.listdir(model_dir)
+                  if x.lower().endswith('.xml')][0]
+    full_path = os.path.join(model_dir, model_file)
     sbmlDocument = libsbml.readSBMLFromFile(full_path)
     xml_model = sbmlDocument.model
 
@@ -68,8 +72,7 @@ def load_metabolic_model_xml(file_name):
         val = pp.getValue()
         xml_params[key] = val
 
-    name = os.path.basename(file_name)
-    modelx = MetabolicModel(name)
+    modelx = MetabolicModel(model_name)
 
     # Add reactions
     for rr in xml_model.getListOfReactions():
@@ -89,16 +92,16 @@ def load_metabolic_model_xml(file_name):
     return modelx
 
 
-def load_metabolic_model_matlab(folder_name, species):
+def load_metabolic_model_matlab(model_name, species):
     """
-    folder_name: str
+    model_name: str
         Name of the folder containing the model
     species: str
         Species name.  either 'homo sapiens' or 'mus musculus'
     """
 
     # First load Genes
-    top_dir = os.path.join(MODEL_DIR, folder_name)
+    top_dir = os.path.join(MODEL_DIR, model_name)
     model_dir = os.path.join(top_dir, 'model')
 
     with open(os.path.join(model_dir, 'model.genes.json')) as fin:
@@ -226,7 +229,7 @@ def load_metabolic_model_matlab(folder_name, species):
 
     reactions = {r.id: r for r in reactions}
     species = {s.id: s for s in species}
-    name = folder_name
+    name = model_name
 
     model = MetabolicModel(name)
     model.reactions = reactions
@@ -419,15 +422,22 @@ class MetabolicModel(object):
 
         self.reactions = uni_reactions
 
-    def load_media(self, media_file):
+    def load_media(self, media_name):
         """
         Loads information in the media file and uses it to
         modify exchange reaction bounds
+
+        Media files are stored in the model's directory under
+        the `media` folder with names `<media_name>.json`
 
         Media file contains a JSON dict with keys corresponding to
         reaction IDs and values corresponding to reaction
         upper-bounds
         """
+
+        media_file = media_name + '.json'
+        media_file = os.path.join(MODEL_DIR, self.name, 'media', media_file)
+
         with open(media_file) as fin:
             media = json.load(fin)
 
