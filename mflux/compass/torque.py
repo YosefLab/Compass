@@ -7,7 +7,7 @@ from ..globals import RESOURCE_DIR
 TEMPLATE_DIR = os.path.join(RESOURCE_DIR, 'Queue Templates')
 
 
-def submitCompassTorque(data, model, media, temp_dir, lambda_
+def submitCompassTorque(data, model, media, temp_dir, lambda_,
                         output_dir, queue):
     """
     Submits each column of the expression matrix as a distinct job to

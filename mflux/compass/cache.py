@@ -36,7 +36,10 @@ def save(model):
     cache_data = _cache[(model.name, model.media)]
 
     cache_dir = os.path.join(PREPROCESS_CACHE_DIR, model.name, model.media)
-    os.makedirs(cache_dir)
+
+    if not os.path.isdir(cache_dir):
+        os.makedirs(cache_dir)
+
     cache_file = os.path.join(cache_dir, 'preprocess.json')
 
     with open(cache_file, 'w') as fout:
