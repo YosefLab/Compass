@@ -29,6 +29,8 @@ def eval_reaction_penalties_shared(model, expression,
         The degree of blending.  0 (no sharing) to 1 (only use group)
     """
 
+    assert lambda_ >= 0 and lambda_ <= 1
+
     # Compute reaction expression for each sample
 
     reaction_penalties = []
@@ -40,13 +42,17 @@ def eval_reaction_penalties_shared(model, expression,
     reaction_penalties = pd.concat(reaction_penalties, axis=1)
 
     # Compute weights between samples
-    weights = sample_weights_tsne_single(expression_data, PERPLEXITY,
-                                         sample_index)
+    if SYMMETRIC_KERNEL:
+        weights = sample_weights_tsne_symmetric(
+            expression, PERPLEXITY, sample_index)
+    else:
+        weights = sample_weights_tsne_single(
+            expression, PERPLEXITY, sample_index)
 
     sample_reaction_penalties = reaction_penalties.iloc[:, sample_index]
     weighted_reaction_penalties = reaction_penalties.dot(
         weights.reshape((-1, 1))
-    )
+    ).iloc[:, 0]
 
     result = ((1-lambda_)*sample_reaction_penalties +
               lambda_*weighted_reaction_penalties)
@@ -90,37 +96,34 @@ def sample_weights_tsne_single(data, perplexity, i):
         data = data.values
 
     # Calculate affinities (distance-squared) between samples
-
-    sumData2 = np.sum(data**2, axis=0, keepdims=True)
-    aff = -2*np.dot(data.T, data)
-    aff += sumData2
-    aff = aff.T
-    aff += sumData2
-    np.fill_diagonal(aff, 0)
+    diff = data - data[:, [i]]
+    aff = (diff**2).sum(axis=0)
     aff = aff.astype('float32')
 
     # Run the tsne perplexity procedure
-    pvals = tsne_utils.binary_search_perplexity(affinities=aff,
-                                                 neighbors=None,
-                                                 desired_perplexity=perplexity,
-                                                 verbose=1)
-
-    # Symmetrize the pvals
-    pvals += pvals.T
-    pvals /= 2
+    pvals = tsne_utils.binary_search_perplexity_single(
+        affinities=aff,
+        neighbors=None,
+        desired_perplexity=perplexity,
+        verbose=0, sample=i)
 
     return pvals
 
 
-def sample_weights_tsne(data, perplexity):
+def sample_weights_tsne_symmetric(data, perplexity, i):
     """
     Calculates p-values between samples using the procedure
     from tSNE
+
+    As this version uses symmetric p-values, it must calculate
+    the p-values for every sample vs every other sample
 
     data: numpy.ndarray
         data matrix with samples as columns
     perplexity: float
         binary search perplexity target
+    i : int
+        The index of the data point for which to calculate p-vals
     """
 
     if isinstance(data, pd.DataFrame):
@@ -137,16 +140,18 @@ def sample_weights_tsne(data, perplexity):
     aff = aff.astype('float32')
 
     # Run the tsne perplexity procedure
-    pvals = tsne_utils.binary_search_perplexity(affinities=aff,
-                                                 neighbors=None,
-                                                 desired_perplexity=perplexity,
-                                                 verbose=1)
+    pvals = tsne_utils.binary_search_perplexity(
+        affinities=aff,
+        neighbors=None,
+        desired_perplexity=perplexity,
+        verbose=0
+    )
 
     # Symmetrize the pvals
     pvals += pvals.T
     pvals /= 2
 
-    return pvals
+    return pvals[i, :]
 
 
 def sample_weights_bio(bio_groups):
@@ -180,4 +185,3 @@ def sample_weights_bio(bio_groups):
     pvals = (aff == 0).astype('float')
 
     return pvals
-    
