@@ -109,6 +109,8 @@ def singleSampleCompass(data, model, media, directory, lambda_, sample_index):
     secretion_scores.to_csv(os.path.join(directory, 'secretions.txt'),
                             sep="\t", header=True)
 
+    cache.save(model)
+
     logger.info('COMPASS Completed Successfully')
 
 
