@@ -8,6 +8,7 @@ from random import shuffle
 from multiprocessing import Pool
 import logging
 import os
+import sys
 
 from .. import utils
 from ..globals import NUM_THREADS
@@ -218,7 +219,7 @@ def compass_exchange(model, problem, reaction_penalties):
 
     all_names = set(problem.linear_constraints.get_names())
 
-    for metabolite in tqdm(metabolites):
+    for metabolite in tqdm(metabolites, file=sys.stderr):
 
         met_id = metabolite.id
 
@@ -433,7 +434,8 @@ def compass_reactions(model, problem, reaction_penalties):
     if TEST_MODE:
         reactions = reactions[0:100]
     shuffle(reactions)
-    for reaction in tqdm(reactions):
+
+    for reaction in tqdm(reactions, file=sys.stderr):
 
         if reaction.is_exchange:
             continue

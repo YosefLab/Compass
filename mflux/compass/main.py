@@ -5,11 +5,19 @@ from __future__ import absolute_import, print_function, division
 import argparse
 import os
 import multiprocessing
+import numpy as np
 import pandas as pd
+import sys
+import subprocess as sp
+import logging
+import datetime
 from functools import partial
+from tqdm import tqdm
 
+from .._version import __version__
 from .torque import submitCompassTorque
 from .algorithm import singleSampleCompass
+from .. import globals
 
 
 def parseArgs():
@@ -111,6 +119,32 @@ def entry():
 
     args = parseArgs()
 
+    # Log some things for debugging/record
+    logger = logging.getLogger('mflux')
+    logger.debug("MFlux version: " + __version__)
+
+    try:
+        commit = sp.check_output(
+            ["git", '--git-dir', globals.GIT_DIR, "rev-parse", "--short",
+             "HEAD"],
+            stderr=open(os.devnull, 'w')
+        )
+        logger.debug("Git commit: " + commit.decode())
+    except sp.CalledProcessError:
+        logger.debug("Git commit: Not in Git repo")
+
+    logger.debug("Python Version:")
+    logger.debug(sys.version)
+    logger.debug("Python prefix: " + sys.prefix)
+    logger.debug("Numpy version: " + np.__version__)
+    logger.debug("Pandas version: " + pd.__version__)
+    logger.debug("Supplied Arguments: ")
+    for (key, val) in args.items():
+        logger.debug("   {}: {}".format(key, val))
+
+    logger.debug("\nCOMPASS Started: {}".format(datetime.datetime.now()))
+    # Parse arguments and decide what course of action to take
+
     if args['single_sample'] is not None:
         singleSampleCompass(data=args['data'], model=args['model'],
                             media=args['media'], directory=args['temp_dir'],
@@ -150,19 +184,52 @@ def entry():
 
     pool = multiprocessing.Pool(args['num_processes'])
 
-    pool.map(partial_map_fun, range(n_samples))
+    logger.info(
+        "Processing {} samples using {} processes"
+        .format(n_samples, args['num_processes'])
+    )
+
+    logger.info(
+        "Progress bar will update once the first sample is finished"
+    )
+
+    pbar = tqdm(total=n_samples)
+
+    for _ in pool.imap_unordered(partial_map_fun, range(n_samples)):
+        pbar.update()
+
+    logger.info(
+        "Collecting results..."
+    )
 
     collectCompassResults(args['data'], args['temp_dir'], args['output_dir'])
+
+    logger.debug("\nCompleted At: {}".format(datetime.datetime.now()))
+    logger.info(
+        "COMPASS Completed Successfully"
+    )
 
 
 def _parallel_map_fun(i, data, model, media, temp_dir, lambda_):
         sample_dir = os.path.join(temp_dir, 'sample' + str(i))
-        singleSampleCompass(
-            data=data, model=model,
-            media=media, directory=sample_dir,
-            lambda_=lambda_,
-            sample_index=i
-        )
+
+        if not os.path.isdir(sample_dir):
+            os.makedirs(sample_dir)
+
+        out_file = os.path.join(sample_dir, 'out.log')
+        err_file = os.path.join(sample_dir, 'err.log')
+        with open(out_file, 'w') as fout, open(err_file, 'w') as ferr:
+            sys.stdout = fout
+            sys.stderr = ferr
+
+            globals.init_logger(sample_dir)
+
+            singleSampleCompass(
+                data=data, model=model,
+                media=media, directory=sample_dir,
+                lambda_=lambda_,
+                sample_index=i
+            )
 
 
 def collectCompassResults(data, temp_dir, out_dir):

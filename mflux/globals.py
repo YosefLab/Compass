@@ -4,9 +4,12 @@ Global variables for use by other modules
 import os
 import logging
 import sys
-import multiprocessing
 
 _this_directory = os.path.dirname(os.path.abspath(__file__))
+
+GIT_DIR = os.path.abspath(
+    os.path.join(_this_directory, '..', '.git')
+)
 
 RESOURCE_DIR = os.path.join(_this_directory, "Resources")
 
@@ -23,29 +26,28 @@ SYMMETRIC_KERNEL = False
 # Different Logging levels
 # Use levels in the logging modules
 
-# How to handle for multiple processes?
-# Should look this up
-# - Each process has its own logger?
-# - Yes - do what Geopy does
+def init_logger(directory="."):
+    logger = logging.getLogger('mflux')
+    logger.setLevel(logging.DEBUG)
+    logger.handlers = []
 
+    # Add file stream to mflux.log
+    log_file = os.path.join(directory, "mflux.log")
+    fh = logging.FileHandler(log_file, mode='w')
+    fh.name = 'logfile'
 
-logger = logging.getLogger('mflux')
-logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(message)s')
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(formatter)
 
-fh = logging.FileHandler("mflux.log", mode='w')
-fh.name = 'logfile'
+    logger.addHandler(fh)
 
-formatter = logging.Formatter(
-    '%(asctime)s - %(process)d\n%(message)s\n')
-fh.setLevel(logging.DEBUG)
-fh.setFormatter(formatter)
-
-logger.addHandler(fh)
-
-# Check if we're the main process
-if multiprocessing.current_process().name == 'MainProcess':
+    # Add stream to stdout
     sh = logging.StreamHandler(sys.stdout)
-    formatter = logging.Formatter('%(message)s\n')
+    formatter = logging.Formatter('%(message)s')
     sh.setFormatter(formatter)
     sh.setLevel(logging.INFO)
     logger.addHandler(sh)
+
+init_logger()
