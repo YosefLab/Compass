@@ -10,8 +10,13 @@ _this_directory = os.path.dirname(os.path.abspath(__file__))
 
 RESOURCE_DIR = os.path.join(_this_directory, "Resources")
 
-NUM_THREADS = 1
+NUM_THREADS = 1  # Threads per sample
 TEST_MODE = False
+
+# COMPASS-specific parameters
+
+PERPLEXITY = 30  # Hyperparameter for tsne kernel
+SYMMETRIC_KERNEL = False
 
 
 # Logging

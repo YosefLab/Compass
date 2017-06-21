@@ -69,6 +69,17 @@ def parseArgs():
     parser.add_argument("--collect", action="store_true",
                         help=argparse.SUPPRESS)
 
+    parser.add_argument("--test", action="store_true",
+                        help="Only process a small portion of reactions/metabolites")
+
+    parser.add_argument("--perplexity",
+                        help="Effective number of neighbors for tsne kernel",
+                        type=int,
+                        metavar="N")
+
+    parser.add_argument("--symmetric-kernel", action="store_true",
+                        help="Use symmetric TSNE kernel (slower)")
+
     args = parser.parse_args()
 
     args = vars(args)  # Convert to a Dictionary
@@ -78,8 +89,18 @@ def parseArgs():
     args['output_dir'] = os.path.abspath(args['output_dir'])
     args['temp_dir'] = os.path.abspath(args['temp_dir'])
 
-    if args['media'] == 'None':
-        args['media'] = None
+    globals.TEST_MODE = args['test']
+    globals.SYMMETRIC_KERNEL = args['symmetric_kernel']
+    if args['perplexity'] is not None:
+        globals.PERPLEXITY = args['perplexity']
+
+    if args['media'] is None:
+        args['media'] = 'None'
+
+    if args['lambda'] < 0 or args['lambda'] > 1:
+        parser.error(
+            "'lambda' parameter cannot be less than 0 or greater than 1"
+        )
 
     return args
 

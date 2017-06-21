@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from .extensions import tsne_utils
 
-PERPLEXITY = 30  # Hyperparameter for tsne kernel
+from ..globals import PERPLEXITY, SYMMETRIC_KERNEL
 
 
 def eval_reaction_penalties_shared(model, expression,
