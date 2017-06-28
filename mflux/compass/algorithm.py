@@ -11,13 +11,12 @@ import os
 import sys
 
 from .. import utils
-from ..globals import NUM_THREADS
+from ..globals import NUM_THREADS, TEST_MODE
 from .. import models
 from . import cache
 from . import penalties
 
 import cplex
-TEST_MODE = True
 
 logger = logging.getLogger("mflux")
 
@@ -109,8 +108,6 @@ def singleSampleCompass(data, model, media, directory, lambda_, sample_index):
                          sep="\t", header=True)
     secretion_scores.to_csv(os.path.join(directory, 'secretions.txt'),
                             sep="\t", header=True)
-
-    cache.save(model)
 
     logger.info('COMPASS Completed Successfully')
 

@@ -10,6 +10,10 @@ workdir=$PBS_O_INITDIR/sample$PBS_ARRAYID
 mkdir -p $workdir
 exec 2> $workdir/err.log > $workdir/out.log
 
+## Remove the old log files
+rm $PBS_O_HOME/$PBS_JOBNAME.o*
+rm $PBS_O_HOME/$PBS_JOBNAME.e*
+
 ### Switch to the working directory
 echo Working directory is $workdir
 cd $workdir

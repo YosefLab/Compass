@@ -28,7 +28,12 @@ setup(
     entry_points={'console_scripts':
                   ['compass = mflux.compass.main:entry']},
 
-    install_requires=[],
+    install_requires=[
+        'numpy>=1.12',
+        'pandas>=0.20',
+        'tqdm>=4.11',
+        'python-libsbml>=5.13',
+        'cplex>=12.7.0.0'],
 
     author="David DeTomaso",
     author_email="david.detomaso@berkeley.edu",

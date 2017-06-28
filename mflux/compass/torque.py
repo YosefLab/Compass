@@ -48,13 +48,14 @@ def submitCompassTorque(data, model, media, temp_dir, lambda_,
     expression = pd.read_table(data, index_col=0)
     n_samples = len(expression.columns)
 
-    script_args = [data, model, media, lambda_]
+    script_args = [data, model, media, str(lambda_)]
 
     singleSampleScript = os.path.join(TEMPLATE_DIR, "CompassSingleSample.sh")
 
     command_args = ['qsub', singleSampleScript, '-N', 'COMPASS',
-                    '-e', 'localhost:/dev/null',
-                    '-o', 'localhost:/dev/null',
+                    #'-e', os.path.join(temp_dir, 'temperr'),
+                    #'-o', os.path.join(temp_dir, 'tempout'),
+                    '-k', 'oe',
                     '-q', queue,
                     '-l', 'nodes=1:ppn=1',
                     '-l', 'walltime=24:00:00',
@@ -80,7 +81,7 @@ def submitCompassTorque(data, model, media, temp_dir, lambda_,
                     '-l', 'walltime=24:00:00',
                     '-l', 'cput=04:00:00',
                     '-V',
-                    '-W', 'depend=afterokarray:'+array_job_id,
+                    '-W', 'depend=afteranyarray:'+array_job_id,
                     '-d', output_dir,
                     '-F', " ".join(script_args)]
 

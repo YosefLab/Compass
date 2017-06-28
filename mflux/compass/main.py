@@ -49,7 +49,7 @@ def parseArgs():
                         metavar="DIR")
 
     parser.add_argument("--temp-dir", help="Where to store temporary files",
-                        default='./_tmp',
+                        default='<output-dir>/_tmp',
                         metavar="DIR")
 
     parser.add_argument("--torque-queue", help="Submit to a Torque queue",
@@ -77,9 +77,6 @@ def parseArgs():
     parser.add_argument("--collect", action="store_true",
                         help=argparse.SUPPRESS)
 
-    parser.add_argument("--test", action="store_true",
-                        help="Only process a small portion of reactions/metabolites")
-
     parser.add_argument("--perplexity",
                         help="Effective number of neighbors for tsne kernel",
                         type=int,
@@ -94,10 +91,13 @@ def parseArgs():
 
     # Convert directories/files to absolute paths
     args['data'] = os.path.abspath(args['data'])
+
+    if args['temp_dir'] == "<output-dir>/_tmp":
+        args['temp_dir'] = os.path.join(args['output_dir'], '_tmp')
+
     args['output_dir'] = os.path.abspath(args['output_dir'])
     args['temp_dir'] = os.path.abspath(args['temp_dir'])
 
-    globals.TEST_MODE = args['test']
     globals.SYMMETRIC_KERNEL = args['symmetric_kernel']
     if args['perplexity'] is not None:
         globals.PERPLEXITY = args['perplexity']
@@ -198,10 +198,6 @@ def entry():
     for _ in pool.imap_unordered(partial_map_fun, range(n_samples)):
         pbar.update()
 
-    logger.info(
-        "Collecting results..."
-    )
-
     collectCompassResults(args['data'], args['temp_dir'], args['output_dir'])
 
     logger.debug("\nCompleted At: {}".format(datetime.datetime.now()))
@@ -251,6 +247,10 @@ def collectCompassResults(data, temp_dir, out_dir):
 
     if not os.path.isdir(out_dir):
         os.makedirs(out_dir)
+
+    logger = logging.getLogger('mflux')
+    logger.info("Collecting results from: " + temp_dir)
+    logger.info("Writing output to: " + out_dir)
 
     # Get the number of samples
     expression = pd.read_table(data, index_col=0)
