@@ -4,6 +4,17 @@ Metabolic Flux-Balance Analysis in Python
 
 ## Install
 
+### Installing CPLEX (required for MFlux)
+
+MFlux depends on IBM CPLEX to run optimization procedures.  The full edition is available for free for academic use.
+
+Install CPLEX [here](https://www.ibm.com/software/commerce/optimization/cplex-optimizer/)
+
+Then follow the insructions [here](https://www.ibm.com/support/knowledgecenter/en/SSSA5P_12.6.0/ilog.odms.cplex.help/CPLEX/GettingStarted/topics/set_up/Python_setup.html) to install the cplex Python module.
+
+
+### Installing MFlux
+
 The best way is to install directly from this Github repository using the following command:
 
 ```bash
