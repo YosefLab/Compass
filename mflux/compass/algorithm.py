@@ -103,6 +103,19 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     uptake_scores, secretion_scores = compass_exchange(
         model, problem, reaction_penalties)
 
+    # Copy valid uptake/secretion reaction fluxes from uptake/secretion
+    #   results into reaction results
+
+    for r_id in uptake_scores:
+        if r_id in model.reactions:
+            assert r_id not in reaction_scores
+            reaction_scores[r_id] = uptake_scores[r_id]
+
+    for r_id in secretion_scores:
+        if r_id in model.reactions:
+            assert r_id not in reaction_scores
+            reaction_scores[r_id] = secretion_scores[r_id]
+
     # Output results to file
 
     reaction_scores = pd.Series(reaction_scores, name=sample_name)
