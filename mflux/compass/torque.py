@@ -1,28 +1,22 @@
 import os
 import pandas as pd
 import subprocess as sp
+import json
 
 from ..globals import RESOURCE_DIR
 
 TEMPLATE_DIR = os.path.join(RESOURCE_DIR, 'Queue Templates')
 
 
-def submitCompassTorque(data, model, media, temp_dir, lambda_,
-                        output_dir, queue):
+def submitCompassTorque(args, temp_dir, output_dir, queue):
     """
     Submits each column of the expression matrix as a distinct job to
     a Torque queueing system
 
     Parameters
     ==========
-    data : str
-       Full path to data file
-
-    model : str
-        Name of metabolic model to use
-
-    media : str or None
-        Name of media to use
+    args : dict
+        Arguments for the COMPASS call
 
     temp_dir : str
         Directory - where to look for sample results.
@@ -30,26 +24,36 @@ def submitCompassTorque(data, model, media, temp_dir, lambda_,
     out_dir : str
         Where to store aggregated results.  Is created if it doesn't exist.
 
-    lambda_ : float
-        Degree of smoothing for single cells.  Valid range from 0 to 1.
-
     queue : str
         Which queue (name) to submit to
     """
-
-    # Create an array job for single samples
-    if media is None:
-        media = 'None'
 
     if not os.path.isdir(temp_dir):
         os.makedirs(temp_dir)
 
     # Get the number of samples for array indices
+    data = args['data']
     expression = pd.read_table(data, index_col=0)
     n_samples = len(expression.columns)
 
-    script_args = [data, model, media, str(lambda_)]
+    config_file = os.path.join(temp_dir, 'config.json')
+    script_args = [config_file]
 
+    # Save the arguments to the config file
+    exclude_args = {'temp_dir', 'output_dir', 'torque_queue',
+                    'num_processes'}
+    newArgs = {}
+    for arg, val in args.items():
+        if val is None: continue
+        if arg in exclude_args: continue
+        newArgs[arg] = val
+
+    newArgs['temp_dir'] = '.'
+
+    with open(config_file, 'w') as fp:
+        json.dump(newArgs, fp)
+
+    # Submit the single sample array job
     singleSampleScript = os.path.join(TEMPLATE_DIR, "CompassSingleSample.sh")
 
     command_args = ['qsub', singleSampleScript, '-N', 'COMPASS',
@@ -69,9 +73,25 @@ def submitCompassTorque(data, model, media, temp_dir, lambda_,
     if isinstance(array_job_id, bytes):
         array_job_id = array_job_id.decode()
 
+    config_file = os.path.join(temp_dir, 'configCollect.json')
+    script_args = [config_file]
+
+    # Save the arguments to the config file
+    exclude_args = {'output_dir', 'torque_queue',
+                    'num_processes', 'collect'}
+    newArgs = {}
+    for arg, val in args.items():
+        if val is None: continue
+        if arg in exclude_args: continue
+        newArgs[arg] = val
+
+    newArgs['output_dir'] = '.'
+
+    with open(config_file, 'w') as fp:
+        json.dump(newArgs, fp)
+
     # Take the array_job_id and use it to create a collect script
     collectScript = os.path.join(TEMPLATE_DIR, "CompassCollect.sh")
-    script_args = [data, model, media, temp_dir]
 
     command_args = ['qsub', collectScript, '-N', 'COMPASSCollect',
                     '-e', 'localhost:/dev/null',

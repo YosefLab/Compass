@@ -1,9 +1,6 @@
 #!/bin/sh
 
-DATA=$1
-MODEL=$2
-MEDIA=$3
-TEMPDIR=$4
+CONFIG=$1
 
 workdir=$PBS_O_INITDIR
 
@@ -21,4 +18,5 @@ echo Directory is `pwd`
 echo This jobs runs on the following processors:
 echo `cat $PBS_NODEFILE`
 
-compass --data $DATA --model $MODEL --media $MEDIA --temp-dir $TEMPDIR --output-dir . --collect
+# --data is taken from the config file
+compass --data '' --collect --config-file $CONFIG

@@ -26,7 +26,7 @@ BETA = 0.95  # Used to constrain model near optimal point
 EXCHANGE_LIMIT = 1.0  # Limit for exchange reactions
 
 
-def singleSampleCompass(data, model, media, directory, lambda_, sample_index):
+def singleSampleCompass(data, model, media, directory, sample_index, args):
     """
     Run Compass on a single column of data
 
@@ -44,18 +44,24 @@ def singleSampleCompass(data, model, media, directory, lambda_, sample_index):
     directory : str
         Where to store results and log info.  Is created if it doesn't exist.
 
-    lambda_ : float
-        Degree of smoothing for single cells.  Valid range from 0 to 1.
-
     sample_index : int
         Which sample to run on
+
+    args : dict
+        More keyword arguments
     """
 
     if not os.path.isdir(directory):
         os.makedirs(directory)
 
+    # Unpack extra arguments
+    lambda_ = args['lambda']
+    perplexity = args['perplexity']
+    symmetric_kernel = args['symmetric_kernel']
+
     expression = pd.read_table(data, index_col=0)
-    model = models.load_metabolic_model(model)
+    expression.index = expression.index.str.upper()  # Gene names to upper
+    model = models.load_metabolic_model(model, args['species'])
     logger.info("Running COMPASS on model: %s", model.name)
 
     # Limit exchange reactions
@@ -86,7 +92,8 @@ def singleSampleCompass(data, model, media, directory, lambda_, sample_index):
             model, expression_data)
     else:
         reaction_penalties = penalties.eval_reaction_penalties_shared(
-            model, expression, sample_index, lambda_)
+            model, expression, sample_index, lambda_, perplexity=perplexity,
+            symmetric_kernel=symmetric_kernel)
 
     logger.info("Evaluating Reaction Scores...")
     reaction_scores = compass_reactions(

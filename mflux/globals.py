@@ -13,18 +13,13 @@ GIT_DIR = os.path.abspath(
 
 RESOURCE_DIR = os.path.join(_this_directory, "Resources")
 
-NUM_THREADS = 1  # Threads per sample
-TEST_MODE = False # When true, only a small subset of reactions are used
-
-# COMPASS-specific parameters
-
-PERPLEXITY = 30  # Hyperparameter for tsne kernel
-SYMMETRIC_KERNEL = False
-
+NUM_THREADS = 1   # Threads per sample
+TEST_MODE = False  # When true, only a small subset of reactions are used
 
 # Logging
 # Different Logging levels
 # Use levels in the logging modules
+
 
 def init_logger(directory="."):
     logger = logging.getLogger('mflux')

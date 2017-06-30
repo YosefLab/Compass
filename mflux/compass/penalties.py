@@ -2,11 +2,10 @@ import numpy as np
 import pandas as pd
 from .extensions import tsne_utils
 
-from ..globals import PERPLEXITY, SYMMETRIC_KERNEL
-
 
 def eval_reaction_penalties_shared(model, expression,
-                                   sample_index, lambda_):
+                                   sample_index, lambda_,
+                                   perplexity, symmetric_kernel):
     """
     Determines reaction penalties, on the given model, for
     the given expression data
@@ -27,6 +26,12 @@ def eval_reaction_penalties_shared(model, expression,
 
     lambda_: float
         The degree of blending.  0 (no sharing) to 1 (only use group)
+
+    perplexity: int
+        Effective number of neighbors for TSNE kernel
+
+    symmetric_kernel: bool
+        Whether or not to symmetrize the TSNE kernel (takes longer)
     """
 
     assert lambda_ >= 0 and lambda_ <= 1
@@ -42,13 +47,14 @@ def eval_reaction_penalties_shared(model, expression,
     reaction_penalties = pd.concat(reaction_penalties, axis=1)
 
     # Compute weights between samples
-    if SYMMETRIC_KERNEL:
+    if symmetric_kernel:
         weights = sample_weights_tsne_symmetric(
-            expression, PERPLEXITY, sample_index)
+            expression, perplexity, sample_index)
     else:
         weights = sample_weights_tsne_single(
-            expression, PERPLEXITY, sample_index)
+            expression, perplexity, sample_index)
 
+    # Compute weights between samples
     sample_reaction_penalties = reaction_penalties.iloc[:, sample_index]
     weighted_reaction_penalties = reaction_penalties.dot(
         weights.reshape((-1, 1))

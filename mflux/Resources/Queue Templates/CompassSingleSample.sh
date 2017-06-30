@@ -1,9 +1,6 @@
 #!/bin/sh
 
-DATA=$1
-MODEL=$2
-MEDIA=$3
-LAMBDA=$4
+CONFIG=$1
 
 workdir=$PBS_O_INITDIR/sample$PBS_ARRAYID
 
@@ -25,4 +22,5 @@ echo Directory is `pwd`
 echo This jobs runs on the following processors:
 echo `cat $PBS_NODEFILE`
 
-compass --data $DATA --model $MODEL --media $MEDIA --temp-dir . --lambda $LAMBDA --single-sample $PBS_ARRAYID
+# --data is taken from the config file
+compass --data '' --single-sample $PBS_ARRAYID --config-file $CONFIG

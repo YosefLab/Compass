@@ -11,6 +11,7 @@ import sys
 import subprocess as sp
 import logging
 import datetime
+import json
 from functools import partial
 from tqdm import tqdm
 
@@ -37,9 +38,15 @@ def parseArgs():
                         metavar="FILE")
 
     parser.add_argument("--model", help="Metabolic Model to Use",
-                        required=True,
+                        default="RECON2_mat",
                         choices=["RECON1_mat", "RECON2_mat"],
                         metavar="MODEL")
+
+    parser.add_argument("--species",
+                        help="Species to use to match genes to model",
+                        choices=["homo_sapiens", "mus_musculus"],
+                        metavar="SPECIES",
+                        default="homo_sapiens")
 
     parser.add_argument("--media", help="Which media to simulate",
                         metavar="MEDIA")
@@ -79,15 +86,21 @@ def parseArgs():
 
     parser.add_argument("--perplexity",
                         help="Effective number of neighbors for tsne kernel",
+                        default=30,
                         type=int,
                         metavar="N")
 
     parser.add_argument("--symmetric-kernel", action="store_true",
                         help="Use symmetric TSNE kernel (slower)")
 
+    # Also used for batch jobs
+    parser.add_argument("--config-file", help=argparse.SUPPRESS)
+
     args = parser.parse_args()
 
     args = vars(args)  # Convert to a Dictionary
+
+    load_config(args)
 
     # Convert directories/files to absolute paths
     args['data'] = os.path.abspath(args['data'])
@@ -97,13 +110,6 @@ def parseArgs():
 
     args['output_dir'] = os.path.abspath(args['output_dir'])
     args['temp_dir'] = os.path.abspath(args['temp_dir'])
-
-    globals.SYMMETRIC_KERNEL = args['symmetric_kernel']
-    if args['perplexity'] is not None:
-        globals.PERPLEXITY = args['perplexity']
-
-    if args['media'] is None:
-        args['media'] = 'None'
 
     if args['lambda'] < 0 or args['lambda'] > 1:
         parser.error(
@@ -116,6 +122,7 @@ def parseArgs():
 def entry():
     """Entry point for the compass command-line script
     """
+    start_time = datetime.datetime.now()
 
     args = parseArgs()
 
@@ -142,27 +149,29 @@ def entry():
     for (key, val) in args.items():
         logger.debug("   {}: {}".format(key, val))
 
-    logger.debug("\nCOMPASS Started: {}".format(datetime.datetime.now()))
+    logger.debug("\nCOMPASS Started: {}".format(start_time))
     # Parse arguments and decide what course of action to take
 
     if args['single_sample'] is not None:
         singleSampleCompass(data=args['data'], model=args['model'],
                             media=args['media'], directory=args['temp_dir'],
-                            lambda_=args['lambda'],
-                            sample_index=args['single_sample'])
+                            sample_index=args['single_sample'], args=args)
+        end_time = datetime.datetime.now()
+        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
         return
 
     if args['torque_queue'] is not None:
-        submitCompassTorque(data=args['data'], model=args['model'],
-                            media=args['media'], temp_dir=args['temp_dir'],
+        submitCompassTorque(args,
+                            temp_dir=args['temp_dir'],
                             output_dir=args['output_dir'],
-                            lambda_=args['lambda'],
                             queue=args['torque_queue'])
         return
 
     if args['collect']:
         collectCompassResults(args['data'], args['temp_dir'],
                               args['output_dir'])
+        end_time = datetime.datetime.now()
+        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
         return
 
     # If we're here, then run compass on this machine with N processes
@@ -176,11 +185,7 @@ def entry():
     data = pd.read_table(args['data'], index_col=0)
     n_samples = len(data.columns)
 
-    partial_map_fun = partial(_parallel_map_fun, data=args['data'],
-                              model=args['model'],
-                              media=args['media'],
-                              lambda_=args['lambda'],
-                              temp_dir=args['temp_dir'])
+    partial_map_fun = partial(_parallel_map_fun, args=args)
 
     pool = multiprocessing.Pool(args['num_processes'])
 
@@ -200,13 +205,21 @@ def entry():
 
     collectCompassResults(args['data'], args['temp_dir'], args['output_dir'])
 
-    logger.debug("\nCompleted At: {}".format(datetime.datetime.now()))
+    end_time = datetime.datetime.now()
+    logger.debug("\nCompleted At: {}".format(end_time))
+    logger.debug("\nElapsed Time: {}".format(end_time-start_time))
     logger.info(
         "COMPASS Completed Successfully"
     )
 
 
-def _parallel_map_fun(i, data, model, media, temp_dir, lambda_):
+def _parallel_map_fun(i, args):
+
+        data = args['data']
+        model = args['model']
+        media = args['media']
+        temp_dir = args['temp_dir']
+
         sample_dir = os.path.join(temp_dir, 'sample' + str(i))
 
         if not os.path.isdir(sample_dir):
@@ -220,12 +233,23 @@ def _parallel_map_fun(i, data, model, media, temp_dir, lambda_):
 
             globals.init_logger(sample_dir)
 
+            logger = logging.getLogger('mflux')
+            logger.debug("MFlux: Single-sample mode")
+            logger.debug("Supplied Arguments: ")
+            for (key, val) in args.items():
+                logger.debug("   {}: {}".format(key, val))
+
+            start_time = datetime.datetime.now()
+            logger.debug("\nCOMPASS Started: {}".format(start_time))
+
             singleSampleCompass(
                 data=data, model=model,
                 media=media, directory=sample_dir,
-                lambda_=lambda_,
-                sample_index=i
+                sample_index=i, args=args
             )
+
+            end_time = datetime.datetime.now()
+            logger.debug("\nElapsed Time: {}".format(end_time-start_time))
 
 
 def collectCompassResults(data, temp_dir, out_dir):
@@ -308,3 +332,24 @@ def collectCompassResults(data, temp_dir, out_dir):
     uptake_all = pd.concat(uptake_all, axis=1)
     uptake_all.to_csv(
         os.path.join(out_dir, 'uptake.txt'), sep="\t")
+
+
+def load_config(args):
+    """
+    If a config file is specified, this loads the file
+    and applies the arguments in the config file - overwriting
+    other arguments specified at the command line
+
+    Really just for batch jobs to make it easier to
+    propagate arguments
+    """
+
+    if ("config_file" not in args or
+            args["config_file"] is None):
+        return
+
+    filename = args["config_file"]
+    with open(filename) as fin:
+        newArgs = json.load(fin)
+
+    args.update(newArgs)

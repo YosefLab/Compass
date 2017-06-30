@@ -40,7 +40,7 @@ def sum_wo_nan(vals):
 # ----------------------------------------
 
 
-def load_metabolic_model(model_name, species='homo sapiens'):
+def load_metabolic_model(model_name, species='homo_sapiens'):
     """
     Loads the metabolic model from `file_name`, returning a Model object
     """
@@ -97,7 +97,7 @@ def load_metabolic_model_matlab(model_name, species):
     model_name: str
         Name of the folder containing the model
     species: str
-        Species name.  either 'homo sapiens' or 'mus musculus'
+        Species name.  either 'homo_sapiens' or 'mus_musculus'
     """
 
     # First load Genes
@@ -110,14 +110,14 @@ def load_metabolic_model_matlab(model_name, species):
     with open(os.path.join(top_dir, 'non2uniqueEntrez.json')) as fin:
         gtx = json.load(fin)
 
-    if species == 'homo sapiens':
+    if species == 'homo_sapiens':
 
         with open(os.path.join(top_dir, 'uniqueHumanGeneSymbol.json')) as fin:
             gene_symbols = json.load(fin)
 
         alt_symbols = [[] for x in gene_symbols]
 
-    elif species == 'mus musculus':
+    elif species == 'mus_musculus':
 
         with open(os.path.join(top_dir, 'uniqueMouseGeneSymbol.json')) as fin:
             gene_symbols = json.load(fin)
@@ -127,7 +127,7 @@ def load_metabolic_model_matlab(model_name, species):
 
     else:
         raise Exception(
-            'Unsupported species.  Supported: `homo sapies`, `mus musculus`')
+            'Unsupported species.  Supported: `homo_sapines`, `mus_musculus`')
 
     genes = []
     for i, gid in enumerate(gene_ids):
