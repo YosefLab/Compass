@@ -9,6 +9,7 @@ import re
 import pandas as pd
 from .globals import RESOURCE_DIR
 from math import isnan
+from six import string_types
 
 MODEL_DIR = os.path.join(RESOURCE_DIR, 'Metabolic Models')
 
@@ -535,11 +536,11 @@ class Reaction(object):
 
         fbcrr = xml_node.getPlugin('fbc')
         ub = fbcrr.getUpperFluxBound()
-        if isinstance(ub, str):
+        if isinstance(ub, string_types):
             ub = xml_params[ub]
 
         lb = fbcrr.getLowerFluxBound()
-        if isinstance(lb, str):
+        if isinstance(lb, string_types):
             lb = xml_params[lb]
 
         self.upper_bound = ub
@@ -801,6 +802,16 @@ class Gene(object):
 # ----------------------------------------
 
 _TOKEN_RE = re.compile('x\(\d+\)|\(|\)|\||&')
+
+# Breakdown of RE
+""" x\(\d+\) |
+    \(       |
+    \)       |
+    \|       |
+    &
+"""
+
+
 def _eval_rule_str(rule, genes):
 
     # Return None if there is no gene-product rule
@@ -831,7 +842,7 @@ def _eval_rule_str(rule, genes):
     return _eval_node(elem, genes)
 
 
-_ELEM_RE = re.compile('x\((\d+)\)')
+_ELEM_RE = re.compile('x\((\d+)\)$')
 
 
 def _eval_node(elem, genes):
@@ -845,8 +856,8 @@ def _eval_node(elem, genes):
     for node in elem:
         if isinstance(node, tuple):
             resolved.append(_eval_node(node, genes))
-        elif isinstance(node, str):
-            elem_match = _ELEM_RE.fullmatch(node)
+        elif isinstance(node, string_types):
+            elem_match = _ELEM_RE.match(node)
 
             if elem_match:
                 index = int(elem_match.group(1)) - 1
@@ -864,7 +875,7 @@ def _eval_node(elem, genes):
             resolved.append(node)
 
         else:
-            raise Exception("Unknown Note type: " + str(node))
+            raise Exception("Unknown Node type: " + str(node))
 
     if len(resolved) == 1:
         return resolved[0]
