@@ -100,21 +100,16 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
         model, problem, reaction_penalties)
 
     logger.info("Evaluating Secretion/Uptake Scores...")
-    uptake_scores, secretion_scores = compass_exchange(
+    uptake_scores, secretion_scores, exchange_rxns = compass_exchange(
         model, problem, reaction_penalties)
 
     # Copy valid uptake/secretion reaction fluxes from uptake/secretion
     #   results into reaction results
 
-    for r_id in uptake_scores:
-        if r_id in model.reactions:
-            assert r_id not in reaction_scores
-            reaction_scores[r_id] = uptake_scores[r_id]
-
-    for r_id in secretion_scores:
-        if r_id in model.reactions:
-            assert r_id not in reaction_scores
-            reaction_scores[r_id] = secretion_scores[r_id]
+    for r_id in exchange_rxns:
+        assert r_id in model.reactions
+        assert r_id not in reaction_scores
+        reaction_scores[r_id] = exchange_rxns[r_id]
 
     # Output results to file
 
@@ -225,10 +220,17 @@ def compass_exchange(model, problem, reaction_penalties):
     secretion_scores: dict
         key: species_id
         value: minimum penalty achieved
+
+    exchange_rxns: dict
+        Separate storage for exchange reactions.  These
+        are skipped in the reaction loop.
+        key: rxn_id
+        value: minimum penalty achieved
     """
 
     secretion_scores = {}
     uptake_scores = {}
+    exchange_rxns = {}
     metabolites = list(model.species.values())
     if TEST_MODE:
         metabolites = metabolites[0:50]
@@ -423,11 +425,17 @@ def compass_exchange(model, problem, reaction_penalties):
         # Remove added uptake and secretion reactions
         if added_uptake:
             problem.variables.delete(uptake_rxn)
+        else:
+            for rxn_id in all_uptake:
+                exchange_rxns[rxn_id] = uptake_scores[met_id]
 
         if added_secretion:
             problem.variables.delete(secretion_rxn)
+        else:
+            for rxn_id in all_secretion:
+                exchange_rxns[rxn_id] = secretion_scores[met_id]
 
-    return uptake_scores, secretion_scores
+    return uptake_scores, secretion_scores, exchange_rxns
 
 
 def compass_reactions(model, problem, reaction_penalties):
