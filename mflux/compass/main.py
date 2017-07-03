@@ -126,7 +126,11 @@ def entry():
 
     args = parseArgs()
 
+    if not os.path.isdir(args['output_dir']):
+        os.makedirs(args['output_dir'])
+
     # Log some things for debugging/record
+    globals.init_logger(args['output_dir'])
     logger = logging.getLogger('mflux')
     logger.debug("MFlux version: " + __version__)
 

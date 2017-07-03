@@ -44,5 +44,3 @@ def init_logger(directory="."):
     sh.setFormatter(formatter)
     sh.setLevel(logging.INFO)
     logger.addHandler(sh)
-
-init_logger()
