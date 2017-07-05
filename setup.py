@@ -24,6 +24,7 @@ setup(
     version=__version__,
     packages=find_packages(),
     ext_modules=cythonize(extensions),
+    include_package_data=True,
 
     entry_points={'console_scripts':
                   ['compass = mflux.compass.main:entry']},
