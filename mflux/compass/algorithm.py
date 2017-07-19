@@ -5,7 +5,6 @@ from __future__ import print_function, division, absolute_import
 import pandas as pd
 from tqdm import tqdm
 from random import shuffle
-from multiprocessing import Pool
 import logging
 import os
 import sys
@@ -20,7 +19,7 @@ import cplex
 
 logger = logging.getLogger("mflux")
 
-__all__ = ['run_compass']
+__all__ = ['singleSampleCompass']
 
 BETA = 0.95  # Used to constrain model near optimal point
 EXCHANGE_LIMIT = 1.0  # Limit for exchange reactions
@@ -89,11 +88,13 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
 
     if lambda_ == 0:
         reaction_penalties = penalties.eval_reaction_penalties(
-            model, expression_data)
+            model, expression_data,
+            and_function=args['and_function'])
     else:
         reaction_penalties = penalties.eval_reaction_penalties_shared(
             model, expression, sample_index, lambda_, perplexity=perplexity,
-            symmetric_kernel=symmetric_kernel)
+            symmetric_kernel=symmetric_kernel,
+            and_function=args['and_function'])
 
     logger.info("Evaluating Reaction Scores...")
     reaction_scores = compass_reactions(

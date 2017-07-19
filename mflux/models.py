@@ -17,6 +17,7 @@ MODEL_DIR = os.path.join(RESOURCE_DIR, 'Metabolic Models')
 # Functions for aggregation (and/or)
 # ----------------------------------------
 
+
 def min_w_nan(vals):
     """
     Min which propagates nan.
@@ -26,6 +27,29 @@ def min_w_nan(vals):
         return float('nan')
     else:
         return min(vals)
+
+
+def mean_nan_zero(vals):
+    """
+    Mean which treats 'nan' values as zeros
+    """
+    vals = [0 if isnan(x) else x for x in vals]
+    return sum(vals) / len(vals)
+
+
+def median_nan_zero(vals):
+    """
+    Median which treats 'nan' values as zeros
+    """
+    vals = [0 if isnan(x) else x for x in vals]
+    vals = sorted(vals)
+    if len(vals) % 2 == 1:
+        middle_i = int((len(vals)-1)/2)
+        return vals[middle_i]
+    else:
+        right_i = int(len(vals)/2)
+        left_i = right_i-1
+        return (vals[left_i] + vals[right_i])/2
 
 
 def sum_wo_nan(vals):
@@ -275,7 +299,7 @@ class MetabolicModel(object):
         return lower_bounds, upper_bounds
 
     def getReactionExpression(self, expression,
-                              and_function=min_w_nan,
+                              and_function='min',
                               or_function=sum_wo_nan):
         # type: (pandas.Series) -> dict
         """
@@ -288,10 +312,23 @@ class MetabolicModel(object):
             val: reaction score (float)
         """
 
+        # resolve the AND function
+        if and_function == 'min':
+            and_function = min_w_nan
+        elif and_function == 'mean':
+            and_function = mean_nan_zero
+        elif and_function == 'median':
+            and_function = median_nan_zero
+        else:
+            raise ValueError("Invalid value for and_function: " +
+                             str(and_function))
+
         score_dict = {}
 
         for r_id, reaction in self.reactions.items():
-            score = reaction.eval_expression(expression, and_function, or_function)
+            score = reaction.eval_expression(
+                expression, and_function, or_function)
+
             score_dict[r_id] = score
 
         return score_dict

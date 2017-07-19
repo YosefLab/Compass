@@ -80,6 +80,13 @@ def parseArgs():
                         type=int,
                         metavar="N")
 
+    parser.add_argument(
+        "--and-function",
+        help="Which function used to aggregate AND associations",
+        choices=["min", "median", "mean"],
+        metavar="FXN",
+        default="min")
+
     # Hidden argument.  Used for batch jobs
     parser.add_argument("--collect", action="store_true",
                         help=argparse.SUPPRESS)

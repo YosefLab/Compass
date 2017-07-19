@@ -5,7 +5,8 @@ from .extensions import tsne_utils
 
 def eval_reaction_penalties_shared(model, expression,
                                    sample_index, lambda_,
-                                   perplexity, symmetric_kernel):
+                                   perplexity, symmetric_kernel,
+                                   and_function):
     """
     Determines reaction penalties, on the given model, for
     the given expression data
@@ -32,6 +33,9 @@ def eval_reaction_penalties_shared(model, expression,
 
     symmetric_kernel: bool
         Whether or not to symmetrize the TSNE kernel (takes longer)
+
+    and_function: str
+        Which 'and' function to use for aggregating GPR associations
     """
 
     assert lambda_ >= 0 and lambda_ <= 1
@@ -41,7 +45,7 @@ def eval_reaction_penalties_shared(model, expression,
     reaction_penalties = []
     for name, expression_data in expression.iteritems():
         reaction_penalties.append(
-            eval_reaction_penalties(model, expression_data)
+            eval_reaction_penalties(model, expression_data, and_function)
         )
 
     reaction_penalties = pd.concat(reaction_penalties, axis=1)
@@ -66,17 +70,19 @@ def eval_reaction_penalties_shared(model, expression,
     return result
 
 
-def eval_reaction_penalties(model, expression_data):
+def eval_reaction_penalties(model, expression_data, and_function):
     # type: (mflux.models.MetabolicModel, pandas.Series)
     """
     Determines reaction penalties, on the given model, for
     the given expression data
     """
 
-    reaction_expression = model.getReactionExpression(expression_data)
+    reaction_expression = model.getReactionExpression(
+        expression_data, and_function=and_function)
+
     reaction_expression = pd.Series(reaction_expression)
-    reaction_expression[reaction_expression < 0] = 0
     reaction_expression[pd.isnull(reaction_expression)] = 0
+    reaction_expression = np.log2(reaction_expression + 1)
 
     reaction_penalties = 1 / (1 + reaction_expression)
 
