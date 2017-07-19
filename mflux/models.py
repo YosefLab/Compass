@@ -744,13 +744,13 @@ class Association(object):
         Returns all the genes in the association
         """
         if self.type == 'gene':
-            return {self.gene}
+            return {self.gene.name} | set(self.gene.alt_symbols)
 
         else:
             genes = set()
 
             for child in self.children:
-                genes.union(child.list_genes())
+                genes |= child.list_genes()
 
             return genes
 
@@ -927,8 +927,12 @@ def _eval_node(elem, genes):
 
 
 
-def _print_node(node, expression, indent=0):
-    print(" "*indent + node.type, node.eval_expression(expression, min_w_nan, sum_wo_nan))
+def _print_node(node, expression=None, indent=0):
+    if expression is None:
+        print(" "*indent + node.type)
+    else:
+        print(" "*indent + node.type, node.eval_expression(expression, min_w_nan, sum_wo_nan))
+
     if len(node.children) > 0:
         for x in node.children:
             _print_node(x, expression, indent+4)
