@@ -1,1 +1,3 @@
 recursive-include */Resources *.*
+include mflux/compass/extensions/tsne_utils.pyx
+

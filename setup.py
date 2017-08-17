@@ -1,6 +1,5 @@
 import os
 from setuptools import setup, find_packages
-from Cython.Build import cythonize
 from setuptools.extension import Extension
 import numpy.distutils
 
@@ -11,19 +10,33 @@ version_file = os.path.join(this_directory, "mflux", "_version.py")
 exec(open(version_file).read())  # Loads version into __version__
 
 # Extensions
+try:
+    from Cython.Build import cythonize
+    use_cython = True
+except ImportError:
+    use_cython = False
 
-extensions = [
-    Extension(
-        "mflux.compass.extensions.tsne_utils",
-        ["mflux/compass/extensions/tsne_utils.pyx"],
-        include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs())
-]
+if use_cython:
+    extensions = [
+        Extension(
+            "mflux.compass.extensions.tsne_utils",
+            ["mflux/compass/extensions/tsne_utils.pyx"],
+            include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs())
+    ]
+    extensions = cythonize(extensions)
+else:
+    extensions = [
+        Extension(
+            "mflux.compass.extensions.tsne_utils",
+            ["mflux/compass/extensions/tsne_utils.c"],
+            include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs())
+    ]
 
 setup(
     name="mflux",
     version=__version__,
     packages=find_packages(),
-    ext_modules=cythonize(extensions),
+    ext_modules=extensions,
     include_package_data=True,
 
     entry_points={'console_scripts':
@@ -34,8 +47,9 @@ setup(
         'pandas>=0.20',
         'tqdm>=4.11',
         'python-libsbml>=5.13',
-        'six>=1.10',
-        'cplex>=12.7.0.0'],
+        'six>=1.10'],
+
+        # 'cplex>=12.7.0.0' also required, but installed separately
 
     author="David DeTomaso",
     author_email="david.detomaso@berkeley.edu",
