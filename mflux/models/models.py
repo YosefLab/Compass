@@ -1,13 +1,13 @@
 """
 For working with metabolic models
 """
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 import os
 import libsbml
 import json
 import re
 import pandas as pd
-from .globals import RESOURCE_DIR
+from ..globals import RESOURCE_DIR
 from math import isnan
 from six import string_types
 
