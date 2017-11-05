@@ -10,7 +10,7 @@ import os
 import sys
 
 from .. import utils
-from ..globals import NUM_THREADS, TEST_MODE
+from ..globals import TEST_MODE
 from .. import models
 from . import cache
 from . import penalties
@@ -48,6 +48,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
 
     args : dict
         More keyword arguments
+            - lambda, perplexity, symmetric_kernel, species, and_function
     """
 
     if not os.path.isdir(directory):
@@ -72,8 +73,11 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     if media is not None:
         model.load_media(media)
 
+    if args['generate_cache']:
+        cache.clear(model)
+
     # Build model into cplex problem
-    problem = initialize_cplex_problem(model)
+    problem = initialize_cplex_problem(model, args['num_threads'])
 
     expression_data = expression.iloc[:, sample_index]
     sample_name = expression.columns[sample_index]
@@ -124,6 +128,13 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
                          sep="\t", header=True)
     secretion_scores.to_csv(os.path.join(directory, 'secretions.txt'),
                             sep="\t", header=True)
+
+    if args['generate_cache']:
+        logger.info(
+            'Saving cache file for Model: {}, Media: {}'.format(
+                model.name, model.media)
+        )
+        cache.save(model)
 
     logger.info('COMPASS Completed Successfully')
 
@@ -439,7 +450,7 @@ def compass_reactions(model, problem, reaction_penalties):
     return reaction_scores
 
 
-def initialize_cplex_problem(model):
+def initialize_cplex_problem(model, num_threads=1):
     # type: (mflux.models.MetabolicModel)
     """
     Builds and returns a cplex problem representing our metabolic model
@@ -458,7 +469,7 @@ def initialize_cplex_problem(model):
 
     # Set Parameters for the Cplex solver
     problem.parameters.emphasis.numerical.set(True)
-    problem.parameters.threads.set(NUM_THREADS)
+    problem.parameters.threads.set(num_threads)
 
     # Add variables
     reactions = list(model.reactions.values())

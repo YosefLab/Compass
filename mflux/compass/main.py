@@ -80,6 +80,15 @@ def parseArgs():
                         type=int,
                         metavar="N")
 
+    parser.add_argument("--generate-cache",
+                        help=argparse.SUPPRESS,
+                        action="store_true")
+
+    parser.add_argument("--num-threads",
+                        help="Number of threads to use per sample",
+                        type=int, default=1,
+                        metavar="N")
+
     parser.add_argument(
         "--and-function",
         help="Which function used to aggregate AND associations",
