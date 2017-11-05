@@ -56,8 +56,6 @@ def sum_wo_nan(vals):
     return sum(vals)
 
 
-
-
 # ----------------------------------------
 # Model class and related classes
 # ----------------------------------------
@@ -72,7 +70,7 @@ class MetabolicModel(object):
         self.compartments = {}
         self.objectives = {}
         self._maximum_flux = None
-        self.media = 'None'
+        self.media = 'NoMedia'
 
     def getReactions(self):
         """
@@ -474,6 +472,9 @@ class Association(object):
 
             return genes
 
+    def __str__(self):
+        return _print_node(self)
+
 
 class Gene(object):
 
@@ -510,13 +511,21 @@ class Gene(object):
 
 
 def _print_node(node, expression=None, indent=0):
+    lines = []
     if expression is None:
-        print(" "*indent + node.type)
+        lines.append(" "*indent + node.type)
     else:
-        print(" "*indent + node.type, node.eval_expression(expression, min_w_nan, sum_wo_nan))
+        lines.append(" ".join([
+            " "*indent + node.type,
+            node.eval_expression(expression, min_w_nan, sum_wo_nan)
+        ]))
 
     if len(node.children) > 0:
         for x in node.children:
-            _print_node(x, expression, indent+4)
+            lines.append(_print_node(x, expression, indent+4))
     if node.type == 'gene':
-        print(" "*indent, node.gene.id, node.gene.name, node.gene.alt_symbols)
+        lines.append(" ".join([
+            " "*indent, node.gene.id,
+            node.gene.name, str(node.gene.alt_symbols)]))
+
+    return "\n".join(lines)

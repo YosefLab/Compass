@@ -8,6 +8,8 @@ from ..globals import MODEL_DIR
 from . import importMATLAB
 from . import importSBML2
 from . import importSBML3
+from .geneSymbols import resolve_genes, convert_species
+from .importCommon import clean_reactions, limit_maximum_flux
 
 # ----------------------------------------
 # Loading models from either XML or MATLAB outputs
@@ -23,9 +25,9 @@ def load_metabolic_model(model_name, species='homo_sapiens'):
         model = importMATLAB.load(model_name, species)
     else:
         model_dir = os.path.join(MODEL_DIR, model_name)
-        model_file = [x for x in os.listdir(model_dir)
-                      if x.lower().endswith('.xml') or
-                         x.lower().endswith('.xml.gz')]
+        model_file = [x for x in os.listdir(model_dir) if
+                      x.lower().endswith('.xml') or
+                      x.lower().endswith('.xml.gz')]
 
         if len(model_file) == 0:
             raise Exception(
@@ -48,5 +50,10 @@ def load_metabolic_model(model_name, species='homo_sapiens'):
                 "Invalid level {} for model {}".format(
                     level, model_file)
             )
+
+        resolve_genes(model)
+        convert_species(model, species)
+        clean_reactions(model)
+        limit_maximum_flux(model, 1000)
 
     return model
