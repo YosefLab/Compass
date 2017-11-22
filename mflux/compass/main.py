@@ -84,6 +84,10 @@ def parseArgs():
                         help=argparse.SUPPRESS,
                         action="store_true")
 
+    parser.add_argument("--test-mode",
+                        help=argparse.SUPPRESS,
+                        action="store_true")
+
     parser.add_argument("--num-threads",
                         help="Number of threads to use per sample",
                         type=int, default=1,

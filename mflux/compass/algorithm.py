@@ -10,7 +10,6 @@ import os
 import sys
 
 from .. import utils
-from ..globals import TEST_MODE
 from .. import models
 from . import cache
 from . import penalties
@@ -48,7 +47,8 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
 
     args : dict
         More keyword arguments
-            - lambda, perplexity, symmetric_kernel, species, and_function
+            - lambda, perplexity, symmetric_kernel, species,
+              and_function, test_mode
     """
 
     if not os.path.isdir(directory):
@@ -102,11 +102,13 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
 
     logger.info("Evaluating Reaction Scores...")
     reaction_scores = compass_reactions(
-        model, problem, reaction_penalties)
+        model, problem, reaction_penalties,
+        TEST_MODE=args['test_mode'])
 
     logger.info("Evaluating Secretion/Uptake Scores...")
     uptake_scores, secretion_scores, exchange_rxns = compass_exchange(
-        model, problem, reaction_penalties)
+        model, problem, reaction_penalties,
+        TEST_MODE=args['test_mode'])
 
     # Copy valid uptake/secretion reaction fluxes from uptake/secretion
     #   results into reaction results
@@ -139,7 +141,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     logger.info('COMPASS Completed Successfully')
 
 
-def compass_exchange(model, problem, reaction_penalties):
+def compass_exchange(model, problem, reaction_penalties, TEST_MODE=False):
     """
     Iterates through metabolites, finding each's max
     uptake and secretion potentials.
@@ -376,7 +378,7 @@ def compass_exchange(model, problem, reaction_penalties):
     return uptake_scores, secretion_scores, exchange_rxns
 
 
-def compass_reactions(model, problem, reaction_penalties):
+def compass_reactions(model, problem, reaction_penalties, TEST_MODE=False):
     """
     Iterates through reactions, holding each near
     its max value while minimizing penalty.

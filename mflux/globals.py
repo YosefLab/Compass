@@ -14,8 +14,6 @@ GIT_DIR = os.path.abspath(
 RESOURCE_DIR = os.path.join(_this_directory, "Resources")
 MODEL_DIR = os.path.join(RESOURCE_DIR, 'Metabolic Models')
 
-TEST_MODE = False  # When true, only a small subset of reactions are used
-
 # Logging
 # Different Logging levels
 # Use levels in the logging modules
