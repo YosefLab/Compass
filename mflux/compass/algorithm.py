@@ -61,6 +61,14 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
 
     expression = pd.read_table(data, index_col=0)
     expression.index = expression.index.str.upper()  # Gene names to upper
+
+    # If genes exist with duplicate symbols
+    # Need to aggregate them out
+    if not expression.index.is_unique:
+        expression.index.name = "GeneSymbol"
+        expression = expression.reset_index()
+        expression = expression.groupby("GeneSymbol").sum()
+
     model = models.load_metabolic_model(model, args['species'])
     logger.info("Running COMPASS on model: %s", model.name)
 
