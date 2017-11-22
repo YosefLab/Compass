@@ -80,7 +80,7 @@ def resolve_genes(model):
         RESOURCE_DIR, "Genes", "HGNC.json.gz"
     )
 
-    data_dict = json.loads(gzip.open(hgnc_file).read().decode())
+    data_dict = json.loads(gzip.open(hgnc_file).read().decode('utf-8'))
     genes = data_dict['response']['docs']
 
     # Key dictionary based on the identifiers that we currently have

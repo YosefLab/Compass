@@ -14,6 +14,7 @@ import datetime
 import json
 from functools import partial
 from tqdm import tqdm
+from six import string_types
 
 from .._version import __version__
 from .torque import submitCompassTorque
@@ -375,5 +376,11 @@ def load_config(args):
     filename = args["config_file"]
     with open(filename) as fin:
         newArgs = json.load(fin)
+
+    # Cast all the newArgs using str
+    # Fixes unicode issues on python2
+    for key in newArgs:
+        if isinstance(newArgs[key], string_types):
+            newArgs[key] = str(newArgs[key])
 
     args.update(newArgs)
