@@ -69,17 +69,9 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
         expression = expression.reset_index()
         expression = expression.groupby("GeneSymbol").sum()
 
-    model = models.load_metabolic_model(model, args['species'])
+    model = init_model(model, species=args['species'], media=media)
+
     logger.info("Running COMPASS on model: %s", model.name)
-
-    # Limit exchange reactions
-    model.limitExchangeReactions(limit=EXCHANGE_LIMIT)
-
-    # Split fluxes into _pos / _neg
-    model.make_unidirectional()
-
-    if media is not None:
-        model.load_media(media)
 
     if args['generate_cache']:
         cache.clear(model)
@@ -147,6 +139,22 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
         cache.save(model)
 
     logger.info('COMPASS Completed Successfully')
+
+
+def init_model(model, species, media=None):
+
+    model = models.load_metabolic_model(model, species)
+
+    # Limit exchange reactions
+    model.limitExchangeReactions(limit=EXCHANGE_LIMIT)
+
+    # Split fluxes into _pos / _neg
+    model.make_unidirectional()
+
+    if media is not None:
+        model.load_media(media)
+
+    return model
 
 
 def compass_exchange(model, problem, reaction_penalties, TEST_MODE=False):

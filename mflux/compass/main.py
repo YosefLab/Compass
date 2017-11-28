@@ -12,13 +12,14 @@ import subprocess as sp
 import logging
 import datetime
 import json
+import gzip
 from functools import partial
 from tqdm import tqdm
 from six import string_types
 
 from .._version import __version__
 from .torque import submitCompassTorque
-from .algorithm import singleSampleCompass
+from .algorithm import singleSampleCompass, init_model
 from .. import globals
 
 
@@ -194,7 +195,7 @@ def entry():
 
     if args['collect']:
         collectCompassResults(args['data'], args['temp_dir'],
-                              args['output_dir'])
+                              args['output_dir'], args)
         end_time = datetime.datetime.now()
         logger.debug("\nElapsed Time: {}".format(end_time-start_time))
         return
@@ -228,7 +229,8 @@ def entry():
     for _ in pool.imap_unordered(partial_map_fun, range(n_samples)):
         pbar.update()
 
-    collectCompassResults(args['data'], args['temp_dir'], args['output_dir'])
+    collectCompassResults(args['data'], args['temp_dir'],
+                          args['output_dir'], args)
 
     end_time = datetime.datetime.now()
     logger.debug("\nCompleted At: {}".format(end_time))
@@ -277,7 +279,7 @@ def _parallel_map_fun(i, args):
             logger.debug("\nElapsed Time: {}".format(end_time-start_time))
 
 
-def collectCompassResults(data, temp_dir, out_dir):
+def collectCompassResults(data, temp_dir, out_dir, args):
     """
     Collects results for individual samples in temp_dir
     and aggregates into out_dir
@@ -292,6 +294,9 @@ def collectCompassResults(data, temp_dir, out_dir):
 
     out_dir : str
         Where to store aggregated results.  Is created if it doesn't exist.
+
+    args : dict
+        Other arguments
     """
 
     if not os.path.isdir(out_dir):
@@ -357,6 +362,15 @@ def collectCompassResults(data, temp_dir, out_dir):
     uptake_all = pd.concat(uptake_all, axis=1)
     uptake_all.to_csv(
         os.path.join(out_dir, 'uptake.txt'), sep="\t")
+
+    # Output a JSON version of the model
+    model = init_model(model=args['model'], species=args['species'],
+                       media=args['media'])
+
+    model_file = os.path.join(out_dir, 'model.json.gz')
+
+    with gzip.open(model_file, 'w') as gzfile:
+        gzfile.write(model.to_JSON().encode('utf-8'))
 
 
 def load_config(args):

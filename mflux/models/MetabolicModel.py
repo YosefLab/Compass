@@ -312,6 +312,15 @@ class MetabolicModel(object):
         out = out.append(rows)
         return out
 
+    def to_JSON(self):
+        return json.dumps({
+            'name': self.name,
+            'reactions': self.reactions,
+            'species': self.species,
+            'compartments': self.compartments,
+            'media': self.media
+        }, indent=4, default=_json_default)
+
 
 class Reaction(object):
     # Bounds
@@ -403,6 +412,43 @@ class Reaction(object):
         else:
             return False
 
+    def to_serializable(self):
+        out = {
+            'id': self.id,
+            'name': self.name,
+            'subsystem': self.subsystem,
+            'upper_bound': self.upper_bound,
+            'lower_bound': self.lower_bound,
+            'reactants': self.reactants,
+            'products': self.products,
+            'meta': self.meta,
+        }
+
+        if self.reverse_reaction is not None:
+            out['reverse_reaction'] = self.reverse_reaction.id
+        else:
+            out['reverse_reaction'] = ''
+
+        # Gather a list of genes and their alt symbols
+        def _get_genes(assoc):
+            if assoc.type == 'gene':
+                return [assoc.gene]
+            else:
+                result = []
+                for ac in assoc.children:
+                    result.extend(_get_genes(ac))
+                return result
+
+        gene_dict = {}
+        if self.gene_associations is not None:
+            genes = _get_genes(self.gene_associations)
+            for gene in genes:
+                gene_dict[gene.id] = gene
+
+        out['genes'] = gene_dict
+
+        return out
+
 
 class Species(object):
 
@@ -413,12 +459,27 @@ class Species(object):
             self.formula = ""
             self.meta = {}
 
+    def to_serializable(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'compartment': self.compartment,
+            'formula': self.formula,
+            'meta': self.meta
+        }
+
 
 class Compartment(object):
 
     def __init__(self, xml_node=None):
             self.id = ""
             self.name = ""
+
+    def to_serializable(self):
+        return {
+            'id': self.id,
+            'name': self.name
+        }
 
 
 class Association(object):
@@ -509,6 +570,13 @@ class Gene(object):
 
         return float('nan')
 
+    def to_serializable(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'alt_symbols': self.alt_symbols
+        }
+
 
 def _print_node(node, expression=None, indent=0):
     lines = []
@@ -529,3 +597,11 @@ def _print_node(node, expression=None, indent=0):
             node.gene.name, str(node.gene.alt_symbols)]))
 
     return "\n".join(lines)
+
+
+def _json_default(o):
+
+    try:
+        return o.to_serializable()
+    except AttributeError:
+        return o
