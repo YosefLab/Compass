@@ -2,6 +2,7 @@ from __future__ import print_function, division, absolute_import
 import os
 import json
 import pandas as pd
+import numpy as np
 import re
 from ..globals import MODEL_DIR
 from .MetabolicModel import Gene, Species, Reaction, Association, MetabolicModel
@@ -94,7 +95,9 @@ def load(model_name, species):
         rxnMeta = pd.read_table(fname, index_col=0, quoting=3)
 
         for i, reaction in enumerate(reactions):
-            reaction.meta = rxnMeta.loc[reaction.id].to_dict()
+            reaction.meta = _fix_dtypes(
+                rxnMeta.loc[reaction.id].to_dict()
+            )
 
     # Then metabolites
     with open(os.path.join(model_dir, 'model.mets.json')) as fin:
@@ -125,7 +128,9 @@ def load(model_name, species):
         metMeta = pd.read_table(fname, index_col=0, quoting=3)
 
         for i, met in enumerate(species):
-            met.meta = metMeta.loc[met.id].to_dict()
+            met.meta = _fix_dtypes(
+                metMeta.loc[met.id].to_dict()
+            )
 
     # Then Smat
     with open(os.path.join(model_dir, 'model.S.json')) as fin:
@@ -280,3 +285,21 @@ def _eval_node(elem, genes):
 
     else:
         raise Exception("Bad node: " + str(resolved))
+
+
+def _fix_dtypes(input_dict):
+    """
+    Used to change numpy.int64 and numpy.float64 to python types
+    for all values in a dictionary
+    """
+
+    out_dict = {}
+    for k, v in input_dict.items():
+        if isinstance(v, np.int64):
+            v = int(v)
+        if isinstance(v, np.float64):
+            v = float(v)
+
+        out_dict[k] = v
+
+    return out_dict

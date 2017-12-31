@@ -27,3 +27,11 @@ def test_to_json():
     model = models.load_metabolic_model("RECON2.2")
     json = model.to_JSON()
     assert isinstance(json, str)
+
+    model = models.load_metabolic_model("RECON1_xml")
+    json = model.to_JSON()
+    assert isinstance(json, str)
+
+    model = models.load_metabolic_model("RECON2_mat")
+    json = model.to_JSON()
+    assert isinstance(json, str)
