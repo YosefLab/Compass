@@ -115,6 +115,10 @@ def parseArgs():
     parser.add_argument("--symmetric-kernel", action="store_true",
                         help="Use symmetric TSNE kernel (slower)")
 
+    parser.add_argument("--input-weights",
+                        help="File with input sample to sample weights",
+                        required=False, metavar="FILE")
+
     # Also used for batch jobs
     parser.add_argument("--config-file", help=argparse.SUPPRESS)
 
@@ -126,6 +130,9 @@ def parseArgs():
 
     # Convert directories/files to absolute paths
     args['data'] = os.path.abspath(args['data'])
+
+    if args['input_weights']:
+        args['input_weights'] = os.path.abspath(args['input_weights'])
 
     if args['temp_dir'] == "<output-dir>/_tmp":
         args['temp_dir'] = os.path.join(args['output_dir'], '_tmp')

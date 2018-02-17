@@ -58,6 +58,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     lambda_ = args['lambda']
     perplexity = args['perplexity']
     symmetric_kernel = args['symmetric_kernel']
+    input_weights_file = args['input_weights']
 
     expression = pd.read_table(data, index_col=0)
     expression.index = expression.index.str.upper()  # Gene names to upper
@@ -90,6 +91,16 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     # Evaluate reaction penalties
     logger.info("Evaluating Reaction Penalties...")
 
+    if input_weights_file:
+        input_weights = pd.read_table(input_weights_file, index_col=0)
+        # ensure same cell labels
+        if len(input_weights.index & expression.columns) != input_weights.shape[0]:
+            raise Exception("Input weights file rows must have same sample labels as expression columns")
+        if len(input_weights.columns & expression.columns) != input_weights.shape[1]:
+            raise Exception("Input weights file columns must have same sample labels as expression columns")
+
+        input_weights = input_weights.loc[expression.columns, :].loc[:, expression.columns]
+
     if lambda_ == 0:
         reaction_penalties = penalties.eval_reaction_penalties(
             model, expression_data,
@@ -98,7 +109,8 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
         reaction_penalties = penalties.eval_reaction_penalties_shared(
             model, expression, sample_index, lambda_, perplexity=perplexity,
             symmetric_kernel=symmetric_kernel,
-            and_function=args['and_function'])
+            and_function=args['and_function'],
+            input_weights=input_weights)
 
     logger.info("Evaluating Reaction Scores...")
     reaction_scores = compass_reactions(

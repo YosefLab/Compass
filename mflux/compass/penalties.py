@@ -6,7 +6,7 @@ from .extensions import tsne_utils
 def eval_reaction_penalties_shared(model, expression,
                                    sample_index, lambda_,
                                    perplexity, symmetric_kernel,
-                                   and_function):
+                                   and_function, input_weights=None):
     """
     Determines reaction penalties, on the given model, for
     the given expression data
@@ -36,6 +36,10 @@ def eval_reaction_penalties_shared(model, expression,
 
     and_function: str
         Which 'and' function to use for aggregating GPR associations
+
+    input_weights: pandas.DataFrame
+        Cells X Cells weights matrix used instead of computing one
+        in this function call.
     """
 
     assert lambda_ >= 0 and lambda_ <= 1
@@ -51,12 +55,15 @@ def eval_reaction_penalties_shared(model, expression,
     reaction_penalties = pd.concat(reaction_penalties, axis=1)
 
     # Compute weights between samples
-    if symmetric_kernel:
-        weights = sample_weights_tsne_symmetric(
-            expression, perplexity, sample_index)
+    if input_weights is not None:
+        weights = input_weights.iloc[sample_index, :].values
     else:
-        weights = sample_weights_tsne_single(
-            expression, perplexity, sample_index)
+        if symmetric_kernel:
+            weights = sample_weights_tsne_symmetric(
+                expression, perplexity, sample_index)
+        else:
+            weights = sample_weights_tsne_single(
+                expression, perplexity, sample_index)
 
     # Compute weights between samples
     sample_reaction_penalties = reaction_penalties.iloc[:, sample_index]
