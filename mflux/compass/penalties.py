@@ -5,8 +5,9 @@ from .extensions import tsne_utils
 
 def eval_reaction_penalties_shared(model, expression,
                                    sample_index, lambda_,
-                                   perplexity, symmetric_kernel,
-                                   and_function, input_weights=None):
+                                   num_neighbors, symmetric_kernel,
+                                   and_function, penalty_diffusion_mode,
+                                   input_weights=None):
     """
     Determines reaction penalties, on the given model, for
     the given expression data
@@ -28,7 +29,7 @@ def eval_reaction_penalties_shared(model, expression,
     lambda_: float
         The degree of blending.  0 (no sharing) to 1 (only use group)
 
-    perplexity: int
+    num_neighbors: int
         Effective number of neighbors for TSNE kernel
 
     symmetric_kernel: bool
@@ -36,6 +37,10 @@ def eval_reaction_penalties_shared(model, expression,
 
     and_function: str
         Which 'and' function to use for aggregating GPR associations
+
+    penalty_diffusion_mode: str
+        Either 'gaussian' or 'knn'.  Which mode to use to share penalty
+        values between cells.  Ignored if `input_weights` is provided.
 
     input_weights: pandas.DataFrame
         Cells X Cells weights matrix used instead of computing one
@@ -58,12 +63,21 @@ def eval_reaction_penalties_shared(model, expression,
     if input_weights is not None:
         weights = input_weights.iloc[sample_index, :].values
     else:
-        if symmetric_kernel:
-            weights = sample_weights_tsne_symmetric(
-                expression, perplexity, sample_index)
+        if penalty_diffusion_mode == 'gaussian':
+            if symmetric_kernel:
+                weights = sample_weights_tsne_symmetric(
+                    expression, num_neighbors, sample_index)
+            else:
+                weights = sample_weights_tsne_single(
+                    expression, num_neighbors, sample_index)
+        elif penalty_diffusion_mode == 'knn':
+            weights = sample_weights_knn(
+                expression, num_neighbors, sample_index)
         else:
-            weights = sample_weights_tsne_single(
-                expression, perplexity, sample_index)
+            raise ValueError(
+                'Invalid value for penalty_diffusion_mode: {}'
+                .format(penalty_diffusion_mode)
+            )
 
     # Compute weights between samples
     sample_reaction_penalties = reaction_penalties.iloc[:, sample_index]
@@ -171,6 +185,33 @@ def sample_weights_tsne_symmetric(data, perplexity, i):
     pvals /= 2
 
     return pvals[i, :]
+
+
+def sample_weights_knn(data, num_neighbors, i):
+    """
+    Calculates cell-to-cell weights using knn on data
+
+    data: numpy.ndarray
+        data matrix with samples as columns
+    perplexity: float
+        binary search perplexity target
+    i : int
+        The index of the data point for which to calculate p-vals
+    """
+
+    if isinstance(data, pd.DataFrame):
+        data = data.values
+
+    diff = data - data[:, [i]]
+    aff = (diff**2).sum(axis=0)
+
+    neighbor_i = aff.argsort()[0:num_neighbors]
+
+    weights = np.zeros_like(aff)
+    weights[neighbor_i] = 1
+    weights /= weights.sum()
+
+    return weights
 
 
 def sample_weights_bio(bio_groups):

@@ -106,8 +106,10 @@ def parseArgs():
     parser.add_argument("--collect", action="store_true",
                         help=argparse.SUPPRESS)
 
-    parser.add_argument("--perplexity",
-                        help="Effective number of neighbors for tsne kernel",
+    parser.add_argument("--num-neighbors",
+                        help="Either effective number of neighbors for "
+                        "gaussian penalty diffusion or exact number of "
+                        "neighbors for KNN penalty diffusion",
                         default=30,
                         type=int,
                         metavar="N")
@@ -118,6 +120,13 @@ def parseArgs():
     parser.add_argument("--input-weights",
                         help="File with input sample to sample weights",
                         required=False, metavar="FILE")
+
+    parser.add_argument("--penalty-diffusion",
+                        help="Mode to use to share reaction penalty "
+                        "values between single cells",
+                        choices=["gaussian", "knn"],
+                        metavar="MODE",
+                        default="gaussian")
 
     # Also used for batch jobs
     parser.add_argument("--config-file", help=argparse.SUPPRESS)
