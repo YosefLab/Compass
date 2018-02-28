@@ -117,7 +117,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
             num_neighbors=num_neighbors, symmetric_kernel=symmetric_kernel,
             and_function=args['and_function'],
             penalty_diffusion_mode=penalty_diffusion_mode,
-            input_weights=input_weights_file)
+            input_weights=input_weights)
 
     logger.info("Evaluating Reaction Scores...")
     reaction_scores = compass_reactions(
