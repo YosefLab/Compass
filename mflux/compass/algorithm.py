@@ -92,6 +92,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     # Evaluate reaction penalties
     logger.info("Evaluating Reaction Penalties...")
 
+    input_weights = None
     if input_weights_file:
         input_weights = pd.read_table(input_weights_file, index_col=0)
         # ensure same cell labels
