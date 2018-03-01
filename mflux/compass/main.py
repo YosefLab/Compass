@@ -128,6 +128,13 @@ def parseArgs():
                         metavar="MODE",
                         default="gaussian")
 
+    parser.add_argument("--no-reactions", action="store_true",
+                        help="Skip computing scores for reactions")
+
+    parser.add_argument("--no-metabolites", action="store_true",
+                        help="Skip computing scores for metabolite "
+                        "update/secretion")
+
     # Also used for batch jobs
     parser.add_argument("--config-file", help=argparse.SUPPRESS)
 
@@ -152,6 +159,14 @@ def parseArgs():
     if args['lambda'] < 0 or args['lambda'] > 1:
         parser.error(
             "'lambda' parameter cannot be less than 0 or greater than 1"
+        )
+
+    if args['generate_cache'] and \
+            (args['no_reactions'] or args['no_metabolites']):
+
+        parser.error(
+            "--generate-cache cannot be run with --no-reactions or "
+            "--no-metabolites"
         )
 
     return args
@@ -367,17 +382,19 @@ def collectCompassResults(data, temp_dir, out_dir, args):
             uptake_all.append(pd.DataFrame(columns=[sample_name]))
 
     # Join and output
-    reactions_all = pd.concat(reactions_all, axis=1)
-    reactions_all.to_csv(
-        os.path.join(out_dir, 'reactions.txt'), sep="\t")
+    if not args['no_reactions']:
+        reactions_all = pd.concat(reactions_all, axis=1)
+        reactions_all.to_csv(
+            os.path.join(out_dir, 'reactions.txt'), sep="\t")
 
-    secretions_all = pd.concat(secretions_all, axis=1)
-    secretions_all.to_csv(
-        os.path.join(out_dir, 'secretions.txt'), sep="\t")
+    if not args['no_metabolites']:
+        secretions_all = pd.concat(secretions_all, axis=1)
+        secretions_all.to_csv(
+            os.path.join(out_dir, 'secretions.txt'), sep="\t")
 
-    uptake_all = pd.concat(uptake_all, axis=1)
-    uptake_all.to_csv(
-        os.path.join(out_dir, 'uptake.txt'), sep="\t")
+        uptake_all = pd.concat(uptake_all, axis=1)
+        uptake_all.to_csv(
+            os.path.join(out_dir, 'uptake.txt'), sep="\t")
 
     # Output a JSON version of the model
     model = init_model(model=args['model'], species=args['species'],

@@ -120,36 +120,42 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
             penalty_diffusion_mode=penalty_diffusion_mode,
             input_weights=input_weights)
 
-    logger.info("Evaluating Reaction Scores...")
-    reaction_scores = compass_reactions(
-        model, problem, reaction_penalties,
-        TEST_MODE=args['test_mode'])
+    if not args['no_reactions']:
+        logger.info("Evaluating Reaction Scores...")
+        reaction_scores = compass_reactions(
+            model, problem, reaction_penalties,
+            TEST_MODE=args['test_mode'])
 
-    logger.info("Evaluating Secretion/Uptake Scores...")
-    uptake_scores, secretion_scores, exchange_rxns = compass_exchange(
-        model, problem, reaction_penalties,
-        TEST_MODE=args['test_mode'])
+    if not args['no_metabolites']:
+        logger.info("Evaluating Secretion/Uptake Scores...")
+        uptake_scores, secretion_scores, exchange_rxns = compass_exchange(
+            model, problem, reaction_penalties,
+            TEST_MODE=args['test_mode'])
 
     # Copy valid uptake/secretion reaction fluxes from uptake/secretion
     #   results into reaction results
 
-    for r_id in exchange_rxns:
-        assert r_id in model.reactions
-        assert r_id not in reaction_scores
-        reaction_scores[r_id] = exchange_rxns[r_id]
+    if not (args['no_reactions'] or args['no_metabolites']):
+        for r_id in exchange_rxns:
+            assert r_id in model.reactions
+            assert r_id not in reaction_scores
+            reaction_scores[r_id] = exchange_rxns[r_id]
 
     # Output results to file
 
-    reaction_scores = pd.Series(reaction_scores, name=sample_name)
-    uptake_scores = pd.Series(uptake_scores, name=sample_name)
-    secretion_scores = pd.Series(secretion_scores, name=sample_name)
+    if not args['no_reactions']:
+        reaction_scores = pd.Series(reaction_scores, name=sample_name)
+        reaction_scores.to_csv(os.path.join(directory, 'reactions.txt'),
+                               sep="\t", header=True)
 
-    reaction_scores.to_csv(os.path.join(directory, 'reactions.txt'),
-                           sep="\t", header=True)
-    uptake_scores.to_csv(os.path.join(directory, 'uptake.txt'),
-                         sep="\t", header=True)
-    secretion_scores.to_csv(os.path.join(directory, 'secretions.txt'),
-                            sep="\t", header=True)
+    if not args['no_metabolites']:
+        uptake_scores = pd.Series(uptake_scores, name=sample_name)
+        secretion_scores = pd.Series(secretion_scores, name=sample_name)
+
+        uptake_scores.to_csv(os.path.join(directory, 'uptake.txt'),
+                             sep="\t", header=True)
+        secretion_scores.to_csv(os.path.join(directory, 'secretions.txt'),
+                                sep="\t", header=True)
 
     if args['generate_cache']:
         logger.info(
