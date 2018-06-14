@@ -4,6 +4,7 @@ from .extensions import tsne_utils
 from .. import models
 from ..globals import EXCHANGE_LIMIT
 from sklearn.neighbors import NearestNeighbors
+from sklearn.decomposition import PCA
 
 
 def eval_reaction_penalties(expression_file, model, media,
@@ -152,11 +153,19 @@ def eval_reaction_penalties_shared(model, expression,
     if input_weights is not None:
         weights = input_weights.values
     else:
+        # log scale and PCA expresion
+
+        log_expression = np.log2(expression+1)
+        model = PCA(n_components=20)
+        pca_expression = model.fit_transform(log_expression.T).T
+        pca_expression = pd.DataFrame(pca_expression,
+                                      columns=expression.columns)
+
         if penalty_diffusion_mode == 'gaussian':
             weights = sample_weights_tsne_symmetric(
-                expression, num_neighbors, symmetric_kernel)
+                pca_expression, num_neighbors, symmetric_kernel)
         elif penalty_diffusion_mode == 'knn':
-            weights = sample_weights_knn(expression, num_neighbors)
+            weights = sample_weights_knn(pca_expression, num_neighbors)
         else:
             raise ValueError(
                 'Invalid value for penalty_diffusion_mode: {}'
