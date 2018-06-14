@@ -12,16 +12,13 @@ import sys
 from .. import utils
 from .. import models
 from . import cache
-from . import penalties
+from ..globals import BETA, EXCHANGE_LIMIT
 
 import cplex
 
 logger = logging.getLogger("mflux")
 
 __all__ = ['singleSampleCompass']
-
-BETA = 0.95  # Used to constrain model near optimal point
-EXCHANGE_LIMIT = 1.0  # Limit for exchange reactions
 
 
 def singleSampleCompass(data, model, media, directory, sample_index, args):
@@ -54,24 +51,9 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     if not os.path.isdir(directory):
         os.makedirs(directory)
 
-    # Unpack extra arguments
-    lambda_ = args['lambda']
-    num_neighbors = args['num_neighbors']
-    symmetric_kernel = args['symmetric_kernel']
-    input_weights_file = args['input_weights']
-    penalty_diffusion_mode = args['penalty_diffusion']
-
-    expression = pd.read_table(data, index_col=0)
-    expression.index = expression.index.str.upper()  # Gene names to upper
-
-    # If genes exist with duplicate symbols
-    # Need to aggregate them out
-    if not expression.index.is_unique:
-        expression.index.name = "GeneSymbol"
-        expression = expression.reset_index()
-        expression = expression.groupby("GeneSymbol").sum()
-
-    model = init_model(model, species=args['species'], media=media)
+    model = models.init_model(model, species=args['species'],
+                              exchange_limit=EXCHANGE_LIMIT,
+                              media=media)
 
     logger.info("Running COMPASS on model: %s", model.name)
 
@@ -81,7 +63,9 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     # Build model into cplex problem
     problem = initialize_cplex_problem(model, args['num_threads'])
 
-    expression_data = expression.iloc[:, sample_index]
+    # Only read this to get the number of samples and the sample name
+    # Use nrows=1 so this is fast
+    expression = pd.read_table(data, index_col=0, nrows=1)
     sample_name = expression.columns[sample_index]
 
     logger.info("Processing Sample %i/%i: %s", sample_index,
@@ -91,34 +75,11 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
 
     # Evaluate reaction penalties
     logger.info("Evaluating Reaction Penalties...")
+    reaction_penalties = pd.read_table(
+        args['penalties_file'], sep="\t", header=0,
+        usecols=["Reaction", sample_name])
 
-    input_weights = None
-    if input_weights_file:
-        input_weights = pd.read_table(input_weights_file, index_col=0)
-        # ensure same cell labels
-        if len(input_weights.index & expression.columns) != \
-                input_weights.shape[0]:
-            raise Exception("Input weights file rows must have same sample "
-                            "labels as expression columns")
-        if len(input_weights.columns & expression.columns) != \
-                input_weights.shape[1]:
-            raise Exception("Input weights file columns must have same sample "
-                            "labels as expression columns")
-
-        input_weights = input_weights.loc[expression.columns, :] \
-            .loc[:, expression.columns]
-
-    if lambda_ == 0:
-        reaction_penalties = penalties.eval_reaction_penalties(
-            model, expression_data,
-            and_function=args['and_function'])
-    else:
-        reaction_penalties = penalties.eval_reaction_penalties_shared(
-            model, expression, sample_index, lambda_,
-            num_neighbors=num_neighbors, symmetric_kernel=symmetric_kernel,
-            and_function=args['and_function'],
-            penalty_diffusion_mode=penalty_diffusion_mode,
-            input_weights=input_weights)
+    reaction_penalties = reaction_penalties.set_index("Reaction").iloc[:, 0]
 
     if not args['no_reactions']:
         logger.info("Evaluating Reaction Scores...")
@@ -165,22 +126,6 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
         cache.save(model)
 
     logger.info('COMPASS Completed Successfully')
-
-
-def init_model(model, species, media=None):
-
-    model = models.load_metabolic_model(model, species)
-
-    # Limit exchange reactions
-    model.limitExchangeReactions(limit=EXCHANGE_LIMIT)
-
-    # Split fluxes into _pos / _neg
-    model.make_unidirectional()
-
-    if media is not None:
-        model.load_media(media)
-
-    return model
 
 
 def compass_exchange(model, problem, reaction_penalties, TEST_MODE=False):

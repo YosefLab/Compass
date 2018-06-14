@@ -57,3 +57,19 @@ def load_metabolic_model(model_name, species='homo_sapiens'):
         limit_maximum_flux(model, 1000)
 
     return model
+
+
+def init_model(model, species, exchange_limit, media=None):
+
+    model = load_metabolic_model(model, species)
+
+    # Limit exchange reactions
+    model.limitExchangeReactions(limit=exchange_limit)
+
+    # Split fluxes into _pos / _neg
+    model.make_unidirectional()
+
+    if media is not None:
+        model.load_media(media)
+
+    return model

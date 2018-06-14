@@ -1,12 +1,99 @@
 import numpy as np
 import pandas as pd
 from .extensions import tsne_utils
+from .. import models
+from ..globals import EXCHANGE_LIMIT
+from sklearn.neighbors import NearestNeighbors
+
+
+def eval_reaction_penalties(expression_file, model, media,
+                            species, args):
+    """
+    Main entry-point for evaluating reaction penalties
+
+    Determines reaction penalties, on the given model, for
+    the given expression data
+
+    This version allows for blending of expression data between
+    the individual sample and its neighbors.
+
+    Parameters
+    ==========
+    expression_file: str
+        Path to file containing the expression data
+
+    model: mflux.models.MetabolicModel
+        Model to use for reaction penalty evaluation
+
+    media : str or None
+        Name of media to use
+
+    species: str
+        Species to use
+
+    args: dict
+        Additional arguments
+
+    Returns
+    =======
+    penalties: pandas.DataFrame, Reactions x Cells
+        Penalty values for each reaction in each cell
+
+    """
+
+    # Unpack extra arguments
+    lambda_ = args['lambda']
+    num_neighbors = args['num_neighbors']
+    symmetric_kernel = args['symmetric_kernel']
+    input_weights_file = args['input_weights']
+    penalty_diffusion_mode = args['penalty_diffusion']
+    and_function = args['and_function']
+
+    expression = pd.read_table(expression_file, index_col=0)
+    expression.index = expression.index.str.upper()  # Gene names to upper
+
+    # If genes exist with duplicate symbols
+    # Need to aggregate them out
+    if not expression.index.is_unique:
+        expression.index.name = "GeneSymbol"
+        expression = expression.reset_index()
+        expression = expression.groupby("GeneSymbol").sum()
+
+    model = models.init_model(model, species=species,
+                              exchange_limit=EXCHANGE_LIMIT,
+                              media=media)
+
+    # Evaluate reaction penalties
+    input_weights = None
+    if input_weights_file:
+        input_weights = pd.read_table(input_weights_file, index_col=0)
+        # ensure same cell labels
+        if len(input_weights.index & expression.columns) != \
+                input_weights.shape[0]:
+            raise Exception("Input weights file rows must have same sample "
+                            "labels as expression columns")
+        if len(input_weights.columns & expression.columns) != \
+                input_weights.shape[1]:
+            raise Exception("Input weights file columns must have same sample "
+                            "labels as expression columns")
+
+        input_weights = input_weights.loc[expression.columns, :] \
+            .loc[:, expression.columns]
+
+    reaction_penalties = eval_reaction_penalties_shared(
+        model, expression, lambda_,
+        num_neighbors=num_neighbors, symmetric_kernel=symmetric_kernel,
+        and_function=and_function,
+        penalty_diffusion_mode=penalty_diffusion_mode,
+        input_weights=input_weights)
+
+    return reaction_penalties
 
 
 def eval_reaction_penalties_shared(model, expression,
-                                   sample_index, lambda_,
-                                   num_neighbors, symmetric_kernel,
-                                   and_function, penalty_diffusion_mode,
+                                   lambda_, num_neighbors,
+                                   symmetric_kernel, and_function,
+                                   penalty_diffusion_mode,
                                    input_weights=None):
     """
     Determines reaction penalties, on the given model, for
@@ -54,25 +141,22 @@ def eval_reaction_penalties_shared(model, expression,
     reaction_penalties = []
     for name, expression_data in expression.iteritems():
         reaction_penalties.append(
-            eval_reaction_penalties(model, expression_data, and_function)
+            eval_reaction_penalties_single(
+                model, expression_data, and_function
+            )
         )
 
     reaction_penalties = pd.concat(reaction_penalties, axis=1)
 
     # Compute weights between samples
     if input_weights is not None:
-        weights = input_weights.iloc[sample_index, :].values
+        weights = input_weights.values
     else:
         if penalty_diffusion_mode == 'gaussian':
-            if symmetric_kernel:
-                weights = sample_weights_tsne_symmetric(
-                    expression, num_neighbors, sample_index)
-            else:
-                weights = sample_weights_tsne_single(
-                    expression, num_neighbors, sample_index)
+            weights = sample_weights_tsne_symmetric(
+                expression, num_neighbors, symmetric_kernel)
         elif penalty_diffusion_mode == 'knn':
-            weights = sample_weights_knn(
-                expression, num_neighbors, sample_index)
+            weights = sample_weights_knn(expression, num_neighbors)
         else:
             raise ValueError(
                 'Invalid value for penalty_diffusion_mode: {}'
@@ -80,28 +164,32 @@ def eval_reaction_penalties_shared(model, expression,
             )
 
     # Compute weights between samples
-    sample_reaction_penalties = reaction_penalties.iloc[:, sample_index]
-    weighted_reaction_penalties = reaction_penalties.dot(
-        weights.reshape((-1, 1))
-    ).iloc[:, 0]
+    weighted_reaction_penalties = reaction_penalties.dot(weights.T)
+    weighted_reaction_penalties.columns = reaction_penalties.columns
 
-    result = ((1-lambda_)*sample_reaction_penalties +
+    result = ((1-lambda_)*reaction_penalties +
               lambda_*weighted_reaction_penalties)
+
+    result.index.name = "Reaction"
 
     return result
 
 
-def eval_reaction_penalties(model, expression_data, and_function):
+def eval_reaction_penalties_single(model, expression_data, and_function):
     # type: (mflux.models.MetabolicModel, pandas.Series)
     """
     Determines reaction penalties, on the given model, for
-    the given expression data
+    the given expression data.
+
+    Operates on a single cell
     """
 
     reaction_expression = model.getReactionExpression(
         expression_data, and_function=and_function)
 
-    reaction_expression = pd.Series(reaction_expression)
+    reaction_expression = pd.Series(reaction_expression,
+                                    name=expression_data.name)
+
     reaction_expression[pd.isnull(reaction_expression)] = 0
     reaction_expression = np.log2(reaction_expression + 1)
 
@@ -112,38 +200,7 @@ def eval_reaction_penalties(model, expression_data, and_function):
     return reaction_penalties
 
 
-def sample_weights_tsne_single(data, perplexity, i):
-    """
-    Calculates p-values between samples using the procedure
-    from tSNE
-
-    data: numpy.ndarray
-        data matrix with samples as columns
-    perplexity: float
-        binary search perplexity target
-    i : int
-        The index of the data point for which to calculate p-vals
-    """
-
-    if isinstance(data, pd.DataFrame):
-        data = data.values
-
-    # Calculate affinities (distance-squared) between samples
-    diff = data - data[:, [i]]
-    aff = (diff**2).sum(axis=0)
-    aff = aff.astype('float32')
-
-    # Run the tsne perplexity procedure
-    pvals = tsne_utils.binary_search_perplexity_single(
-        affinities=aff,
-        neighbors=None,
-        desired_perplexity=perplexity,
-        verbose=0, sample=i)
-
-    return pvals
-
-
-def sample_weights_tsne_symmetric(data, perplexity, i):
+def sample_weights_tsne_symmetric(data, perplexity, symmetric):
     """
     Calculates p-values between samples using the procedure
     from tSNE
@@ -151,16 +208,16 @@ def sample_weights_tsne_symmetric(data, perplexity, i):
     As this version uses symmetric p-values, it must calculate
     the p-values for every sample vs every other sample
 
-    data: numpy.ndarray
+    data: pandas.DataFrame
         data matrix with samples as columns
     perplexity: float
         binary search perplexity target
-    i : int
-        The index of the data point for which to calculate p-vals
+    symmetric: boolean
+        whether or not to symmetrize the weights
     """
 
-    if isinstance(data, pd.DataFrame):
-        data = data.values
+    columns = data.columns
+    data = data.values
 
     # Calculate affinities (distance-squared) between samples
 
@@ -181,35 +238,42 @@ def sample_weights_tsne_symmetric(data, perplexity, i):
     )
 
     # Symmetrize the pvals
-    pvals += pvals.T
-    pvals /= 2
+    if symmetric:
+        pvals += pvals.T
+        pvals /= 2
 
-    return pvals[i, :]
+    # Make the rows sum to 1
+    pvals /= pvals.sum(axis=1, keepdims=True)
+
+    pvals = pd.DataFrame(pvals, index=columns, columns=columns)
+
+    return pvals
 
 
-def sample_weights_knn(data, num_neighbors, i):
+def sample_weights_knn(data, num_neighbors):
     """
     Calculates cell-to-cell weights using knn on data
 
-    data: numpy.ndarray
+    data: pandas.DataFrame
         data matrix with samples as columns
-    perplexity: float
+    num_neighbors: float
         binary search perplexity target
-    i : int
-        The index of the data point for which to calculate p-vals
     """
 
-    if isinstance(data, pd.DataFrame):
-        data = data.values
+    columns = data.columns
+    data = data.values
 
-    diff = data - data[:, [i]]
-    aff = (diff**2).sum(axis=0)
+    nn = NearestNeighbors(n_neighbors=num_neighbors)
+    nn.fit(data.T)
 
-    neighbor_i = aff.argsort()[0:num_neighbors]
+    ind = nn.kneighbors(return_distance=False)
 
-    weights = np.zeros_like(aff)
-    weights[neighbor_i] = 1
-    weights /= weights.sum()
+    weights = np.zeros((data.shape[1], data.shape[1]))
+
+    weights[np.arange(data.shape[1]), ind.T] = 1
+    weights /= num_neighbors  # So weights sum to 1
+
+    weights = pd.DataFrame(weights, columns=columns, index=columns)
 
     return weights
 

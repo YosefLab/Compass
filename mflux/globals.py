@@ -14,6 +14,10 @@ GIT_DIR = os.path.abspath(
 RESOURCE_DIR = os.path.join(_this_directory, "Resources")
 MODEL_DIR = os.path.join(RESOURCE_DIR, 'Metabolic Models')
 
+# Parameters for COMPASS
+BETA = 0.95  # Used to constrain model near optimal point
+EXCHANGE_LIMIT = 1.0  # Limit for exchange reactions
+
 # Logging
 # Different Logging levels
 # Use levels in the logging modules

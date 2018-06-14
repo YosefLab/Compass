@@ -19,7 +19,9 @@ from six import string_types
 
 from .._version import __version__
 from .torque import submitCompassTorque
-from .algorithm import singleSampleCompass, init_model
+from .algorithm import singleSampleCompass
+from ..models import init_model
+from .penalties import eval_reaction_penalties
 from .. import globals
 
 
@@ -182,6 +184,9 @@ def entry():
     if not os.path.isdir(args['output_dir']):
         os.makedirs(args['output_dir'])
 
+    if not os.path.isdir(args['temp_dir']):
+        os.makedirs(args['temp_dir'])
+
     # Log some things for debugging/record
     globals.init_logger(args['output_dir'])
     logger = logging.getLogger('mflux')
@@ -217,19 +222,44 @@ def entry():
         logger.debug("\nElapsed Time: {}".format(end_time-start_time))
         return
 
-    if args['torque_queue'] is not None:
-        submitCompassTorque(args,
-                            temp_dir=args['temp_dir'],
-                            output_dir=args['output_dir'],
-                            queue=args['torque_queue'])
-        return
-
     if args['collect']:
         collectCompassResults(args['data'], args['temp_dir'],
                               args['output_dir'], args)
         end_time = datetime.datetime.now()
         logger.debug("\nElapsed Time: {}".format(end_time-start_time))
         return
+
+    # Time to evaluate the reaction expression
+    logger.info("Evaluating Reaction Penalties...")
+    penalties = eval_reaction_penalties(args['data'], args['model'],
+                                        args['media'], args['species'], args)
+    penalties_file = os.path.join(args['temp_dir'], 'penalties.txt.gz')
+    penalties.to_csv(penalties_file, sep='\t', compression='gzip')
+    args['penalties_file'] = penalties_file
+
+    # Now run the individual cells through cplex in parallel
+    # This is either done by sending to Torque queue, or running on the
+    # same machine
+    if args['torque_queue'] is not None:
+        logger.info(
+            "Submitting COMPASS job to Torque queue - {}".format(
+                args['torque_queue'])
+        )
+        submitCompassTorque(args,
+                            temp_dir=args['temp_dir'],
+                            output_dir=args['output_dir'],
+                            queue=args['torque_queue'])
+        return
+    else:
+        runCompassParallel(args)
+        end_time = datetime.datetime.now()
+        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
+        return
+
+
+def runCompassParallel(args):
+
+    logger = logging.getLogger('mflux')
 
     # If we're here, then run compass on this machine with N processes
     if args['num_processes'] is None:
@@ -263,12 +293,7 @@ def entry():
     collectCompassResults(args['data'], args['temp_dir'],
                           args['output_dir'], args)
 
-    end_time = datetime.datetime.now()
-    logger.debug("\nCompleted At: {}".format(end_time))
-    logger.debug("\nElapsed Time: {}".format(end_time-start_time))
-    logger.info(
-        "COMPASS Completed Successfully"
-    )
+    logger.info("COMPASS Completed Successfully")
 
 
 def _parallel_map_fun(i, args):
@@ -398,6 +423,7 @@ def collectCompassResults(data, temp_dir, out_dir, args):
 
     # Output a JSON version of the model
     model = init_model(model=args['model'], species=args['species'],
+                       exchange_limit=globals.EXCHANGE_LIMIT,
                        media=args['media'])
 
     model_file = os.path.join(out_dir, 'model.json.gz')
