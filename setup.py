@@ -48,7 +48,7 @@ setup(
         'tqdm>=4.11',
         'python-libsbml>=5.13',
         'six>=1.10',
-        'sklearn>=0.19'],
+        'scikit-learn>=0.19'],
 
         # 'cplex>=12.7.0.0' also required, but installed separately
 
