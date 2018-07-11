@@ -139,15 +139,15 @@ def eval_reaction_penalties_shared(model, expression,
 
     # Compute reaction expression for each sample
 
-    reaction_penalties = []
+    reaction_expression = []
     for name, expression_data in expression.iteritems():
-        reaction_penalties.append(
-            eval_reaction_penalties_single(
+        reaction_expression.append(
+            eval_reaction_expression_single(
                 model, expression_data, and_function
             )
         )
 
-    reaction_penalties = pd.concat(reaction_penalties, axis=1)
+    reaction_expression = pd.concat(reaction_expression, axis=1)
 
     # Compute weights between samples
     if input_weights is not None:
@@ -173,18 +173,21 @@ def eval_reaction_penalties_shared(model, expression,
             )
 
     # Compute weights between samples
-    weighted_reaction_penalties = reaction_penalties.dot(weights.T)
-    weighted_reaction_penalties.columns = reaction_penalties.columns
+    neighborhood_reaction_expression = reaction_expression.dot(weights.T)
+    neighborhood_reaction_expression.columns = reaction_expression.columns
+
+    reaction_penalties = 1/(1+reaction_expression)
+    neighborhood_reaction_penalties = 1/(1+neighborhood_reaction_expression)
 
     result = ((1-lambda_)*reaction_penalties +
-              lambda_*weighted_reaction_penalties)
+              lambda_*neighborhood_reaction_penalties)
 
     result.index.name = "Reaction"
 
     return result
 
 
-def eval_reaction_penalties_single(model, expression_data, and_function):
+def eval_reaction_expression_single(model, expression_data, and_function):
     # type: (compass.models.MetabolicModel, pandas.Series)
     """
     Determines reaction penalties, on the given model, for
@@ -202,11 +205,7 @@ def eval_reaction_penalties_single(model, expression_data, and_function):
     reaction_expression[pd.isnull(reaction_expression)] = 0
     reaction_expression = np.log2(reaction_expression + 1)
 
-    reaction_penalties = 1 / (1 + reaction_expression)
-
-    reaction_penalties = reaction_penalties.dropna()
-
-    return reaction_penalties
+    return reaction_expression
 
 
 def sample_weights_tsne_symmetric(data, perplexity, symmetric):
