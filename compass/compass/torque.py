@@ -110,7 +110,7 @@ def submitCompassTorque(args, temp_dir, output_dir, queue):
     if isinstance(collect_job_id, bytes):
         collect_job_id = collect_job_id.decode()
 
-    logger = logging.getLogger('mflux')
+    logger = logging.getLogger('compass')
     logger.info("Compass submitted as array job {} and collect job {}"
                  .format(array_job_id, collect_job_id))
     print("Use `qstat -t` to check progress")

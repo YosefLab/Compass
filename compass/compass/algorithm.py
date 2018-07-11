@@ -16,7 +16,7 @@ from ..globals import BETA, EXCHANGE_LIMIT
 
 import cplex
 
-logger = logging.getLogger("mflux")
+logger = logging.getLogger("compass")
 
 __all__ = ['singleSampleCompass']
 
@@ -440,7 +440,7 @@ def compass_reactions(model, problem, reaction_penalties, TEST_MODE=False):
 
 
 def initialize_cplex_problem(model, num_threads=1):
-    # type: (mflux.models.MetabolicModel)
+    # type: (compass.models.MetabolicModel)
     """
     Builds and returns a cplex problem representing our metabolic model
 

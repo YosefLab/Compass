@@ -17,12 +17,12 @@ from functools import partial
 from tqdm import tqdm
 from six import string_types
 
-from .._version import __version__
-from .torque import submitCompassTorque
-from .algorithm import singleSampleCompass
-from ..models import init_model
-from .penalties import eval_reaction_penalties
-from .. import globals
+from ._version import __version__
+from .compass.torque import submitCompassTorque
+from .compass.algorithm import singleSampleCompass
+from .models import init_model
+from .compass.penalties import eval_reaction_penalties
+from . import globals
 
 
 def parseArgs():
@@ -189,8 +189,8 @@ def entry():
 
     # Log some things for debugging/record
     globals.init_logger(args['output_dir'])
-    logger = logging.getLogger('mflux')
-    logger.debug("MFlux version: " + __version__)
+    logger = logging.getLogger('compass')
+    logger.debug("Compass version: " + __version__)
 
     try:
         commit = sp.check_output(
@@ -259,7 +259,7 @@ def entry():
 
 def runCompassParallel(args):
 
-    logger = logging.getLogger('mflux')
+    logger = logging.getLogger('compass')
 
     # If we're here, then run compass on this machine with N processes
     if args['num_processes'] is None:
@@ -316,8 +316,8 @@ def _parallel_map_fun(i, args):
 
             globals.init_logger(sample_dir)
 
-            logger = logging.getLogger('mflux')
-            logger.debug("MFlux: Single-sample mode")
+            logger = logging.getLogger('compass')
+            logger.debug("Compass: Single-sample mode")
             logger.debug("Supplied Arguments: ")
             for (key, val) in args.items():
                 logger.debug("   {}: {}".format(key, val))
@@ -358,7 +358,7 @@ def collectCompassResults(data, temp_dir, out_dir, args):
     if not os.path.isdir(out_dir):
         os.makedirs(out_dir)
 
-    logger = logging.getLogger('mflux')
+    logger = logging.getLogger('compass')
     logger.info("Collecting results from: " + temp_dir)
     logger.info("Writing output to: " + out_dir)
 

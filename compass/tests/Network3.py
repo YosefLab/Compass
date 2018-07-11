@@ -16,9 +16,9 @@ This model can choose between two routes for a metabolite
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-from mflux.models import (MetabolicModel, Reaction,
+from compass.models import (MetabolicModel, Reaction,
                           Species, Association, Gene)
-from mflux import compass
+from compass import compass
 
 MODEL_UB = 10000
 MODEL_LB = -10000
@@ -135,7 +135,7 @@ def create_model():
     model.reactions = reactions
     model.species = species
 
-    from mflux.compass import EXCHANGE_LIMIT
+    from compass.compass import EXCHANGE_LIMIT
     model.limitExchangeReactions(limit=EXCHANGE_LIMIT)
     model.make_unidirectional()
 

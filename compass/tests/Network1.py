@@ -6,7 +6,7 @@ Create a simple metabolic model and test
 
 import pandas as pd
 import numpy as np
-from mflux.models import (MetabolicModel, Reaction,
+from compass.models import (MetabolicModel, Reaction,
                           Species, Association, Gene)
 from tqdm import tqdm
 
@@ -108,7 +108,7 @@ for x in tqdm(range(1000)):
     # Reactions
     # E1, E4 only go forward
     # R2 and R3 are found to only go forward
-    from mflux.compass import EXCHANGE_LIMIT
+    from compass.compass import EXCHANGE_LIMIT
     model.limitExchangeReactions(limit=EXCHANGE_LIMIT)
     model.make_unidirectional()
 
@@ -156,7 +156,7 @@ for x in tqdm(range(1000)):
         model.reactions['R1_pos'].upper_bound,
         model.reactions['R2_pos'].upper_bound)
 
-    from mflux import compass
+    from compass import compass
     compass._clear_cache(model)
     out = compass.run_compass(model, expression)
 

@@ -24,12 +24,12 @@ EXCHANGE_LIMIT = 1.0  # Limit for exchange reactions
 
 
 def init_logger(directory="."):
-    logger = logging.getLogger('mflux')
+    logger = logging.getLogger('compass')
     logger.setLevel(logging.DEBUG)
     logger.handlers = []
 
-    # Add file stream to mflux.log
-    log_file = os.path.join(directory, "mflux.log")
+    # Add file stream to compass.log
+    log_file = os.path.join(directory, "compass.log")
     fh = logging.FileHandler(log_file, mode='w')
     fh.name = 'logfile'
 

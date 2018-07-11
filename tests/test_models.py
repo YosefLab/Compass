@@ -1,5 +1,5 @@
-from mflux import models
-from mflux.models.MetabolicModel import MetabolicModel
+from compass import models
+from compass.models.MetabolicModel import MetabolicModel
 
 
 def test_sbml_3():

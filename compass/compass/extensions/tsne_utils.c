@@ -12,7 +12,7 @@
             "/data/yosef2/users/david.detomaso/programs/anaconda3/lib/python3.5/site-packages/numpy/core/include"
         ]
     },
-    "module_name": "mflux.compass.extensions.tsne_utils"
+    "module_name": "compass.compass.extensions.tsne_utils"
 }
 END: Cython Metadata */
 
@@ -282,8 +282,8 @@ static CYTHON_INLINE float __PYX_NAN() {
   #endif
 #endif
 
-#define __PYX_HAVE__mflux__compass__extensions__tsne_utils
-#define __PYX_HAVE_API__mflux__compass__extensions__tsne_utils
+#define __PYX_HAVE__compass__compass__extensions__tsne_utils
+#define __PYX_HAVE_API__compass__compass__extensions__tsne_utils
 #include "math.h"
 #include "string.h"
 #include "stdio.h"
@@ -528,7 +528,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "mflux/compass/extensions/tsne_utils.pyx",
+  "compass/compass/extensions/tsne_utils.pyx",
   "__init__.pxd",
   "type.pxd",
 };
@@ -1243,18 +1243,18 @@ static PyTypeObject *__pyx_ptype_5numpy_ndarray = 0;
 static PyTypeObject *__pyx_ptype_5numpy_ufunc = 0;
 static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *, char *, char *, int *); /*proto*/
 
-/* Module declarations from 'mflux.compass.extensions.tsne_utils' */
-static float __pyx_v_5mflux_7compass_10extensions_10tsne_utils_EPSILON_DBL;
-static float __pyx_v_5mflux_7compass_10extensions_10tsne_utils_PERPLEXITY_TOLERANCE;
-static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_search_perplexity(PyArrayObject *, PyArrayObject *, float, int, int __pyx_skip_dispatch); /*proto*/
-static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_search_perplexity_single(PyArrayObject *, PyArrayObject *, float, int, int, int __pyx_skip_dispatch); /*proto*/
+/* Module declarations from 'compass.compass.extensions.tsne_utils' */
+static float __pyx_v_7compass_7compass_10extensions_10tsne_utils_EPSILON_DBL;
+static float __pyx_v_7compass_7compass_10extensions_10tsne_utils_PERPLEXITY_TOLERANCE;
+static PyArrayObject *__pyx_f_7compass_7compass_10extensions_10tsne_utils_binary_search_perplexity(PyArrayObject *, PyArrayObject *, float, int, int __pyx_skip_dispatch); /*proto*/
+static PyArrayObject *__pyx_f_7compass_7compass_10extensions_10tsne_utils_binary_search_perplexity_single(PyArrayObject *, PyArrayObject *, float, int, int, int __pyx_skip_dispatch); /*proto*/
 static __Pyx_TypeInfo __Pyx_TypeInfo_nn___pyx_t_5numpy_float32_t = { "float32_t", NULL, sizeof(__pyx_t_5numpy_float32_t), { 0 }, 0, 'R', 0, 0 };
 static __Pyx_TypeInfo __Pyx_TypeInfo_nn___pyx_t_5numpy_int64_t = { "int64_t", NULL, sizeof(__pyx_t_5numpy_int64_t), { 0 }, 0, IS_UNSIGNED(__pyx_t_5numpy_int64_t) ? 'U' : 'I', IS_UNSIGNED(__pyx_t_5numpy_int64_t), 0 };
 static __Pyx_TypeInfo __Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t = { "float64_t", NULL, sizeof(__pyx_t_5numpy_float64_t), { 0 }, 0, 'R', 0, 0 };
-#define __Pyx_MODULE_NAME "mflux.compass.extensions.tsne_utils"
-int __pyx_module_is_main_mflux__compass__extensions__tsne_utils = 0;
+#define __Pyx_MODULE_NAME "compass.compass.extensions.tsne_utils"
+int __pyx_module_is_main_compass__compass__extensions__tsne_utils = 0;
 
-/* Implementation of 'mflux.compass.extensions.tsne_utils' */
+/* Implementation of 'compass.compass.extensions.tsne_utils' */
 static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_RuntimeError;
@@ -1317,8 +1317,8 @@ static PyObject *__pyx_n_s_test;
 static PyObject *__pyx_kp_u_unknown_dtype_code_in_numpy_pxd;
 static PyObject *__pyx_n_s_verbose;
 static PyObject *__pyx_n_s_zeros;
-static PyObject *__pyx_pf_5mflux_7compass_10extensions_10tsne_utils_binary_search_perplexity(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_affinities, PyArrayObject *__pyx_v_neighbors, float __pyx_v_desired_perplexity, int __pyx_v_verbose); /* proto */
-static PyObject *__pyx_pf_5mflux_7compass_10extensions_10tsne_utils_2binary_search_perplexity_single(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_affinities, PyArrayObject *__pyx_v_neighbors, float __pyx_v_desired_perplexity, int __pyx_v_verbose, int __pyx_v_sample); /* proto */
+static PyObject *__pyx_pf_7compass_7compass_10extensions_10tsne_utils_binary_search_perplexity(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_affinities, PyArrayObject *__pyx_v_neighbors, float __pyx_v_desired_perplexity, int __pyx_v_verbose); /* proto */
+static PyObject *__pyx_pf_7compass_7compass_10extensions_10tsne_utils_2binary_search_perplexity_single(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_affinities, PyArrayObject *__pyx_v_neighbors, float __pyx_v_desired_perplexity, int __pyx_v_verbose, int __pyx_v_sample); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static PyObject *__pyx_tuple_;
@@ -1328,7 +1328,7 @@ static PyObject *__pyx_tuple__4;
 static PyObject *__pyx_tuple__5;
 static PyObject *__pyx_tuple__6;
 
-/* "mflux/compass/extensions/tsne_utils.pyx":47
+/* "compass/compass/extensions/tsne_utils.pyx":47
  * 
  * @cython.boundscheck(False)
  * cpdef np.ndarray[np.float32_t, ndim=2] binary_search_perplexity(             # <<<<<<<<<<<<<<
@@ -1336,8 +1336,8 @@ static PyObject *__pyx_tuple__6;
  *         np.ndarray[np.int64_t, ndim=2] neighbors,
  */
 
-static PyObject *__pyx_pw_5mflux_7compass_10extensions_10tsne_utils_1binary_search_perplexity(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_search_perplexity(PyArrayObject *__pyx_v_affinities, PyArrayObject *__pyx_v_neighbors, float __pyx_v_desired_perplexity, int __pyx_v_verbose, CYTHON_UNUSED int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_7compass_7compass_10extensions_10tsne_utils_1binary_search_perplexity(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyArrayObject *__pyx_f_7compass_7compass_10extensions_10tsne_utils_binary_search_perplexity(PyArrayObject *__pyx_v_affinities, PyArrayObject *__pyx_v_neighbors, float __pyx_v_desired_perplexity, int __pyx_v_verbose, CYTHON_UNUSED int __pyx_skip_dispatch) {
   long __pyx_v_n_steps;
   long __pyx_v_n_samples;
   PyArrayObject *__pyx_v_P = 0;
@@ -1434,7 +1434,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
   }
   __pyx_pybuffernd_neighbors.diminfo[0].strides = __pyx_pybuffernd_neighbors.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_neighbors.diminfo[0].shape = __pyx_pybuffernd_neighbors.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_neighbors.diminfo[1].strides = __pyx_pybuffernd_neighbors.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_neighbors.diminfo[1].shape = __pyx_pybuffernd_neighbors.rcbuffer->pybuffer.shape[1];
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":79
+  /* "compass/compass/extensions/tsne_utils.pyx":79
  *     """
  *     # Maximum number of binary search steps
  *     cdef long n_steps = 100             # <<<<<<<<<<<<<<
@@ -1443,7 +1443,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   __pyx_v_n_steps = 0x64;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":81
+  /* "compass/compass/extensions/tsne_utils.pyx":81
  *     cdef long n_steps = 100
  * 
  *     cdef long n_samples = affinities.shape[0]             # <<<<<<<<<<<<<<
@@ -1452,7 +1452,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   __pyx_v_n_samples = (__pyx_v_affinities->dimensions[0]);
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":84
+  /* "compass/compass/extensions/tsne_utils.pyx":84
  *     # This array is later used as a 32bit array. It has multiple intermediate
  *     # floating point additions that benefit from the extra precision
  *     cdef np.ndarray[np.float64_t, ndim=2] P = np.zeros((n_samples, n_samples),             # <<<<<<<<<<<<<<
@@ -1482,7 +1482,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":85
+  /* "compass/compass/extensions/tsne_utils.pyx":85
  *     # floating point additions that benefit from the extra precision
  *     cdef np.ndarray[np.float64_t, ndim=2] P = np.zeros((n_samples, n_samples),
  *                                                        dtype=np.float64)             # <<<<<<<<<<<<<<
@@ -1499,7 +1499,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 85, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":84
+  /* "compass/compass/extensions/tsne_utils.pyx":84
  *     # This array is later used as a 32bit array. It has multiple intermediate
  *     # floating point additions that benefit from the extra precision
  *     cdef np.ndarray[np.float64_t, ndim=2] P = np.zeros((n_samples, n_samples),             # <<<<<<<<<<<<<<
@@ -1525,7 +1525,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
   __pyx_v_P = ((PyArrayObject *)__pyx_t_5);
   __pyx_t_5 = 0;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":90
+  /* "compass/compass/extensions/tsne_utils.pyx":90
  *     cdef float beta_min
  *     cdef float beta_max
  *     cdef float beta_sum = 0.0             # <<<<<<<<<<<<<<
@@ -1534,7 +1534,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   __pyx_v_beta_sum = 0.0;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":92
+  /* "compass/compass/extensions/tsne_utils.pyx":92
  *     cdef float beta_sum = 0.0
  *     # Now we go to log scale
  *     cdef float desired_entropy = math.log(desired_perplexity)             # <<<<<<<<<<<<<<
@@ -1543,7 +1543,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   __pyx_v_desired_entropy = log(__pyx_v_desired_perplexity);
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":98
+  /* "compass/compass/extensions/tsne_utils.pyx":98
  *     cdef float sum_Pi
  *     cdef float sum_disti_Pi
  *     cdef long i, j, k, l = 0             # <<<<<<<<<<<<<<
@@ -1552,7 +1552,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   __pyx_v_l = 0;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":99
+  /* "compass/compass/extensions/tsne_utils.pyx":99
  *     cdef float sum_disti_Pi
  *     cdef long i, j, k, l = 0
  *     cdef long K = n_samples             # <<<<<<<<<<<<<<
@@ -1561,7 +1561,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   __pyx_v_K = __pyx_v_n_samples;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":100
+  /* "compass/compass/extensions/tsne_utils.pyx":100
  *     cdef long i, j, k, l = 0
  *     cdef long K = n_samples
  *     cdef int using_neighbors = neighbors is not None             # <<<<<<<<<<<<<<
@@ -1571,7 +1571,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
   __pyx_t_7 = (((PyObject *)__pyx_v_neighbors) != Py_None);
   __pyx_v_using_neighbors = __pyx_t_7;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":102
+  /* "compass/compass/extensions/tsne_utils.pyx":102
  *     cdef int using_neighbors = neighbors is not None
  * 
  *     if using_neighbors:             # <<<<<<<<<<<<<<
@@ -1581,7 +1581,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
   __pyx_t_7 = (__pyx_v_using_neighbors != 0);
   if (__pyx_t_7) {
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":103
+    /* "compass/compass/extensions/tsne_utils.pyx":103
  * 
  *     if using_neighbors:
  *         K = neighbors.shape[1]             # <<<<<<<<<<<<<<
@@ -1590,7 +1590,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
     __pyx_v_K = (__pyx_v_neighbors->dimensions[1]);
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":102
+    /* "compass/compass/extensions/tsne_utils.pyx":102
  *     cdef int using_neighbors = neighbors is not None
  * 
  *     if using_neighbors:             # <<<<<<<<<<<<<<
@@ -1599,7 +1599,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   }
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":105
+  /* "compass/compass/extensions/tsne_utils.pyx":105
  *         K = neighbors.shape[1]
  * 
  *     for i in range(n_samples):             # <<<<<<<<<<<<<<
@@ -1610,7 +1610,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
   for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
     __pyx_v_i = __pyx_t_9;
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":106
+    /* "compass/compass/extensions/tsne_utils.pyx":106
  * 
  *     for i in range(n_samples):
  *         beta_min = -NPY_INFINITY             # <<<<<<<<<<<<<<
@@ -1619,7 +1619,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
     __pyx_v_beta_min = (-NPY_INFINITY);
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":107
+    /* "compass/compass/extensions/tsne_utils.pyx":107
  *     for i in range(n_samples):
  *         beta_min = -NPY_INFINITY
  *         beta_max = NPY_INFINITY             # <<<<<<<<<<<<<<
@@ -1628,7 +1628,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
     __pyx_v_beta_max = NPY_INFINITY;
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":108
+    /* "compass/compass/extensions/tsne_utils.pyx":108
  *         beta_min = -NPY_INFINITY
  *         beta_max = NPY_INFINITY
  *         beta = 1.0             # <<<<<<<<<<<<<<
@@ -1637,7 +1637,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
     __pyx_v_beta = 1.0;
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":111
+    /* "compass/compass/extensions/tsne_utils.pyx":111
  * 
  *         # Binary search of precision for i-th conditional distribution
  *         for l in range(n_steps):             # <<<<<<<<<<<<<<
@@ -1648,7 +1648,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
     for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_10; __pyx_t_11+=1) {
       __pyx_v_l = __pyx_t_11;
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":115
+      /* "compass/compass/extensions/tsne_utils.pyx":115
  *             # computed just over the nearest neighbors or over all data
  *             # if we're not using neighbors
  *             if using_neighbors:             # <<<<<<<<<<<<<<
@@ -1658,7 +1658,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       __pyx_t_7 = (__pyx_v_using_neighbors != 0);
       if (__pyx_t_7) {
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":116
+        /* "compass/compass/extensions/tsne_utils.pyx":116
  *             # if we're not using neighbors
  *             if using_neighbors:
  *                 for k in range(K):             # <<<<<<<<<<<<<<
@@ -1669,7 +1669,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
           __pyx_v_k = __pyx_t_13;
 
-          /* "mflux/compass/extensions/tsne_utils.pyx":117
+          /* "compass/compass/extensions/tsne_utils.pyx":117
  *             if using_neighbors:
  *                 for k in range(K):
  *                     j = neighbors[i, k]             # <<<<<<<<<<<<<<
@@ -1682,7 +1682,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
           if (__pyx_t_15 < 0) __pyx_t_15 += __pyx_pybuffernd_neighbors.diminfo[1].shape;
           __pyx_v_j = (*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_int64_t *, __pyx_pybuffernd_neighbors.rcbuffer->pybuffer.buf, __pyx_t_14, __pyx_pybuffernd_neighbors.diminfo[0].strides, __pyx_t_15, __pyx_pybuffernd_neighbors.diminfo[1].strides));
 
-          /* "mflux/compass/extensions/tsne_utils.pyx":118
+          /* "compass/compass/extensions/tsne_utils.pyx":118
  *                 for k in range(K):
  *                     j = neighbors[i, k]
  *                     P[i, j] = math.exp(-affinities[i, j] * beta)             # <<<<<<<<<<<<<<
@@ -1700,7 +1700,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
           *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_P.rcbuffer->pybuffer.buf, __pyx_t_18, __pyx_pybuffernd_P.diminfo[0].strides, __pyx_t_19, __pyx_pybuffernd_P.diminfo[1].strides) = exp(((-(*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_affinities.rcbuffer->pybuffer.buf, __pyx_t_16, __pyx_pybuffernd_affinities.diminfo[0].strides, __pyx_t_17, __pyx_pybuffernd_affinities.diminfo[1].strides))) * __pyx_v_beta));
         }
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":115
+        /* "compass/compass/extensions/tsne_utils.pyx":115
  *             # computed just over the nearest neighbors or over all data
  *             # if we're not using neighbors
  *             if using_neighbors:             # <<<<<<<<<<<<<<
@@ -1710,7 +1710,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         goto __pyx_L8;
       }
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":120
+      /* "compass/compass/extensions/tsne_utils.pyx":120
  *                     P[i, j] = math.exp(-affinities[i, j] * beta)
  *             else:
  *                 for j in range(K):             # <<<<<<<<<<<<<<
@@ -1722,7 +1722,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
           __pyx_v_j = __pyx_t_13;
 
-          /* "mflux/compass/extensions/tsne_utils.pyx":121
+          /* "compass/compass/extensions/tsne_utils.pyx":121
  *             else:
  *                 for j in range(K):
  *                     P[i, j] = math.exp(-affinities[i, j] * beta)             # <<<<<<<<<<<<<<
@@ -1742,7 +1742,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       }
       __pyx_L8:;
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":122
+      /* "compass/compass/extensions/tsne_utils.pyx":122
  *                 for j in range(K):
  *                     P[i, j] = math.exp(-affinities[i, j] * beta)
  *             P[i, i] = 0.0             # <<<<<<<<<<<<<<
@@ -1755,7 +1755,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       if (__pyx_t_25 < 0) __pyx_t_25 += __pyx_pybuffernd_P.diminfo[1].shape;
       *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_P.rcbuffer->pybuffer.buf, __pyx_t_24, __pyx_pybuffernd_P.diminfo[0].strides, __pyx_t_25, __pyx_pybuffernd_P.diminfo[1].strides) = 0.0;
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":123
+      /* "compass/compass/extensions/tsne_utils.pyx":123
  *                     P[i, j] = math.exp(-affinities[i, j] * beta)
  *             P[i, i] = 0.0
  *             sum_Pi = 0.0             # <<<<<<<<<<<<<<
@@ -1764,7 +1764,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
       __pyx_v_sum_Pi = 0.0;
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":124
+      /* "compass/compass/extensions/tsne_utils.pyx":124
  *             P[i, i] = 0.0
  *             sum_Pi = 0.0
  *             if using_neighbors:             # <<<<<<<<<<<<<<
@@ -1774,7 +1774,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       __pyx_t_7 = (__pyx_v_using_neighbors != 0);
       if (__pyx_t_7) {
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":125
+        /* "compass/compass/extensions/tsne_utils.pyx":125
  *             sum_Pi = 0.0
  *             if using_neighbors:
  *                 for k in range(K):             # <<<<<<<<<<<<<<
@@ -1785,7 +1785,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
           __pyx_v_k = __pyx_t_13;
 
-          /* "mflux/compass/extensions/tsne_utils.pyx":126
+          /* "compass/compass/extensions/tsne_utils.pyx":126
  *             if using_neighbors:
  *                 for k in range(K):
  *                     j = neighbors[i, k]             # <<<<<<<<<<<<<<
@@ -1798,7 +1798,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
           if (__pyx_t_27 < 0) __pyx_t_27 += __pyx_pybuffernd_neighbors.diminfo[1].shape;
           __pyx_v_j = (*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_int64_t *, __pyx_pybuffernd_neighbors.rcbuffer->pybuffer.buf, __pyx_t_26, __pyx_pybuffernd_neighbors.diminfo[0].strides, __pyx_t_27, __pyx_pybuffernd_neighbors.diminfo[1].strides));
 
-          /* "mflux/compass/extensions/tsne_utils.pyx":127
+          /* "compass/compass/extensions/tsne_utils.pyx":127
  *                 for k in range(K):
  *                     j = neighbors[i, k]
  *                     sum_Pi += P[i, j]             # <<<<<<<<<<<<<<
@@ -1812,7 +1812,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
           __pyx_v_sum_Pi = (__pyx_v_sum_Pi + (*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_P.rcbuffer->pybuffer.buf, __pyx_t_28, __pyx_pybuffernd_P.diminfo[0].strides, __pyx_t_29, __pyx_pybuffernd_P.diminfo[1].strides)));
         }
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":124
+        /* "compass/compass/extensions/tsne_utils.pyx":124
  *             P[i, i] = 0.0
  *             sum_Pi = 0.0
  *             if using_neighbors:             # <<<<<<<<<<<<<<
@@ -1822,7 +1822,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         goto __pyx_L13;
       }
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":129
+      /* "compass/compass/extensions/tsne_utils.pyx":129
  *                     sum_Pi += P[i, j]
  *             else:
  *                 for j in range(K):             # <<<<<<<<<<<<<<
@@ -1834,7 +1834,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
           __pyx_v_j = __pyx_t_13;
 
-          /* "mflux/compass/extensions/tsne_utils.pyx":130
+          /* "compass/compass/extensions/tsne_utils.pyx":130
  *             else:
  *                 for j in range(K):
  *                     sum_Pi += P[i, j]             # <<<<<<<<<<<<<<
@@ -1850,7 +1850,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       }
       __pyx_L13:;
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":131
+      /* "compass/compass/extensions/tsne_utils.pyx":131
  *                 for j in range(K):
  *                     sum_Pi += P[i, j]
  *             if sum_Pi == 0.0:             # <<<<<<<<<<<<<<
@@ -1860,16 +1860,16 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       __pyx_t_7 = ((__pyx_v_sum_Pi == 0.0) != 0);
       if (__pyx_t_7) {
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":132
+        /* "compass/compass/extensions/tsne_utils.pyx":132
  *                     sum_Pi += P[i, j]
  *             if sum_Pi == 0.0:
  *                 sum_Pi = EPSILON_DBL             # <<<<<<<<<<<<<<
  *             sum_disti_Pi = 0.0
  *             if using_neighbors:
  */
-        __pyx_v_sum_Pi = __pyx_v_5mflux_7compass_10extensions_10tsne_utils_EPSILON_DBL;
+        __pyx_v_sum_Pi = __pyx_v_7compass_7compass_10extensions_10tsne_utils_EPSILON_DBL;
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":131
+        /* "compass/compass/extensions/tsne_utils.pyx":131
  *                 for j in range(K):
  *                     sum_Pi += P[i, j]
  *             if sum_Pi == 0.0:             # <<<<<<<<<<<<<<
@@ -1878,7 +1878,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
       }
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":133
+      /* "compass/compass/extensions/tsne_utils.pyx":133
  *             if sum_Pi == 0.0:
  *                 sum_Pi = EPSILON_DBL
  *             sum_disti_Pi = 0.0             # <<<<<<<<<<<<<<
@@ -1887,7 +1887,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
       __pyx_v_sum_disti_Pi = 0.0;
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":134
+      /* "compass/compass/extensions/tsne_utils.pyx":134
  *                 sum_Pi = EPSILON_DBL
  *             sum_disti_Pi = 0.0
  *             if using_neighbors:             # <<<<<<<<<<<<<<
@@ -1897,7 +1897,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       __pyx_t_7 = (__pyx_v_using_neighbors != 0);
       if (__pyx_t_7) {
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":135
+        /* "compass/compass/extensions/tsne_utils.pyx":135
  *             sum_disti_Pi = 0.0
  *             if using_neighbors:
  *                 for k in range(K):             # <<<<<<<<<<<<<<
@@ -1908,7 +1908,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
           __pyx_v_k = __pyx_t_13;
 
-          /* "mflux/compass/extensions/tsne_utils.pyx":136
+          /* "compass/compass/extensions/tsne_utils.pyx":136
  *             if using_neighbors:
  *                 for k in range(K):
  *                     j = neighbors[i, k]             # <<<<<<<<<<<<<<
@@ -1921,7 +1921,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
           if (__pyx_t_33 < 0) __pyx_t_33 += __pyx_pybuffernd_neighbors.diminfo[1].shape;
           __pyx_v_j = (*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_int64_t *, __pyx_pybuffernd_neighbors.rcbuffer->pybuffer.buf, __pyx_t_32, __pyx_pybuffernd_neighbors.diminfo[0].strides, __pyx_t_33, __pyx_pybuffernd_neighbors.diminfo[1].strides));
 
-          /* "mflux/compass/extensions/tsne_utils.pyx":137
+          /* "compass/compass/extensions/tsne_utils.pyx":137
  *                 for k in range(K):
  *                     j = neighbors[i, k]
  *                     P[i, j] /= sum_Pi             # <<<<<<<<<<<<<<
@@ -1934,7 +1934,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
           if (__pyx_t_35 < 0) __pyx_t_35 += __pyx_pybuffernd_P.diminfo[1].shape;
           *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_P.rcbuffer->pybuffer.buf, __pyx_t_34, __pyx_pybuffernd_P.diminfo[0].strides, __pyx_t_35, __pyx_pybuffernd_P.diminfo[1].strides) /= __pyx_v_sum_Pi;
 
-          /* "mflux/compass/extensions/tsne_utils.pyx":138
+          /* "compass/compass/extensions/tsne_utils.pyx":138
  *                     j = neighbors[i, k]
  *                     P[i, j] /= sum_Pi
  *                     sum_disti_Pi += affinities[i, j] * P[i, j]             # <<<<<<<<<<<<<<
@@ -1952,7 +1952,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
           __pyx_v_sum_disti_Pi = (__pyx_v_sum_disti_Pi + ((*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_affinities.rcbuffer->pybuffer.buf, __pyx_t_36, __pyx_pybuffernd_affinities.diminfo[0].strides, __pyx_t_37, __pyx_pybuffernd_affinities.diminfo[1].strides)) * (*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_P.rcbuffer->pybuffer.buf, __pyx_t_38, __pyx_pybuffernd_P.diminfo[0].strides, __pyx_t_39, __pyx_pybuffernd_P.diminfo[1].strides))));
         }
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":134
+        /* "compass/compass/extensions/tsne_utils.pyx":134
  *                 sum_Pi = EPSILON_DBL
  *             sum_disti_Pi = 0.0
  *             if using_neighbors:             # <<<<<<<<<<<<<<
@@ -1962,7 +1962,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         goto __pyx_L19;
       }
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":140
+      /* "compass/compass/extensions/tsne_utils.pyx":140
  *                     sum_disti_Pi += affinities[i, j] * P[i, j]
  *             else:
  *                 for j in range(K):             # <<<<<<<<<<<<<<
@@ -1974,7 +1974,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
           __pyx_v_j = __pyx_t_13;
 
-          /* "mflux/compass/extensions/tsne_utils.pyx":141
+          /* "compass/compass/extensions/tsne_utils.pyx":141
  *             else:
  *                 for j in range(K):
  *                     P[i, j] /= sum_Pi             # <<<<<<<<<<<<<<
@@ -1987,7 +1987,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
           if (__pyx_t_41 < 0) __pyx_t_41 += __pyx_pybuffernd_P.diminfo[1].shape;
           *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_P.rcbuffer->pybuffer.buf, __pyx_t_40, __pyx_pybuffernd_P.diminfo[0].strides, __pyx_t_41, __pyx_pybuffernd_P.diminfo[1].strides) /= __pyx_v_sum_Pi;
 
-          /* "mflux/compass/extensions/tsne_utils.pyx":142
+          /* "compass/compass/extensions/tsne_utils.pyx":142
  *                 for j in range(K):
  *                     P[i, j] /= sum_Pi
  *                     sum_disti_Pi += affinities[i, j] * P[i, j]             # <<<<<<<<<<<<<<
@@ -2007,7 +2007,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       }
       __pyx_L19:;
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":143
+      /* "compass/compass/extensions/tsne_utils.pyx":143
  *                     P[i, j] /= sum_Pi
  *                     sum_disti_Pi += affinities[i, j] * P[i, j]
  *             entropy = math.log(sum_Pi) + beta * sum_disti_Pi             # <<<<<<<<<<<<<<
@@ -2016,7 +2016,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
       __pyx_v_entropy = (log(__pyx_v_sum_Pi) + (__pyx_v_beta * __pyx_v_sum_disti_Pi));
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":144
+      /* "compass/compass/extensions/tsne_utils.pyx":144
  *                     sum_disti_Pi += affinities[i, j] * P[i, j]
  *             entropy = math.log(sum_Pi) + beta * sum_disti_Pi
  *             entropy_diff = entropy - desired_entropy             # <<<<<<<<<<<<<<
@@ -2025,17 +2025,17 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
       __pyx_v_entropy_diff = (__pyx_v_entropy - __pyx_v_desired_entropy);
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":146
+      /* "compass/compass/extensions/tsne_utils.pyx":146
  *             entropy_diff = entropy - desired_entropy
  * 
  *             if math.fabs(entropy_diff) <= PERPLEXITY_TOLERANCE:             # <<<<<<<<<<<<<<
  *                 break
  * 
  */
-      __pyx_t_7 = ((fabs(__pyx_v_entropy_diff) <= __pyx_v_5mflux_7compass_10extensions_10tsne_utils_PERPLEXITY_TOLERANCE) != 0);
+      __pyx_t_7 = ((fabs(__pyx_v_entropy_diff) <= __pyx_v_7compass_7compass_10extensions_10tsne_utils_PERPLEXITY_TOLERANCE) != 0);
       if (__pyx_t_7) {
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":147
+        /* "compass/compass/extensions/tsne_utils.pyx":147
  * 
  *             if math.fabs(entropy_diff) <= PERPLEXITY_TOLERANCE:
  *                 break             # <<<<<<<<<<<<<<
@@ -2044,7 +2044,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
         goto __pyx_L7_break;
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":146
+        /* "compass/compass/extensions/tsne_utils.pyx":146
  *             entropy_diff = entropy - desired_entropy
  * 
  *             if math.fabs(entropy_diff) <= PERPLEXITY_TOLERANCE:             # <<<<<<<<<<<<<<
@@ -2053,7 +2053,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
       }
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":149
+      /* "compass/compass/extensions/tsne_utils.pyx":149
  *                 break
  * 
  *             if entropy_diff > 0.0:             # <<<<<<<<<<<<<<
@@ -2063,7 +2063,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       __pyx_t_7 = ((__pyx_v_entropy_diff > 0.0) != 0);
       if (__pyx_t_7) {
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":150
+        /* "compass/compass/extensions/tsne_utils.pyx":150
  * 
  *             if entropy_diff > 0.0:
  *                 beta_min = beta             # <<<<<<<<<<<<<<
@@ -2072,7 +2072,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
         __pyx_v_beta_min = __pyx_v_beta;
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":151
+        /* "compass/compass/extensions/tsne_utils.pyx":151
  *             if entropy_diff > 0.0:
  *                 beta_min = beta
  *                 if beta_max == NPY_INFINITY:             # <<<<<<<<<<<<<<
@@ -2082,7 +2082,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         __pyx_t_7 = ((__pyx_v_beta_max == NPY_INFINITY) != 0);
         if (__pyx_t_7) {
 
-          /* "mflux/compass/extensions/tsne_utils.pyx":152
+          /* "compass/compass/extensions/tsne_utils.pyx":152
  *                 beta_min = beta
  *                 if beta_max == NPY_INFINITY:
  *                     beta *= 2.0             # <<<<<<<<<<<<<<
@@ -2091,7 +2091,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
           __pyx_v_beta = (__pyx_v_beta * 2.0);
 
-          /* "mflux/compass/extensions/tsne_utils.pyx":151
+          /* "compass/compass/extensions/tsne_utils.pyx":151
  *             if entropy_diff > 0.0:
  *                 beta_min = beta
  *                 if beta_max == NPY_INFINITY:             # <<<<<<<<<<<<<<
@@ -2101,7 +2101,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
           goto __pyx_L26;
         }
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":154
+        /* "compass/compass/extensions/tsne_utils.pyx":154
  *                     beta *= 2.0
  *                 else:
  *                     beta = (beta + beta_max) / 2.0             # <<<<<<<<<<<<<<
@@ -2113,7 +2113,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         }
         __pyx_L26:;
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":149
+        /* "compass/compass/extensions/tsne_utils.pyx":149
  *                 break
  * 
  *             if entropy_diff > 0.0:             # <<<<<<<<<<<<<<
@@ -2123,7 +2123,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         goto __pyx_L25;
       }
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":156
+      /* "compass/compass/extensions/tsne_utils.pyx":156
  *                     beta = (beta + beta_max) / 2.0
  *             else:
  *                 beta_max = beta             # <<<<<<<<<<<<<<
@@ -2133,7 +2133,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       /*else*/ {
         __pyx_v_beta_max = __pyx_v_beta;
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":157
+        /* "compass/compass/extensions/tsne_utils.pyx":157
  *             else:
  *                 beta_max = beta
  *                 if beta_min == -NPY_INFINITY:             # <<<<<<<<<<<<<<
@@ -2143,7 +2143,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         __pyx_t_7 = ((__pyx_v_beta_min == (-NPY_INFINITY)) != 0);
         if (__pyx_t_7) {
 
-          /* "mflux/compass/extensions/tsne_utils.pyx":158
+          /* "compass/compass/extensions/tsne_utils.pyx":158
  *                 beta_max = beta
  *                 if beta_min == -NPY_INFINITY:
  *                     beta /= 2.0             # <<<<<<<<<<<<<<
@@ -2152,7 +2152,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
           __pyx_v_beta = (__pyx_v_beta / 2.0);
 
-          /* "mflux/compass/extensions/tsne_utils.pyx":157
+          /* "compass/compass/extensions/tsne_utils.pyx":157
  *             else:
  *                 beta_max = beta
  *                 if beta_min == -NPY_INFINITY:             # <<<<<<<<<<<<<<
@@ -2162,7 +2162,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
           goto __pyx_L27;
         }
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":160
+        /* "compass/compass/extensions/tsne_utils.pyx":160
  *                     beta /= 2.0
  *                 else:
  *                     beta = (beta + beta_min) / 2.0             # <<<<<<<<<<<<<<
@@ -2178,7 +2178,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
     }
     __pyx_L7_break:;
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":162
+    /* "compass/compass/extensions/tsne_utils.pyx":162
  *                     beta = (beta + beta_min) / 2.0
  * 
  *         beta_sum += beta             # <<<<<<<<<<<<<<
@@ -2187,7 +2187,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
     __pyx_v_beta_sum = (__pyx_v_beta_sum + __pyx_v_beta);
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":164
+    /* "compass/compass/extensions/tsne_utils.pyx":164
  *         beta_sum += beta
  * 
  *         if verbose and ((i + 1) % 1000 == 0 or i + 1 == n_samples):             # <<<<<<<<<<<<<<
@@ -2211,7 +2211,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
     __pyx_L29_bool_binop_done:;
     if (__pyx_t_7) {
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":166
+      /* "compass/compass/extensions/tsne_utils.pyx":166
  *         if verbose and ((i + 1) % 1000 == 0 or i + 1 == n_samples):
  *             print("[t-SNE] Computed conditional probabilities for sample "
  *                   "%d / %d" % (i + 1, n_samples))             # <<<<<<<<<<<<<<
@@ -2236,7 +2236,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       if (__Pyx_PrintOne(0, __pyx_t_4) < 0) __PYX_ERR(0, 165, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":164
+      /* "compass/compass/extensions/tsne_utils.pyx":164
  *         beta_sum += beta
  * 
  *         if verbose and ((i + 1) % 1000 == 0 or i + 1 == n_samples):             # <<<<<<<<<<<<<<
@@ -2246,7 +2246,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
     }
   }
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":168
+  /* "compass/compass/extensions/tsne_utils.pyx":168
  *                   "%d / %d" % (i + 1, n_samples))
  * 
  *     if verbose:             # <<<<<<<<<<<<<<
@@ -2256,7 +2256,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
   __pyx_t_7 = (__pyx_v_verbose != 0);
   if (__pyx_t_7) {
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":170
+    /* "compass/compass/extensions/tsne_utils.pyx":170
  *     if verbose:
  *         print("[t-SNE] Mean sigma: %f"
  *               % np.mean(math.sqrt(n_samples / beta_sum)))             # <<<<<<<<<<<<<<
@@ -2306,7 +2306,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
     if (__Pyx_PrintOne(0, __pyx_t_5) < 0) __PYX_ERR(0, 169, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":168
+    /* "compass/compass/extensions/tsne_utils.pyx":168
  *                   "%d / %d" % (i + 1, n_samples))
  * 
  *     if verbose:             # <<<<<<<<<<<<<<
@@ -2315,7 +2315,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   }
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":171
+  /* "compass/compass/extensions/tsne_utils.pyx":171
  *         print("[t-SNE] Mean sigma: %f"
  *               % np.mean(math.sqrt(n_samples / beta_sum)))
  *     return P             # <<<<<<<<<<<<<<
@@ -2327,7 +2327,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
   __pyx_r = ((PyArrayObject *)__pyx_v_P);
   goto __pyx_L0;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":47
+  /* "compass/compass/extensions/tsne_utils.pyx":47
  * 
  * @cython.boundscheck(False)
  * cpdef np.ndarray[np.float32_t, ndim=2] binary_search_perplexity(             # <<<<<<<<<<<<<<
@@ -2350,7 +2350,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_affinities.rcbuffer->pybuffer);
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_neighbors.rcbuffer->pybuffer);
   __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
-  __Pyx_AddTraceback("mflux.compass.extensions.tsne_utils.binary_search_perplexity", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("compass.compass.extensions.tsne_utils.binary_search_perplexity", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   goto __pyx_L2;
   __pyx_L0:;
@@ -2365,9 +2365,9 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5mflux_7compass_10extensions_10tsne_utils_1binary_search_perplexity(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_5mflux_7compass_10extensions_10tsne_utils_binary_search_perplexity[] = "Binary search for sigmas of conditional Gaussians. \n    \n    This approximation reduces the computational complexity from O(N^2) to\n    O(uN). See the exact method '_binary_search_perplexity' for more details.\n\n    Parameters\n    ----------\n    affinities : array-like, shape (n_samples, n_samples)\n        Distances between training samples.\n\n    neighbors : array-like, shape (n_samples, K) or None\n        Each row contains the indices to the K nearest neigbors. If this\n        array is None, then the perplexity is estimated over all data\n        not just the nearest neighbors.\n\n    desired_perplexity : float\n        Desired perplexity (2^entropy) of the conditional Gaussians.\n\n    verbose : int\n        Verbosity level.\n\n    Returns\n    -------\n    P : array, shape (n_samples, n_samples)\n        Probabilities of conditional Gaussian distributions p_i|j.\n    ";
-static PyObject *__pyx_pw_5mflux_7compass_10extensions_10tsne_utils_1binary_search_perplexity(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_7compass_7compass_10extensions_10tsne_utils_1binary_search_perplexity(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_7compass_7compass_10extensions_10tsne_utils_binary_search_perplexity[] = "Binary search for sigmas of conditional Gaussians. \n    \n    This approximation reduces the computational complexity from O(N^2) to\n    O(uN). See the exact method '_binary_search_perplexity' for more details.\n\n    Parameters\n    ----------\n    affinities : array-like, shape (n_samples, n_samples)\n        Distances between training samples.\n\n    neighbors : array-like, shape (n_samples, K) or None\n        Each row contains the indices to the K nearest neigbors. If this\n        array is None, then the perplexity is estimated over all data\n        not just the nearest neighbors.\n\n    desired_perplexity : float\n        Desired perplexity (2^entropy) of the conditional Gaussians.\n\n    verbose : int\n        Verbosity level.\n\n    Returns\n    -------\n    P : array, shape (n_samples, n_samples)\n        Probabilities of conditional Gaussian distributions p_i|j.\n    ";
+static PyObject *__pyx_pw_7compass_7compass_10extensions_10tsne_utils_1binary_search_perplexity(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyArrayObject *__pyx_v_affinities = 0;
   PyArrayObject *__pyx_v_neighbors = 0;
   float __pyx_v_desired_perplexity;
@@ -2430,13 +2430,13 @@ static PyObject *__pyx_pw_5mflux_7compass_10extensions_10tsne_utils_1binary_sear
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("binary_search_perplexity", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 47, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("mflux.compass.extensions.tsne_utils.binary_search_perplexity", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("compass.compass.extensions.tsne_utils.binary_search_perplexity", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_affinities), __pyx_ptype_5numpy_ndarray, 1, "affinities", 0))) __PYX_ERR(0, 48, __pyx_L1_error)
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_neighbors), __pyx_ptype_5numpy_ndarray, 1, "neighbors", 0))) __PYX_ERR(0, 49, __pyx_L1_error)
-  __pyx_r = __pyx_pf_5mflux_7compass_10extensions_10tsne_utils_binary_search_perplexity(__pyx_self, __pyx_v_affinities, __pyx_v_neighbors, __pyx_v_desired_perplexity, __pyx_v_verbose);
+  __pyx_r = __pyx_pf_7compass_7compass_10extensions_10tsne_utils_binary_search_perplexity(__pyx_self, __pyx_v_affinities, __pyx_v_neighbors, __pyx_v_desired_perplexity, __pyx_v_verbose);
 
   /* function exit code */
   goto __pyx_L0;
@@ -2447,7 +2447,7 @@ static PyObject *__pyx_pw_5mflux_7compass_10extensions_10tsne_utils_1binary_sear
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5mflux_7compass_10extensions_10tsne_utils_binary_search_perplexity(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_affinities, PyArrayObject *__pyx_v_neighbors, float __pyx_v_desired_perplexity, int __pyx_v_verbose) {
+static PyObject *__pyx_pf_7compass_7compass_10extensions_10tsne_utils_binary_search_perplexity(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_affinities, PyArrayObject *__pyx_v_neighbors, float __pyx_v_desired_perplexity, int __pyx_v_verbose) {
   __Pyx_LocalBuf_ND __pyx_pybuffernd_affinities;
   __Pyx_Buffer __pyx_pybuffer_affinities;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_neighbors;
@@ -2475,7 +2475,7 @@ static PyObject *__pyx_pf_5mflux_7compass_10extensions_10tsne_utils_binary_searc
   }
   __pyx_pybuffernd_neighbors.diminfo[0].strides = __pyx_pybuffernd_neighbors.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_neighbors.diminfo[0].shape = __pyx_pybuffernd_neighbors.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_neighbors.diminfo[1].strides = __pyx_pybuffernd_neighbors.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_neighbors.diminfo[1].shape = __pyx_pybuffernd_neighbors.rcbuffer->pybuffer.shape[1];
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((PyObject *)__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_search_perplexity(__pyx_v_affinities, __pyx_v_neighbors, __pyx_v_desired_perplexity, __pyx_v_verbose, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_f_7compass_7compass_10extensions_10tsne_utils_binary_search_perplexity(__pyx_v_affinities, __pyx_v_neighbors, __pyx_v_desired_perplexity, __pyx_v_verbose, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 47, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -2491,7 +2491,7 @@ static PyObject *__pyx_pf_5mflux_7compass_10extensions_10tsne_utils_binary_searc
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_affinities.rcbuffer->pybuffer);
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_neighbors.rcbuffer->pybuffer);
   __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
-  __Pyx_AddTraceback("mflux.compass.extensions.tsne_utils.binary_search_perplexity", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("compass.compass.extensions.tsne_utils.binary_search_perplexity", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   goto __pyx_L2;
   __pyx_L0:;
@@ -2503,7 +2503,7 @@ static PyObject *__pyx_pf_5mflux_7compass_10extensions_10tsne_utils_binary_searc
   return __pyx_r;
 }
 
-/* "mflux/compass/extensions/tsne_utils.pyx":175
+/* "compass/compass/extensions/tsne_utils.pyx":175
  * 
  * @cython.boundscheck(False)
  * cpdef np.ndarray[np.float32_t, ndim=1] binary_search_perplexity_single(             # <<<<<<<<<<<<<<
@@ -2511,8 +2511,8 @@ static PyObject *__pyx_pf_5mflux_7compass_10extensions_10tsne_utils_binary_searc
  *         np.ndarray[np.int64_t, ndim=1] neighbors,
  */
 
-static PyObject *__pyx_pw_5mflux_7compass_10extensions_10tsne_utils_3binary_search_perplexity_single(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_search_perplexity_single(PyArrayObject *__pyx_v_affinities, PyArrayObject *__pyx_v_neighbors, float __pyx_v_desired_perplexity, int __pyx_v_verbose, int __pyx_v_sample, CYTHON_UNUSED int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_7compass_7compass_10extensions_10tsne_utils_3binary_search_perplexity_single(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyArrayObject *__pyx_f_7compass_7compass_10extensions_10tsne_utils_binary_search_perplexity_single(PyArrayObject *__pyx_v_affinities, PyArrayObject *__pyx_v_neighbors, float __pyx_v_desired_perplexity, int __pyx_v_verbose, int __pyx_v_sample, CYTHON_UNUSED int __pyx_skip_dispatch) {
   long __pyx_v_n_steps;
   long __pyx_v_n_samples;
   PyArrayObject *__pyx_v_P = 0;
@@ -2590,7 +2590,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
   }
   __pyx_pybuffernd_neighbors.diminfo[0].strides = __pyx_pybuffernd_neighbors.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_neighbors.diminfo[0].shape = __pyx_pybuffernd_neighbors.rcbuffer->pybuffer.shape[0];
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":209
+  /* "compass/compass/extensions/tsne_utils.pyx":209
  *     """
  *     # Maximum number of binary search steps
  *     cdef long n_steps = 100             # <<<<<<<<<<<<<<
@@ -2599,7 +2599,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   __pyx_v_n_steps = 0x64;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":211
+  /* "compass/compass/extensions/tsne_utils.pyx":211
  *     cdef long n_steps = 100
  * 
  *     cdef long n_samples = affinities.shape[0]             # <<<<<<<<<<<<<<
@@ -2608,7 +2608,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   __pyx_v_n_samples = (__pyx_v_affinities->dimensions[0]);
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":214
+  /* "compass/compass/extensions/tsne_utils.pyx":214
  *     # This array is later used as a 32bit array. It has multiple intermediate
  *     # floating point additions that benefit from the extra precision
  *     cdef np.ndarray[np.float64_t, ndim=1] P = np.zeros(n_samples, dtype=np.float64)             # <<<<<<<<<<<<<<
@@ -2655,7 +2655,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
   __pyx_v_P = ((PyArrayObject *)__pyx_t_5);
   __pyx_t_5 = 0;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":220
+  /* "compass/compass/extensions/tsne_utils.pyx":220
  *     cdef float beta_max
  *     # Now we go to log scale
  *     cdef float desired_entropy = math.log(desired_perplexity)             # <<<<<<<<<<<<<<
@@ -2664,7 +2664,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   __pyx_v_desired_entropy = log(__pyx_v_desired_perplexity);
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":226
+  /* "compass/compass/extensions/tsne_utils.pyx":226
  *     cdef float sum_Pi
  *     cdef float sum_disti_Pi
  *     cdef long i, j, k, l = 0             # <<<<<<<<<<<<<<
@@ -2673,7 +2673,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   __pyx_v_l = 0;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":227
+  /* "compass/compass/extensions/tsne_utils.pyx":227
  *     cdef float sum_disti_Pi
  *     cdef long i, j, k, l = 0
  *     cdef long K = n_samples             # <<<<<<<<<<<<<<
@@ -2682,7 +2682,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   __pyx_v_K = __pyx_v_n_samples;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":228
+  /* "compass/compass/extensions/tsne_utils.pyx":228
  *     cdef long i, j, k, l = 0
  *     cdef long K = n_samples
  *     cdef int using_neighbors = neighbors is not None             # <<<<<<<<<<<<<<
@@ -2692,7 +2692,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
   __pyx_t_7 = (((PyObject *)__pyx_v_neighbors) != Py_None);
   __pyx_v_using_neighbors = __pyx_t_7;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":230
+  /* "compass/compass/extensions/tsne_utils.pyx":230
  *     cdef int using_neighbors = neighbors is not None
  * 
  *     if using_neighbors:             # <<<<<<<<<<<<<<
@@ -2702,7 +2702,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
   __pyx_t_7 = (__pyx_v_using_neighbors != 0);
   if (__pyx_t_7) {
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":231
+    /* "compass/compass/extensions/tsne_utils.pyx":231
  * 
  *     if using_neighbors:
  *         K = neighbors.shape[0]             # <<<<<<<<<<<<<<
@@ -2711,7 +2711,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
     __pyx_v_K = (__pyx_v_neighbors->dimensions[0]);
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":230
+    /* "compass/compass/extensions/tsne_utils.pyx":230
  *     cdef int using_neighbors = neighbors is not None
  * 
  *     if using_neighbors:             # <<<<<<<<<<<<<<
@@ -2720,7 +2720,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   }
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":233
+  /* "compass/compass/extensions/tsne_utils.pyx":233
  *         K = neighbors.shape[0]
  * 
  *     i = 0             # <<<<<<<<<<<<<<
@@ -2729,7 +2729,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   __pyx_v_i = 0;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":234
+  /* "compass/compass/extensions/tsne_utils.pyx":234
  * 
  *     i = 0
  *     cdef long sample_i = sample             # <<<<<<<<<<<<<<
@@ -2738,7 +2738,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   __pyx_v_sample_i = __pyx_v_sample;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":236
+  /* "compass/compass/extensions/tsne_utils.pyx":236
  *     cdef long sample_i = sample
  * 
  *     beta_min = -NPY_INFINITY             # <<<<<<<<<<<<<<
@@ -2747,7 +2747,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   __pyx_v_beta_min = (-NPY_INFINITY);
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":237
+  /* "compass/compass/extensions/tsne_utils.pyx":237
  * 
  *     beta_min = -NPY_INFINITY
  *     beta_max = NPY_INFINITY             # <<<<<<<<<<<<<<
@@ -2756,7 +2756,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   __pyx_v_beta_max = NPY_INFINITY;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":238
+  /* "compass/compass/extensions/tsne_utils.pyx":238
  *     beta_min = -NPY_INFINITY
  *     beta_max = NPY_INFINITY
  *     beta = 1.0             # <<<<<<<<<<<<<<
@@ -2765,7 +2765,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   __pyx_v_beta = 1.0;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":241
+  /* "compass/compass/extensions/tsne_utils.pyx":241
  * 
  *     # Binary search of precision for i-th conditional distribution
  *     for l in range(n_steps):             # <<<<<<<<<<<<<<
@@ -2776,7 +2776,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
   for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
     __pyx_v_l = __pyx_t_9;
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":245
+    /* "compass/compass/extensions/tsne_utils.pyx":245
  *         # computed just over the nearest neighbors or over all data
  *         # if we're not using neighbors
  *         if using_neighbors:             # <<<<<<<<<<<<<<
@@ -2786,7 +2786,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
     __pyx_t_7 = (__pyx_v_using_neighbors != 0);
     if (__pyx_t_7) {
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":246
+      /* "compass/compass/extensions/tsne_utils.pyx":246
  *         # if we're not using neighbors
  *         if using_neighbors:
  *             for k in range(K):             # <<<<<<<<<<<<<<
@@ -2797,7 +2797,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_10; __pyx_t_11+=1) {
         __pyx_v_k = __pyx_t_11;
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":247
+        /* "compass/compass/extensions/tsne_utils.pyx":247
  *         if using_neighbors:
  *             for k in range(K):
  *                 j = neighbors[k]             # <<<<<<<<<<<<<<
@@ -2808,7 +2808,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_pybuffernd_neighbors.diminfo[0].shape;
         __pyx_v_j = (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_int64_t *, __pyx_pybuffernd_neighbors.rcbuffer->pybuffer.buf, __pyx_t_12, __pyx_pybuffernd_neighbors.diminfo[0].strides));
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":248
+        /* "compass/compass/extensions/tsne_utils.pyx":248
  *             for k in range(K):
  *                 j = neighbors[k]
  *                 P[j] = math.exp(-affinities[j] * beta)             # <<<<<<<<<<<<<<
@@ -2822,7 +2822,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_P.rcbuffer->pybuffer.buf, __pyx_t_14, __pyx_pybuffernd_P.diminfo[0].strides) = exp(((-(*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_affinities.rcbuffer->pybuffer.buf, __pyx_t_13, __pyx_pybuffernd_affinities.diminfo[0].strides))) * __pyx_v_beta));
       }
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":245
+      /* "compass/compass/extensions/tsne_utils.pyx":245
  *         # computed just over the nearest neighbors or over all data
  *         # if we're not using neighbors
  *         if using_neighbors:             # <<<<<<<<<<<<<<
@@ -2832,7 +2832,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       goto __pyx_L6;
     }
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":250
+    /* "compass/compass/extensions/tsne_utils.pyx":250
  *                 P[j] = math.exp(-affinities[j] * beta)
  *         else:
  *             for j in range(K):             # <<<<<<<<<<<<<<
@@ -2844,7 +2844,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_10; __pyx_t_11+=1) {
         __pyx_v_j = __pyx_t_11;
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":251
+        /* "compass/compass/extensions/tsne_utils.pyx":251
  *         else:
  *             for j in range(K):
  *                 P[j] = math.exp(-affinities[j] * beta)             # <<<<<<<<<<<<<<
@@ -2860,7 +2860,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
     }
     __pyx_L6:;
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":253
+    /* "compass/compass/extensions/tsne_utils.pyx":253
  *                 P[j] = math.exp(-affinities[j] * beta)
  * 
  *         P[sample_i] = 0.0             # <<<<<<<<<<<<<<
@@ -2871,7 +2871,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
     if (__pyx_t_17 < 0) __pyx_t_17 += __pyx_pybuffernd_P.diminfo[0].shape;
     *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_P.rcbuffer->pybuffer.buf, __pyx_t_17, __pyx_pybuffernd_P.diminfo[0].strides) = 0.0;
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":254
+    /* "compass/compass/extensions/tsne_utils.pyx":254
  * 
  *         P[sample_i] = 0.0
  *         sum_Pi = 0.0             # <<<<<<<<<<<<<<
@@ -2880,7 +2880,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
     __pyx_v_sum_Pi = 0.0;
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":256
+    /* "compass/compass/extensions/tsne_utils.pyx":256
  *         sum_Pi = 0.0
  * 
  *         if using_neighbors:             # <<<<<<<<<<<<<<
@@ -2890,7 +2890,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
     __pyx_t_7 = (__pyx_v_using_neighbors != 0);
     if (__pyx_t_7) {
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":257
+      /* "compass/compass/extensions/tsne_utils.pyx":257
  * 
  *         if using_neighbors:
  *             for k in range(K):             # <<<<<<<<<<<<<<
@@ -2901,7 +2901,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_10; __pyx_t_11+=1) {
         __pyx_v_k = __pyx_t_11;
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":258
+        /* "compass/compass/extensions/tsne_utils.pyx":258
  *         if using_neighbors:
  *             for k in range(K):
  *                 j = neighbors[k]             # <<<<<<<<<<<<<<
@@ -2912,7 +2912,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         if (__pyx_t_18 < 0) __pyx_t_18 += __pyx_pybuffernd_neighbors.diminfo[0].shape;
         __pyx_v_j = (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_int64_t *, __pyx_pybuffernd_neighbors.rcbuffer->pybuffer.buf, __pyx_t_18, __pyx_pybuffernd_neighbors.diminfo[0].strides));
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":259
+        /* "compass/compass/extensions/tsne_utils.pyx":259
  *             for k in range(K):
  *                 j = neighbors[k]
  *                 sum_Pi += P[j]             # <<<<<<<<<<<<<<
@@ -2924,7 +2924,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         __pyx_v_sum_Pi = (__pyx_v_sum_Pi + (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_P.rcbuffer->pybuffer.buf, __pyx_t_19, __pyx_pybuffernd_P.diminfo[0].strides)));
       }
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":256
+      /* "compass/compass/extensions/tsne_utils.pyx":256
  *         sum_Pi = 0.0
  * 
  *         if using_neighbors:             # <<<<<<<<<<<<<<
@@ -2934,7 +2934,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       goto __pyx_L11;
     }
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":261
+    /* "compass/compass/extensions/tsne_utils.pyx":261
  *                 sum_Pi += P[j]
  *         else:
  *             for j in range(K):             # <<<<<<<<<<<<<<
@@ -2946,7 +2946,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_10; __pyx_t_11+=1) {
         __pyx_v_j = __pyx_t_11;
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":262
+        /* "compass/compass/extensions/tsne_utils.pyx":262
  *         else:
  *             for j in range(K):
  *                 sum_Pi += P[j]             # <<<<<<<<<<<<<<
@@ -2960,7 +2960,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
     }
     __pyx_L11:;
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":263
+    /* "compass/compass/extensions/tsne_utils.pyx":263
  *             for j in range(K):
  *                 sum_Pi += P[j]
  *         if sum_Pi == 0.0:             # <<<<<<<<<<<<<<
@@ -2970,16 +2970,16 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
     __pyx_t_7 = ((__pyx_v_sum_Pi == 0.0) != 0);
     if (__pyx_t_7) {
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":264
+      /* "compass/compass/extensions/tsne_utils.pyx":264
  *                 sum_Pi += P[j]
  *         if sum_Pi == 0.0:
  *             sum_Pi = EPSILON_DBL             # <<<<<<<<<<<<<<
  *         sum_disti_Pi = 0.0
  * 
  */
-      __pyx_v_sum_Pi = __pyx_v_5mflux_7compass_10extensions_10tsne_utils_EPSILON_DBL;
+      __pyx_v_sum_Pi = __pyx_v_7compass_7compass_10extensions_10tsne_utils_EPSILON_DBL;
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":263
+      /* "compass/compass/extensions/tsne_utils.pyx":263
  *             for j in range(K):
  *                 sum_Pi += P[j]
  *         if sum_Pi == 0.0:             # <<<<<<<<<<<<<<
@@ -2988,7 +2988,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
     }
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":265
+    /* "compass/compass/extensions/tsne_utils.pyx":265
  *         if sum_Pi == 0.0:
  *             sum_Pi = EPSILON_DBL
  *         sum_disti_Pi = 0.0             # <<<<<<<<<<<<<<
@@ -2997,7 +2997,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
     __pyx_v_sum_disti_Pi = 0.0;
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":267
+    /* "compass/compass/extensions/tsne_utils.pyx":267
  *         sum_disti_Pi = 0.0
  * 
  *         if using_neighbors:             # <<<<<<<<<<<<<<
@@ -3007,7 +3007,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
     __pyx_t_7 = (__pyx_v_using_neighbors != 0);
     if (__pyx_t_7) {
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":268
+      /* "compass/compass/extensions/tsne_utils.pyx":268
  * 
  *         if using_neighbors:
  *             for k in range(K):             # <<<<<<<<<<<<<<
@@ -3018,7 +3018,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_10; __pyx_t_11+=1) {
         __pyx_v_k = __pyx_t_11;
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":269
+        /* "compass/compass/extensions/tsne_utils.pyx":269
  *         if using_neighbors:
  *             for k in range(K):
  *                 j = neighbors[k]             # <<<<<<<<<<<<<<
@@ -3029,7 +3029,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         if (__pyx_t_21 < 0) __pyx_t_21 += __pyx_pybuffernd_neighbors.diminfo[0].shape;
         __pyx_v_j = (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_int64_t *, __pyx_pybuffernd_neighbors.rcbuffer->pybuffer.buf, __pyx_t_21, __pyx_pybuffernd_neighbors.diminfo[0].strides));
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":270
+        /* "compass/compass/extensions/tsne_utils.pyx":270
  *             for k in range(K):
  *                 j = neighbors[k]
  *                 P[j] /= sum_Pi             # <<<<<<<<<<<<<<
@@ -3040,7 +3040,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         if (__pyx_t_22 < 0) __pyx_t_22 += __pyx_pybuffernd_P.diminfo[0].shape;
         *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_P.rcbuffer->pybuffer.buf, __pyx_t_22, __pyx_pybuffernd_P.diminfo[0].strides) /= __pyx_v_sum_Pi;
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":271
+        /* "compass/compass/extensions/tsne_utils.pyx":271
  *                 j = neighbors[k]
  *                 P[j] /= sum_Pi
  *                 sum_disti_Pi += affinities[j] * P[j]             # <<<<<<<<<<<<<<
@@ -3054,7 +3054,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         __pyx_v_sum_disti_Pi = (__pyx_v_sum_disti_Pi + ((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_affinities.rcbuffer->pybuffer.buf, __pyx_t_23, __pyx_pybuffernd_affinities.diminfo[0].strides)) * (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_P.rcbuffer->pybuffer.buf, __pyx_t_24, __pyx_pybuffernd_P.diminfo[0].strides))));
       }
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":267
+      /* "compass/compass/extensions/tsne_utils.pyx":267
  *         sum_disti_Pi = 0.0
  * 
  *         if using_neighbors:             # <<<<<<<<<<<<<<
@@ -3064,7 +3064,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       goto __pyx_L17;
     }
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":273
+    /* "compass/compass/extensions/tsne_utils.pyx":273
  *                 sum_disti_Pi += affinities[j] * P[j]
  *         else:
  *             for j in range(K):             # <<<<<<<<<<<<<<
@@ -3076,7 +3076,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_10; __pyx_t_11+=1) {
         __pyx_v_j = __pyx_t_11;
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":274
+        /* "compass/compass/extensions/tsne_utils.pyx":274
  *         else:
  *             for j in range(K):
  *                 P[j] /= sum_Pi             # <<<<<<<<<<<<<<
@@ -3087,7 +3087,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         if (__pyx_t_25 < 0) __pyx_t_25 += __pyx_pybuffernd_P.diminfo[0].shape;
         *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_P.rcbuffer->pybuffer.buf, __pyx_t_25, __pyx_pybuffernd_P.diminfo[0].strides) /= __pyx_v_sum_Pi;
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":275
+        /* "compass/compass/extensions/tsne_utils.pyx":275
  *             for j in range(K):
  *                 P[j] /= sum_Pi
  *                 sum_disti_Pi += affinities[j] * P[j]             # <<<<<<<<<<<<<<
@@ -3103,7 +3103,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
     }
     __pyx_L17:;
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":277
+    /* "compass/compass/extensions/tsne_utils.pyx":277
  *                 sum_disti_Pi += affinities[j] * P[j]
  * 
  *         entropy = math.log(sum_Pi) + beta * sum_disti_Pi             # <<<<<<<<<<<<<<
@@ -3112,7 +3112,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
     __pyx_v_entropy = (log(__pyx_v_sum_Pi) + (__pyx_v_beta * __pyx_v_sum_disti_Pi));
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":278
+    /* "compass/compass/extensions/tsne_utils.pyx":278
  * 
  *         entropy = math.log(sum_Pi) + beta * sum_disti_Pi
  *         entropy_diff = entropy - desired_entropy             # <<<<<<<<<<<<<<
@@ -3121,17 +3121,17 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
     __pyx_v_entropy_diff = (__pyx_v_entropy - __pyx_v_desired_entropy);
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":280
+    /* "compass/compass/extensions/tsne_utils.pyx":280
  *         entropy_diff = entropy - desired_entropy
  * 
  *         if math.fabs(entropy_diff) <= PERPLEXITY_TOLERANCE:             # <<<<<<<<<<<<<<
  *             break
  * 
  */
-    __pyx_t_7 = ((fabs(__pyx_v_entropy_diff) <= __pyx_v_5mflux_7compass_10extensions_10tsne_utils_PERPLEXITY_TOLERANCE) != 0);
+    __pyx_t_7 = ((fabs(__pyx_v_entropy_diff) <= __pyx_v_7compass_7compass_10extensions_10tsne_utils_PERPLEXITY_TOLERANCE) != 0);
     if (__pyx_t_7) {
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":281
+      /* "compass/compass/extensions/tsne_utils.pyx":281
  * 
  *         if math.fabs(entropy_diff) <= PERPLEXITY_TOLERANCE:
  *             break             # <<<<<<<<<<<<<<
@@ -3140,7 +3140,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
       goto __pyx_L5_break;
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":280
+      /* "compass/compass/extensions/tsne_utils.pyx":280
  *         entropy_diff = entropy - desired_entropy
  * 
  *         if math.fabs(entropy_diff) <= PERPLEXITY_TOLERANCE:             # <<<<<<<<<<<<<<
@@ -3149,7 +3149,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
     }
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":283
+    /* "compass/compass/extensions/tsne_utils.pyx":283
  *             break
  * 
  *         if entropy_diff > 0.0:             # <<<<<<<<<<<<<<
@@ -3159,7 +3159,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
     __pyx_t_7 = ((__pyx_v_entropy_diff > 0.0) != 0);
     if (__pyx_t_7) {
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":284
+      /* "compass/compass/extensions/tsne_utils.pyx":284
  * 
  *         if entropy_diff > 0.0:
  *             beta_min = beta             # <<<<<<<<<<<<<<
@@ -3168,7 +3168,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
       __pyx_v_beta_min = __pyx_v_beta;
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":285
+      /* "compass/compass/extensions/tsne_utils.pyx":285
  *         if entropy_diff > 0.0:
  *             beta_min = beta
  *             if beta_max == NPY_INFINITY:             # <<<<<<<<<<<<<<
@@ -3178,7 +3178,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       __pyx_t_7 = ((__pyx_v_beta_max == NPY_INFINITY) != 0);
       if (__pyx_t_7) {
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":286
+        /* "compass/compass/extensions/tsne_utils.pyx":286
  *             beta_min = beta
  *             if beta_max == NPY_INFINITY:
  *                 beta *= 2.0             # <<<<<<<<<<<<<<
@@ -3187,7 +3187,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
         __pyx_v_beta = (__pyx_v_beta * 2.0);
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":285
+        /* "compass/compass/extensions/tsne_utils.pyx":285
  *         if entropy_diff > 0.0:
  *             beta_min = beta
  *             if beta_max == NPY_INFINITY:             # <<<<<<<<<<<<<<
@@ -3197,7 +3197,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         goto __pyx_L24;
       }
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":288
+      /* "compass/compass/extensions/tsne_utils.pyx":288
  *                 beta *= 2.0
  *             else:
  *                 beta = (beta + beta_max) / 2.0             # <<<<<<<<<<<<<<
@@ -3209,7 +3209,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       }
       __pyx_L24:;
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":283
+      /* "compass/compass/extensions/tsne_utils.pyx":283
  *             break
  * 
  *         if entropy_diff > 0.0:             # <<<<<<<<<<<<<<
@@ -3219,7 +3219,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       goto __pyx_L23;
     }
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":290
+    /* "compass/compass/extensions/tsne_utils.pyx":290
  *                 beta = (beta + beta_max) / 2.0
  *         else:
  *             beta_max = beta             # <<<<<<<<<<<<<<
@@ -3229,7 +3229,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
     /*else*/ {
       __pyx_v_beta_max = __pyx_v_beta;
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":291
+      /* "compass/compass/extensions/tsne_utils.pyx":291
  *         else:
  *             beta_max = beta
  *             if beta_min == -NPY_INFINITY:             # <<<<<<<<<<<<<<
@@ -3239,7 +3239,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
       __pyx_t_7 = ((__pyx_v_beta_min == (-NPY_INFINITY)) != 0);
       if (__pyx_t_7) {
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":292
+        /* "compass/compass/extensions/tsne_utils.pyx":292
  *             beta_max = beta
  *             if beta_min == -NPY_INFINITY:
  *                 beta /= 2.0             # <<<<<<<<<<<<<<
@@ -3248,7 +3248,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
         __pyx_v_beta = (__pyx_v_beta / 2.0);
 
-        /* "mflux/compass/extensions/tsne_utils.pyx":291
+        /* "compass/compass/extensions/tsne_utils.pyx":291
  *         else:
  *             beta_max = beta
  *             if beta_min == -NPY_INFINITY:             # <<<<<<<<<<<<<<
@@ -3258,7 +3258,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
         goto __pyx_L25;
       }
 
-      /* "mflux/compass/extensions/tsne_utils.pyx":294
+      /* "compass/compass/extensions/tsne_utils.pyx":294
  *                 beta /= 2.0
  *             else:
  *                 beta = (beta + beta_min) / 2.0             # <<<<<<<<<<<<<<
@@ -3274,7 +3274,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
   }
   __pyx_L5_break:;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":296
+  /* "compass/compass/extensions/tsne_utils.pyx":296
  *                 beta = (beta + beta_min) / 2.0
  * 
  *     if verbose:             # <<<<<<<<<<<<<<
@@ -3284,7 +3284,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
   __pyx_t_7 = (__pyx_v_verbose != 0);
   if (__pyx_t_7) {
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":297
+    /* "compass/compass/extensions/tsne_utils.pyx":297
  * 
  *     if verbose:
  *         print("[t-SNE] Sigma: %f" % math.sqrt(1 / beta))             # <<<<<<<<<<<<<<
@@ -3303,7 +3303,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
     if (__Pyx_PrintOne(0, __pyx_t_1) < 0) __PYX_ERR(0, 297, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "mflux/compass/extensions/tsne_utils.pyx":296
+    /* "compass/compass/extensions/tsne_utils.pyx":296
  *                 beta = (beta + beta_min) / 2.0
  * 
  *     if verbose:             # <<<<<<<<<<<<<<
@@ -3312,7 +3312,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
  */
   }
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":299
+  /* "compass/compass/extensions/tsne_utils.pyx":299
  *         print("[t-SNE] Sigma: %f" % math.sqrt(1 / beta))
  * 
  *     return P             # <<<<<<<<<<<<<<
@@ -3322,7 +3322,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
   __pyx_r = ((PyArrayObject *)__pyx_v_P);
   goto __pyx_L0;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":175
+  /* "compass/compass/extensions/tsne_utils.pyx":175
  * 
  * @cython.boundscheck(False)
  * cpdef np.ndarray[np.float32_t, ndim=1] binary_search_perplexity_single(             # <<<<<<<<<<<<<<
@@ -3345,7 +3345,7 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_affinities.rcbuffer->pybuffer);
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_neighbors.rcbuffer->pybuffer);
   __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
-  __Pyx_AddTraceback("mflux.compass.extensions.tsne_utils.binary_search_perplexity_single", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("compass.compass.extensions.tsne_utils.binary_search_perplexity_single", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   goto __pyx_L2;
   __pyx_L0:;
@@ -3360,9 +3360,9 @@ static PyArrayObject *__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_s
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_5mflux_7compass_10extensions_10tsne_utils_3binary_search_perplexity_single(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_5mflux_7compass_10extensions_10tsne_utils_2binary_search_perplexity_single[] = "Binary search for sigmas of conditional Gaussians. \n    \n    This approximation reduces the computational complexity from O(N^2) to\n    O(uN). See the exact method '_binary_search_perplexity' for more details.\n\n    This version only computes the p-values for a single sample\n\n    Parameters\n    ----------\n    affinities : array-like, shape (n_samples, n_samples)\n        Distances between training samples.\n\n    neighbors : array-like, shape (n_samples, K) or None\n        Each row contains the indices to the K nearest neigbors. If this\n        array is None, then the perplexity is estimated over all data\n        not just the nearest neighbors.\n\n    desired_perplexity : float\n        Desired perplexity (2^entropy) of the conditional Gaussians.\n\n    verbose : int\n        Verbosity level.\n\n    Returns\n    -------\n    P : array, shape (n_samples, n_samples)\n        Probabilities of conditional Gaussian distributions p_i|j.\n    ";
-static PyObject *__pyx_pw_5mflux_7compass_10extensions_10tsne_utils_3binary_search_perplexity_single(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_7compass_7compass_10extensions_10tsne_utils_3binary_search_perplexity_single(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_7compass_7compass_10extensions_10tsne_utils_2binary_search_perplexity_single[] = "Binary search for sigmas of conditional Gaussians. \n    \n    This approximation reduces the computational complexity from O(N^2) to\n    O(uN). See the exact method '_binary_search_perplexity' for more details.\n\n    This version only computes the p-values for a single sample\n\n    Parameters\n    ----------\n    affinities : array-like, shape (n_samples, n_samples)\n        Distances between training samples.\n\n    neighbors : array-like, shape (n_samples, K) or None\n        Each row contains the indices to the K nearest neigbors. If this\n        array is None, then the perplexity is estimated over all data\n        not just the nearest neighbors.\n\n    desired_perplexity : float\n        Desired perplexity (2^entropy) of the conditional Gaussians.\n\n    verbose : int\n        Verbosity level.\n\n    Returns\n    -------\n    P : array, shape (n_samples, n_samples)\n        Probabilities of conditional Gaussian distributions p_i|j.\n    ";
+static PyObject *__pyx_pw_7compass_7compass_10extensions_10tsne_utils_3binary_search_perplexity_single(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyArrayObject *__pyx_v_affinities = 0;
   PyArrayObject *__pyx_v_neighbors = 0;
   float __pyx_v_desired_perplexity;
@@ -3434,13 +3434,13 @@ static PyObject *__pyx_pw_5mflux_7compass_10extensions_10tsne_utils_3binary_sear
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("binary_search_perplexity_single", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 175, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("mflux.compass.extensions.tsne_utils.binary_search_perplexity_single", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("compass.compass.extensions.tsne_utils.binary_search_perplexity_single", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_affinities), __pyx_ptype_5numpy_ndarray, 1, "affinities", 0))) __PYX_ERR(0, 176, __pyx_L1_error)
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_neighbors), __pyx_ptype_5numpy_ndarray, 1, "neighbors", 0))) __PYX_ERR(0, 177, __pyx_L1_error)
-  __pyx_r = __pyx_pf_5mflux_7compass_10extensions_10tsne_utils_2binary_search_perplexity_single(__pyx_self, __pyx_v_affinities, __pyx_v_neighbors, __pyx_v_desired_perplexity, __pyx_v_verbose, __pyx_v_sample);
+  __pyx_r = __pyx_pf_7compass_7compass_10extensions_10tsne_utils_2binary_search_perplexity_single(__pyx_self, __pyx_v_affinities, __pyx_v_neighbors, __pyx_v_desired_perplexity, __pyx_v_verbose, __pyx_v_sample);
 
   /* function exit code */
   goto __pyx_L0;
@@ -3451,7 +3451,7 @@ static PyObject *__pyx_pw_5mflux_7compass_10extensions_10tsne_utils_3binary_sear
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5mflux_7compass_10extensions_10tsne_utils_2binary_search_perplexity_single(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_affinities, PyArrayObject *__pyx_v_neighbors, float __pyx_v_desired_perplexity, int __pyx_v_verbose, int __pyx_v_sample) {
+static PyObject *__pyx_pf_7compass_7compass_10extensions_10tsne_utils_2binary_search_perplexity_single(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_affinities, PyArrayObject *__pyx_v_neighbors, float __pyx_v_desired_perplexity, int __pyx_v_verbose, int __pyx_v_sample) {
   __Pyx_LocalBuf_ND __pyx_pybuffernd_affinities;
   __Pyx_Buffer __pyx_pybuffer_affinities;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_neighbors;
@@ -3479,7 +3479,7 @@ static PyObject *__pyx_pf_5mflux_7compass_10extensions_10tsne_utils_2binary_sear
   }
   __pyx_pybuffernd_neighbors.diminfo[0].strides = __pyx_pybuffernd_neighbors.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_neighbors.diminfo[0].shape = __pyx_pybuffernd_neighbors.rcbuffer->pybuffer.shape[0];
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((PyObject *)__pyx_f_5mflux_7compass_10extensions_10tsne_utils_binary_search_perplexity_single(__pyx_v_affinities, __pyx_v_neighbors, __pyx_v_desired_perplexity, __pyx_v_verbose, __pyx_v_sample, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 175, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_f_7compass_7compass_10extensions_10tsne_utils_binary_search_perplexity_single(__pyx_v_affinities, __pyx_v_neighbors, __pyx_v_desired_perplexity, __pyx_v_verbose, __pyx_v_sample, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 175, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -3495,7 +3495,7 @@ static PyObject *__pyx_pf_5mflux_7compass_10extensions_10tsne_utils_2binary_sear
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_affinities.rcbuffer->pybuffer);
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_neighbors.rcbuffer->pybuffer);
   __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
-  __Pyx_AddTraceback("mflux.compass.extensions.tsne_utils.binary_search_perplexity_single", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("compass.compass.extensions.tsne_utils.binary_search_perplexity_single", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   goto __pyx_L2;
   __pyx_L0:;
@@ -5630,8 +5630,8 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
 }
 
 static PyMethodDef __pyx_methods[] = {
-  {"binary_search_perplexity", (PyCFunction)__pyx_pw_5mflux_7compass_10extensions_10tsne_utils_1binary_search_perplexity, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5mflux_7compass_10extensions_10tsne_utils_binary_search_perplexity},
-  {"binary_search_perplexity_single", (PyCFunction)__pyx_pw_5mflux_7compass_10extensions_10tsne_utils_3binary_search_perplexity_single, METH_VARARGS|METH_KEYWORDS, __pyx_doc_5mflux_7compass_10extensions_10tsne_utils_2binary_search_perplexity_single},
+  {"binary_search_perplexity", (PyCFunction)__pyx_pw_7compass_7compass_10extensions_10tsne_utils_1binary_search_perplexity, METH_VARARGS|METH_KEYWORDS, __pyx_doc_7compass_7compass_10extensions_10tsne_utils_binary_search_perplexity},
+  {"binary_search_perplexity_single", (PyCFunction)__pyx_pw_7compass_7compass_10extensions_10tsne_utils_3binary_search_perplexity_single, METH_VARARGS|METH_KEYWORDS, __pyx_doc_7compass_7compass_10extensions_10tsne_utils_2binary_search_perplexity_single},
   {0, 0, 0, 0}
 };
 
@@ -5842,14 +5842,14 @@ PyMODINIT_FUNC PyInit_tsne_utils(void)
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
-  if (__pyx_module_is_main_mflux__compass__extensions__tsne_utils) {
+  if (__pyx_module_is_main_compass__compass__extensions__tsne_utils) {
     if (PyObject_SetAttrString(__pyx_m, "__name__", __pyx_n_s_main) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) __PYX_ERR(0, 1, __pyx_L1_error)
-    if (!PyDict_GetItemString(modules, "mflux.compass.extensions.tsne_utils")) {
-      if (unlikely(PyDict_SetItemString(modules, "mflux.compass.extensions.tsne_utils", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
+    if (!PyDict_GetItemString(modules, "compass.compass.extensions.tsne_utils")) {
+      if (unlikely(PyDict_SetItemString(modules, "compass.compass.extensions.tsne_utils", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
     }
   }
   #endif
@@ -5881,7 +5881,7 @@ PyMODINIT_FUNC PyInit_tsne_utils(void)
   if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":36
+  /* "compass/compass/extensions/tsne_utils.pyx":36
  * from libc cimport math
  * cimport cython
  * import numpy as np             # <<<<<<<<<<<<<<
@@ -5893,25 +5893,25 @@ PyMODINIT_FUNC PyInit_tsne_utils(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 36, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":43
+  /* "compass/compass/extensions/tsne_utils.pyx":43
  * 
  * 
  * cdef float EPSILON_DBL = 1e-8             # <<<<<<<<<<<<<<
  * cdef float PERPLEXITY_TOLERANCE = 1e-5
  * 
  */
-  __pyx_v_5mflux_7compass_10extensions_10tsne_utils_EPSILON_DBL = 1e-8;
+  __pyx_v_7compass_7compass_10extensions_10tsne_utils_EPSILON_DBL = 1e-8;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":44
+  /* "compass/compass/extensions/tsne_utils.pyx":44
  * 
  * cdef float EPSILON_DBL = 1e-8
  * cdef float PERPLEXITY_TOLERANCE = 1e-5             # <<<<<<<<<<<<<<
  * 
  * @cython.boundscheck(False)
  */
-  __pyx_v_5mflux_7compass_10extensions_10tsne_utils_PERPLEXITY_TOLERANCE = 1e-5;
+  __pyx_v_7compass_7compass_10extensions_10tsne_utils_PERPLEXITY_TOLERANCE = 1e-5;
 
-  /* "mflux/compass/extensions/tsne_utils.pyx":1
+  /* "compass/compass/extensions/tsne_utils.pyx":1
  * """             # <<<<<<<<<<<<<<
  * New BSD License
  * 
@@ -5936,11 +5936,11 @@ PyMODINIT_FUNC PyInit_tsne_utils(void)
   __Pyx_XDECREF(__pyx_t_1);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init mflux.compass.extensions.tsne_utils", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init compass.compass.extensions.tsne_utils", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     Py_DECREF(__pyx_m); __pyx_m = 0;
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init mflux.compass.extensions.tsne_utils");
+    PyErr_SetString(PyExc_ImportError, "init compass.compass.extensions.tsne_utils");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();

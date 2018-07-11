@@ -23,7 +23,7 @@ def eval_reaction_penalties(expression_file, model, media,
     expression_file: str
         Path to file containing the expression data
 
-    model: mflux.models.MetabolicModel
+    model: compass.models.MetabolicModel
         Model to use for reaction penalty evaluation
 
     media : str or None
@@ -105,7 +105,7 @@ def eval_reaction_penalties_shared(model, expression,
 
     Parameters
     ==========
-    model: mflux.models.MetabolicModel
+    model: compass.models.MetabolicModel
         Model to use for reaction penalty evaluation
 
     expression: pandas.DataFrame
@@ -185,7 +185,7 @@ def eval_reaction_penalties_shared(model, expression,
 
 
 def eval_reaction_penalties_single(model, expression_data, and_function):
-    # type: (mflux.models.MetabolicModel, pandas.Series)
+    # type: (compass.models.MetabolicModel, pandas.Series)
     """
     Determines reaction penalties, on the given model, for
     the given expression data.
