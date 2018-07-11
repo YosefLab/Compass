@@ -230,11 +230,20 @@ def entry():
         return
 
     # Time to evaluate the reaction expression
-    logger.info("Evaluating Reaction Penalties...")
-    penalties = eval_reaction_penalties(args['data'], args['model'],
-                                        args['media'], args['species'], args)
+    success_token = os.path.join(args['temp_dir'], 'success_token_penalties')
     penalties_file = os.path.join(args['temp_dir'], 'penalties.txt.gz')
-    penalties.to_csv(penalties_file, sep='\t', compression='gzip')
+    if os.path.exists(success_token):
+        logger.info("Reaction Penalties already evaluated")
+        logger.info("Resuming execution from previous run...")
+    else:
+        logger.info("Evaluating Reaction Penalties...")
+        penalties = eval_reaction_penalties(args['data'], args['model'],
+                                            args['media'], args['species'],
+                                            args)
+        penalties.to_csv(penalties_file, sep='\t', compression='gzip')
+        with open(success_token, 'w') as fout:
+            fout.write('Success!')
+
     args['penalties_file'] = penalties_file
 
     # Now run the individual cells through cplex in parallel

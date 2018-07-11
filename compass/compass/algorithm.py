@@ -51,6 +51,11 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     if not os.path.isdir(directory):
         os.makedirs(directory)
 
+    if os.path.exists(os.path.join(directory, 'success_token')):
+        logger.info('success_token detected, results already calculated.')
+        logger.info('COMPASS Completed Successfully')
+        return
+
     model = models.init_model(model, species=args['species'],
                               exchange_limit=EXCHANGE_LIMIT,
                               media=media)
@@ -124,6 +129,10 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
                 model.name, model.media)
         )
         cache.save(model)
+
+    # write success token
+    with open(os.path.join(directory, 'success_token'), 'w') as fout:
+        fout.write('Success!')
 
     logger.info('COMPASS Completed Successfully')
 
