@@ -8,7 +8,9 @@ In-Silico Modeling of Metabolic Heterogeneity using Single-Cell Transcriptomes
 
 Compass depends on IBM CPLEX to run optimization procedures.  The full edition is available for free for academic use.
 
-Install CPLEX [here](https://www.ibm.com/software/commerce/optimization/cplex-optimizer/)
+Install CPLEX [here](https://www.ibm.com/products/ilog-cplex-optimization-studio)
+
+**Note: Make sure to get the full edition (free for academic use) and not the Community Edition
 
 Then follow the insructions [here](https://www.ibm.com/support/knowledgecenter/en/SSSA5P_12.6.0/ilog.odms.cplex.help/CPLEX/GettingStarted/topics/set_up/Python_setup.html) to install the cplex Python module.
 
