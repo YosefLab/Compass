@@ -320,6 +320,8 @@ def _parallel_map_fun(i, args):
         out_file = os.path.join(sample_dir, 'out.log')
         err_file = os.path.join(sample_dir, 'err.log')
         with open(out_file, 'w') as fout, open(err_file, 'w') as ferr:
+            stdout_bak = sys.stdout
+            stderr_bak = sys.stderr
             sys.stdout = fout
             sys.stderr = ferr
 
@@ -334,11 +336,20 @@ def _parallel_map_fun(i, args):
             start_time = datetime.datetime.now()
             logger.debug("\nCOMPASS Started: {}".format(start_time))
 
-            singleSampleCompass(
-                data=data, model=model,
-                media=media, directory=sample_dir,
-                sample_index=i, args=args
-            )
+            try:
+                singleSampleCompass(
+                    data=data, model=model,
+                    media=media, directory=sample_dir,
+                    sample_index=i, args=args
+                )
+            except Exception as e:
+                sys.stdout = stdout_bak
+                sys.stderr = stderr_bak
+
+                # Necessary because cplex exceptions can't be pickled
+                #   and can't transfer from subprocess to main process
+                if 'cplex' in str(type(e)).lower():
+                    raise(Exception(str(e)))
 
             end_time = datetime.datetime.now()
             logger.debug("\nElapsed Time: {}".format(end_time-start_time))
