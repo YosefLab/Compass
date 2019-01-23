@@ -350,6 +350,8 @@ def _parallel_map_fun(i, args):
                 #   and can't transfer from subprocess to main process
                 if 'cplex' in str(type(e)).lower():
                     raise(Exception(str(e)))
+                else:
+                    raise(e)
 
             end_time = datetime.datetime.now()
             logger.debug("\nElapsed Time: {}".format(end_time-start_time))
