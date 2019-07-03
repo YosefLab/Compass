@@ -50,7 +50,7 @@ def eval_reaction_penalties(expression_file, model, media,
     penalty_diffusion_mode = args['penalty_diffusion']
     and_function = args['and_function']
 
-    expression = pd.read_table(expression_file, index_col=0)
+    expression = pd.read_csv(expression_file, sep='\t', index_col=0)
     expression.index = expression.index.str.upper()  # Gene names to upper
 
     # If genes exist with duplicate symbols
@@ -67,7 +67,7 @@ def eval_reaction_penalties(expression_file, model, media,
     # Evaluate reaction penalties
     input_weights = None
     if input_weights_file:
-        input_weights = pd.read_table(input_weights_file, index_col=0)
+        input_weights = pd.read_csv(input_weights_file, sep='\t', index_col=0)
         # ensure same cell labels
         if len(input_weights.index & expression.columns) != \
                 input_weights.shape[0]:
@@ -156,7 +156,9 @@ def eval_reaction_penalties_shared(model, expression,
         # log scale and PCA expresion
 
         log_expression = np.log2(expression+1)
-        model = PCA(n_components=20)
+        model = PCA(n_components=min(
+            log_expression.shape[0], log_expression.shape[1], 20)
+        )
         pca_expression = model.fit_transform(log_expression.T).T
         pca_expression = pd.DataFrame(pca_expression,
                                       columns=expression.columns)

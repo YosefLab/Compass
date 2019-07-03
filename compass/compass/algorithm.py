@@ -70,7 +70,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
 
     # Only read this to get the number of samples and the sample name
     # Use nrows=1 so this is fast
-    expression = pd.read_table(data, index_col=0, nrows=1)
+    expression = pd.read_csv(data, sep='\t', index_col=0, nrows=1)
     sample_name = expression.columns[sample_index]
 
     logger.info("Processing Sample %i/%i: %s", sample_index,
@@ -80,7 +80,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
 
     # Evaluate reaction penalties
     logger.info("Evaluating Reaction Penalties...")
-    reaction_penalties = pd.read_table(
+    reaction_penalties = pd.read_csv(
         args['penalties_file'], sep="\t", header=0,
         usecols=["Reaction", sample_name])
 

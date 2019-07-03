@@ -129,7 +129,7 @@ def load_mgi():
     mgi_file = os.path.join(
         RESOURCE_DIR, "Genes", "HOM_MouseHumanSequence.rpt.gz")
 
-    data = pd.read_table(mgi_file)
+    data = pd.read_csv(mgi_file, sep="\t")
 
     hgs = data.loc[data['Common Organism Name'] == 'human']
     mgs = data.loc[data['Common Organism Name'] == 'mouse, laboratory']

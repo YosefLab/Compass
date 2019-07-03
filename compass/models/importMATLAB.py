@@ -92,7 +92,7 @@ def load(model_name, species):
     fname = os.path.join(model_dir, 'rxnMeta.txt')
     if os.path.exists(fname):
         # quoting=3 setting ignores " in file
-        rxnMeta = pd.read_table(fname, index_col=0, quoting=3)
+        rxnMeta = pd.read_csv(fname, sep='\t', index_col=0, quoting=3)
 
         for i, reaction in enumerate(reactions):
             reaction.meta = _fix_dtypes(
@@ -125,7 +125,7 @@ def load(model_name, species):
     fname = os.path.join(model_dir, 'metMeta.txt')
     if os.path.exists(fname):
         # quoting=3 setting ignores " in file
-        metMeta = pd.read_table(fname, index_col=0, quoting=3)
+        metMeta = pd.read_csv(fname, sep='\t', index_col=0, quoting=3)
 
         for i, met in enumerate(species):
             met.meta = _fix_dtypes(

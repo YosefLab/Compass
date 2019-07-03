@@ -278,7 +278,7 @@ def runCompassParallel(args):
         args['num_processes'] = multiprocessing.cpu_count()
 
     # Get the number of samples
-    data = pd.read_table(args['data'], index_col=0)
+    data = pd.read_csv(args['data'], sep='\t', index_col=0)
     n_samples = len(data.columns)
 
     partial_map_fun = partial(_parallel_map_fun, args=args)
@@ -385,7 +385,7 @@ def collectCompassResults(data, temp_dir, out_dir, args):
     logger.info("Writing output to: " + out_dir)
 
     # Get the number of samples
-    expression = pd.read_table(data, index_col=0)
+    expression = pd.read_csv(data, sep='\t', index_col=0)
     n_samples = len(expression.columns)
 
     reactions_all = []
@@ -399,9 +399,9 @@ def collectCompassResults(data, temp_dir, out_dir, args):
         sample_dir = os.path.join(temp_dir, 'sample' + str(i))
 
         try:
-            reactions = pd.read_table(
+            reactions = pd.read_csv(
                 os.path.join(sample_dir, 'reactions.txt'),
-                index_col=0)
+                sep='\t', index_col=0)
 
             reactions_all.append(reactions)
 
@@ -409,9 +409,9 @@ def collectCompassResults(data, temp_dir, out_dir, args):
             reactions_all.append(pd.DataFrame(columns=[sample_name]))
 
         try:
-            secretions = pd.read_table(
+            secretions = pd.read_csv(
                 os.path.join(sample_dir, 'secretions.txt'),
-                index_col=0)
+                sep='\t', index_col=0)
 
             secretions_all.append(secretions)
 
@@ -419,9 +419,9 @@ def collectCompassResults(data, temp_dir, out_dir, args):
             secretions_all.append(pd.DataFrame(columns=[sample_name]))
 
         try:
-            uptake = pd.read_table(
+            uptake = pd.read_csv(
                 os.path.join(sample_dir, 'uptake.txt'),
-                index_col=0)
+                sep='\t', index_col=0)
 
             uptake_all.append(uptake)
 

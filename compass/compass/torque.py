@@ -34,7 +34,7 @@ def submitCompassTorque(args, temp_dir, output_dir, queue):
 
     # Get the number of samples for array indices
     data = args['data']
-    expression = pd.read_table(data, index_col=0)
+    expression = pd.read_csv(data, sep='\t', index_col=0)
     n_samples = len(expression.columns)
 
     config_file = os.path.join(temp_dir, 'config.json')
