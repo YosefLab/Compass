@@ -49,3 +49,7 @@ Here `queueName` should be the name of the queue to submit the job to.
 ```bash
 compass --data expression.txt --model RECON2_mat --media media1 --torque-queue queueName
 ```
+
+**Outputs**
+
+When COMPASS has completed, the outputs are stored in 'reactions.txt', 'secretions.txt' and 'uptake.txt' in the specified output directory ('.' directory when running COMPASS by default).
