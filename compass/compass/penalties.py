@@ -152,6 +152,10 @@ def eval_reaction_penalties_shared(model, expression,
     # Compute weights between samples
     if input_weights is not None:
         weights = input_weights.values
+    elif lambda_ == 0:
+        weights = np.zeros(
+            (reaction_expression.shape[1], reaction_expression.shape[1])
+        )
     else:
         # log scale and PCA expresion
 
