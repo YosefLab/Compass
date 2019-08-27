@@ -430,16 +430,16 @@ def collectCompassResults(data, temp_dir, out_dir, args):
 
     # Join and output
     if not args['no_reactions']:
-        reactions_all = pd.concat(reactions_all, axis=1)
+        reactions_all = pd.concat(reactions_all, axis=1, sort=True)
         reactions_all.to_csv(
             os.path.join(out_dir, 'reactions.txt'), sep="\t")
 
     if not args['no_metabolites']:
-        secretions_all = pd.concat(secretions_all, axis=1)
+        secretions_all = pd.concat(secretions_all, axis=1, sort=True)
         secretions_all.to_csv(
             os.path.join(out_dir, 'secretions.txt'), sep="\t")
 
-        uptake_all = pd.concat(uptake_all, axis=1)
+        uptake_all = pd.concat(uptake_all, axis=1, sort=True)
         uptake_all.to_csv(
             os.path.join(out_dir, 'uptake.txt'), sep="\t")
 
