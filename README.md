@@ -12,7 +12,7 @@ Compass depends on IBM CPLEX to run optimization procedures.  The full edition i
 
 See our instructions [here](https://github.com/YosefLab/Compass/wiki/Installing-CPLEX-Tutorial) for an in depth tutorial on installing CPLEX
 
-*Note: Make sure to get the full edition (free for academic use) and not the Community Edition*
+<sub>*Note: Make sure to get the full edition (free for academic use) and not the Community Edition*</sub>
 
 ### Installing Compass
 
@@ -42,7 +42,7 @@ Input file `expression.txt` should be a tab-delimited text file containing gene 
 compass --data expression.txt --num-processes 10
 ```
 
-*For every individual sample, Compass takes roughly 8 to 24 hours to calculate the reaction penalties (varying by machine). This can be expedited by running more than one process at once.  In addition, Compass saves the results of all samples that it has already processed. Therefore, Compass can also be stopped and restarted after it is done processing a subset of samples.*
+<sub>*For every individual sample, Compass takes roughly 8 to 24 hours to calculate the reaction penalties (varying by machine). This can be expedited by running more than one process at once.  In addition, Compass saves the results of all samples that it has already processed. Therefore, Compass can also be stopped and restarted after it is done processing a subset of samples.*</sub>
 
 ### Running Compass (Advanced settings)
 (FILL IN)
@@ -50,6 +50,5 @@ compass --data expression.txt --num-processes 10
 
 ### Outputs
 When COMPASS has completed, the outputs for all samples are stored in a tab delimited file 'reactions.txt' in the specified output directory ('.' directory when running COMPASS by default). 
-
-*Note: While compass is running, it will store partial results for each sample in the '_tmp' directory/*
+<sub>*Note: While compass is running, it will store partial results for each sample in the '_tmp' directory/*</sub>
 
