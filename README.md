@@ -2,6 +2,8 @@
 ### In-Silico Modeling of Metabolic Heterogeneity using Single-Cell Transcriptomes
 Cellular metabolism is a major regulator of immune response, but it is not easy to study the metabolic status of an individual immune cell using current technologies. This motivated us to develop an in silico approach to infer metabolic status of an immune cell by using single-cell transcriptomes. Here, we present COMPASS, an algorithm to characterize the metabolic landscape of single cells based on single-cell RNA-Seq profiles and flux balance analysis.
 
+For specific details regarding our method, please see the following manuscript (Insert Hyperlink)
+
 ## Install
 
 ### Installing CPLEX (required for Compass)
@@ -26,27 +28,35 @@ Note: if you are using `conda` it's best that you first update numpy and pandas 
 conda install numpy pandas
 ```
 
+Now to test if everything is installed, simply run:
+
+```bash
+compass -h
+```
+You should see the help text print out if installation was succesful :)
+
 ## Running COMPASS
+Broadly speaking, Compass takes in a gene expression matrix scaled by transcripts per million, and outputs a penalty reaction matrix, whereby higher scores correspond to a reaction being **less** likely. 
 
-COMPASS can either be run on a single computer or submitted to a Torque cluster scheduling system.
+For every individual sample, Compass takes roughly 8 to 24 hours to calculate the reaction penalties (varying by machine). This can be expedited by running more than one process at once. 
 
-**Running on a Single Machine**
+In addition, Compass saves the results of all samples that it has already processed. Therefore, Compass can also be stopped and restarted after it is done processing a subset of samples. 
 
-This will run compass on the current machine using 10 processes.
-Input file `expression.txt` should be a tab-delimited text file containing gene expression estimates (TPM) with one row per gene, one column per sample.  Must contain row and column labels.
 
-```bash
-compass --data expression.txt --model RECON2_mat --media media1 --num-processes 10
-```
-
-**Running through Torque**
-
-Here `queueName` should be the name of the queue to submit the job to.
+**Running Compass (Simple)**
+Input file `expression.txt` should be a tab-delimited text file containing gene expression estimates (TPM) with one row per gene, one column per sample.  Must contain both row and column labels, corresponding to genes and sample IDs/names respectively.
 
 ```bash
-compass --data expression.txt --model RECON2_mat --media media1 --torque-queue queueName
+compass --data expression.txt --num-processes 10
 ```
+**Running Compass (Advanced settings)**
+(FILL IN)
+
 
 **Outputs**
+While compass is running, it will store partial results for each sample in the '_tmp' directory/
 
-When COMPASS has completed, the outputs are stored in 'reactions.txt', 'secretions.txt' and 'uptake.txt' in the specified output directory ('.' directory when running COMPASS by default).
+When COMPASS has completed, the outputs for all samples are stored in a tab delimited file 'reactions.txt' in the specified output directory ('.' directory when running COMPASS by default). 
+
+
+<When COMPASS has completed, the outputs are stored in 'reactions.txt', 'secretions.txt' and 'uptake.txt' in the specified output directory ('.' directory when running COMPASS by default).>
