@@ -1,6 +1,6 @@
 # Compass
 ### In-Silico Modeling of Metabolic Heterogeneity using Single-Cell Transcriptomes
-Cellular metabolism is a major regulator of immune response, but it is not easy to study the metabolic status of an individual immune cell using current technologies. This motivated us to develop an in silico approach to infer metabolic status of an immune cell by using single-cell transcriptomes. Here, we present COMPASS, an algorithm to characterize the metabolic landscape of single cells based on single-cell RNA-Seq profiles and flux balance analysis.
+Cellular metabolism is a major regulator of immune response, but it is not easy to study the metabolic status of an individual immune cell using current technologies. This motivated us to develop an in silico approach to infer metabolic status of an immune cell by using single-cell transcriptomes. Here, we present Compass, an algorithm to characterize the metabolic landscape of single cells based on single-cell RNA-Seq profiles and flux balance analysis.
 
 For specific details regarding our method, please see the following manuscript (Insert Hyperlink)
 
@@ -29,7 +29,7 @@ compass -h
 ```
 You should see the help text print out if installation was succesful :)
 
-## Running COMPASS
+## Running Compass
 Broadly speaking, Compass takes in a gene expression matrix scaled by transcripts per million, and outputs a penalty reaction matrix, whereby higher scores correspond to a reaction being **less** likely. 
 
 
@@ -49,7 +49,7 @@ compass --data expression.txt --num-processes 10
 
 
 ### Outputs
-When COMPASS has completed, the outputs for all samples are stored in a tab delimited file 'reactions.txt' in the specified output directory ('.' directory when running COMPASS by default). 
+When Compass has completed, the outputs for all samples are stored in a tab delimited file 'reactions.txt' in the specified output directory ('.' directory when running Compass by default). 
 
 <sub>*Note: While compass is running, it will store partial results for each sample in the '_tmp' directory/*</sub>
 
