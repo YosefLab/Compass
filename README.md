@@ -12,7 +12,7 @@ Compass depends on IBM CPLEX to run optimization procedures.  The full edition i
 
 See our instructions [here](https://github.com/YosefLab/Compass/wiki/Installing-CPLEX-Tutorial) for an in depth tutorial on installing CPLEX
 
-**Note: Make sure to get the full edition (free for academic use) and not the Community Edition
+*Note: Make sure to get the full edition (free for academic use) and not the Community Edition*
 
 ### Installing Compass
 
@@ -56,5 +56,5 @@ compass --data expression.txt --num-processes 10
 ### Outputs
 When COMPASS has completed, the outputs for all samples are stored in a tab delimited file 'reactions.txt' in the specified output directory ('.' directory when running COMPASS by default). 
 
-**Note:While compass is running, it will store partial results for each sample in the '_tmp' directory/
+*Note: While compass is running, it will store partial results for each sample in the '_tmp' directory/*
 
