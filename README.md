@@ -43,20 +43,17 @@ For every individual sample, Compass takes roughly 8 to 24 hours to calculate th
 In addition, Compass saves the results of all samples that it has already processed. Therefore, Compass can also be stopped and restarted after it is done processing a subset of samples. 
 
 
-**Running Compass (Simple)**
+### Running Compass (Simple)
 Input file `expression.txt` should be a tab-delimited text file containing gene expression estimates (TPM) with one row per gene, one column per sample.  Must contain both row and column labels, corresponding to genes and sample IDs/names respectively.
 
 ```bash
 compass --data expression.txt --num-processes 10
 ```
-**Running Compass (Advanced settings)**
+### Running Compass (Advanced settings)
 (FILL IN)
 
 
-**Outputs**
+### Outputs
 While compass is running, it will store partial results for each sample in the '_tmp' directory/
 
 When COMPASS has completed, the outputs for all samples are stored in a tab delimited file 'reactions.txt' in the specified output directory ('.' directory when running COMPASS by default). 
-
-
-<When COMPASS has completed, the outputs are stored in 'reactions.txt', 'secretions.txt' and 'uptake.txt' in the specified output directory ('.' directory when running COMPASS by default).>
