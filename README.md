@@ -54,6 +54,7 @@ compass --data expression.txt --num-processes 10
 
 
 ### Outputs
-While compass is running, it will store partial results for each sample in the '_tmp' directory/
-
 When COMPASS has completed, the outputs for all samples are stored in a tab delimited file 'reactions.txt' in the specified output directory ('.' directory when running COMPASS by default). 
+
+**Note:While compass is running, it will store partial results for each sample in the '_tmp' directory/
+
