@@ -22,12 +22,6 @@ The best way is to install directly from this Github repository using the follow
 pip install git+https://github.com/yoseflab/Compass.git
 ```
 
-Note: if you are using `conda` it's best that you first update numpy and pandas through conda by running:
-
-```bash
-conda install numpy pandas
-```
-
 Now to test if everything is installed, simply run:
 
 ```bash
