@@ -32,9 +32,7 @@ You should see the help text print out if installation was succesful :)
 ## Running COMPASS
 Broadly speaking, Compass takes in a gene expression matrix scaled by transcripts per million, and outputs a penalty reaction matrix, whereby higher scores correspond to a reaction being **less** likely. 
 
-For every individual sample, Compass takes roughly 8 to 24 hours to calculate the reaction penalties (varying by machine). This can be expedited by running more than one process at once. 
 
-In addition, Compass saves the results of all samples that it has already processed. Therefore, Compass can also be stopped and restarted after it is done processing a subset of samples. 
 
 
 ### Running Compass (Simple)
@@ -43,6 +41,9 @@ Input file `expression.txt` should be a tab-delimited text file containing gene 
 ```bash
 compass --data expression.txt --num-processes 10
 ```
+
+*For every individual sample, Compass takes roughly 8 to 24 hours to calculate the reaction penalties (varying by machine). This can be expedited by running more than one process at once.  In addition, Compass saves the results of all samples that it has already processed. Therefore, Compass can also be stopped and restarted after it is done processing a subset of samples. *
+
 ### Running Compass (Advanced settings)
 (FILL IN)
 
