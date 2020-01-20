@@ -7,12 +7,9 @@ Cellular metabolism is a major regulator of immune response, but it is not easy 
 
 Compass depends on IBM CPLEX to run optimization procedures.  The full edition is available for free for academic use.
 
-Install CPLEX [here](https://www.ibm.com/products/ilog-cplex-optimization-studio)
+See our instructions [here](https://github.com/YosefLab/Compass/wiki/Installing-CPLEX-Tutorial) for an in depth tutorial on installing cplex
 
 **Note: Make sure to get the full edition (free for academic use) and not the Community Edition
-
-Then follow the insructions [here](https://www.ibm.com/support/knowledgecenter/en/SSSA5P_12.6.0/ilog.odms.cplex.help/CPLEX/GettingStarted/topics/set_up/Python_setup.html) to install the cplex Python module.
-
 
 ### Installing Compass
 
