@@ -1,8 +1,8 @@
 # Compass
 ### In-Silico Modeling of Metabolic Heterogeneity using Single-Cell Transcriptomes
-Cellular metabolism is a major regulator of immune response, but it is not easy to study the metabolic status of an individual immune cell using current technologies. This motivated us to develop an in silico approach to infer metabolic status of an immune cell by using single-cell transcriptomes. Here, we present Compass, an algorithm to characterize the metabolic landscape of single cells based on single-cell RNA-Seq profiles and flux balance analysis.
+Cellular metabolism, a key regulator of immune responses, is difficult to study with current technologies in individual cells. We therefore developed Compass, an in silico approach to infer metabolic status of cells based on transcriptome data, which is readily available even in single cell resolutions.
 
-For specific details regarding our method, please see the following manuscript (Insert Hyperlink)
+This page provides an installation guide and a workthrough of a standard analysis. For a detailed description of the algorithm, refer to the biorxiv preprint. (Insert Hyperlink)
 
 ## Install
 
