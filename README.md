@@ -57,6 +57,9 @@ usage: compass [-h] --data FILE [--model MODEL] [--species SPECIES]
                [--symmetric-kernel] [--input-weights FILE]
                [--penalty-diffusion MODE] [--no-reactions] [--no-metabolites]
 ```
+
+See our instructions [here]() for an in depth tutorial on using Compass's advanced settings
+
 ### Outputs
 When Compass has completed, the outputs for all samples are stored in a tab delimited file `reactions.txt` in the specified output directory (`.` directory when running Compass by default). 
 
