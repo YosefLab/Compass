@@ -58,13 +58,13 @@ usage: compass [-h] --data FILE [--model MODEL] [--species SPECIES]
                [--penalty-diffusion MODE] [--no-reactions] [--no-metabolites]
 ```
 
-See our instructions [here]() for an in depth tutorial on using Compass's advanced settings
+See our instructions [here](https://github.com/YosefLab/Compass/wiki/Compass-Advanced-Usage-Tutorial) for an in depth tutorial on using Compass's advanced settings
 
 ### Postprocessing
 
 Once Compass has finished running, it is important to apply postprocessing to the data in order to convert reaction penalties(where high values correspond to low likelihood reactions) to reaction scores (Wwhere high values correspond to likely reactions). 
 
-See our instructions [here]() for an in depth tutorial on our postprocessing pipeline.
+See our instructions [here](https://github.com/YosefLab/Compass/wiki/Compass-Postprocessing-Tutorial) for an in depth tutorial on our postprocessing pipeline.
 
 ### Outputs
 When Compass has completed, the outputs for all samples are stored in a tab delimited file `reactions.txt` in the specified output directory (`.` directory when running Compass by default). 
