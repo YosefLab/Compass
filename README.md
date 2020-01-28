@@ -42,7 +42,8 @@ Input file `expression.txt` should be a tab-delimited text file containing gene 
 compass --data expression.txt --num-processes 10
 ```
 Below is an example of the formatting for gene expression (We only show a small portion of the matrix):
-![](https://i.imgur.com/dbrq0K0.jpg)
+<img src="https://i.imgur.com/dbrq0K0.jpg" width="962" height="178"></img>
+
 
 <sub>*Note: For every individual sample, Compass takes roughly 8 to 24 hours to calculate the reaction penalties (varying by machine). This can be expedited by running more than one process at once.  In addition, Compass saves the results of all samples that it has already processed. Therefore, Compass can also be stopped and restarted after it is done processing a subset of samples.*</sub>
 
