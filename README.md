@@ -48,9 +48,15 @@ Below is an example of the formatting for gene expression (We only show a small 
 <sub>*Note: For every individual sample, Compass takes roughly 8 to 24 hours to calculate the reaction penalties (varying by machine). This can be expedited by running more than one process at once.  In addition, Compass saves the results of all samples that it has already processed. Therefore, Compass can also be stopped and restarted after it is done processing a subset of samples.*</sub>
 
 ### Running Compass (Advanced settings)
-(FILL IN)
-
-
+Compass also allows users to customize a variaty of settings seen below:
+```bash
+usage: compass [-h] --data FILE [--model MODEL] [--species SPECIES]
+               [--media MEDIA] [--output-dir DIR] [--temp-dir DIR]
+               [--torque-queue QUEUE] [--num-processes N] [--lambda F]
+               [--num-threads N] [--and-function FXN] [--num-neighbors N]
+               [--symmetric-kernel] [--input-weights FILE]
+               [--penalty-diffusion MODE] [--no-reactions] [--no-metabolites]
+```
 ### Outputs
 When Compass has completed, the outputs for all samples are stored in a tab delimited file `reactions.txt` in the specified output directory (`.` directory when running Compass by default). 
 
