@@ -69,5 +69,8 @@ See our instructions [here](https://github.com/YosefLab/Compass/wiki/Compass-Pos
 ### Outputs
 When Compass has completed, the outputs for all samples are stored in a tab delimited file `reactions.txt` in the specified output directory (`.` directory when running Compass by default). 
 
+Below is an example of the output matrix:
+<img src="https://i.imgur.com/Dcei7aE.jpg" width="646" height="162"></img>
+
 <sub>*Note: While compass is running, it will store partial results for each sample in the `_tmp` directory/*</sub>
 
