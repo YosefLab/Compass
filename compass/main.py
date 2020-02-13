@@ -133,9 +133,9 @@ def parseArgs():
     parser.add_argument("--no-reactions", action="store_true",
                         help="Skip computing scores for reactions")
 
-    parser.add_argument("--no-metabolites", action="store_true",
-                        help="Skip computing scores for metabolite "
-                        "update/secretion")
+    parser.add_argument("--calc-metabolites", action="store_true",
+                        help="Compute scores for metabolite "
+                        "uptake/secretion")
 
     # Also used for batch jobs
     parser.add_argument("--config-file", help=argparse.SUPPRESS)
@@ -164,11 +164,11 @@ def parseArgs():
         )
 
     if args['generate_cache'] and \
-            (args['no_reactions'] or args['no_metabolites']):
+            (args['no_reactions'] or not args['calc_metabolites']):
 
         parser.error(
             "--generate-cache cannot be run with --no-reactions or "
-            "--no-metabolites"
+            "without --calc-metabolites"
         )
 
     return args

@@ -92,7 +92,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
             model, problem, reaction_penalties,
             TEST_MODE=args['test_mode'])
 
-    if not args['no_metabolites']:
+    if args['calc_metabolites']:
         logger.info("Evaluating Secretion/Uptake Scores...")
         uptake_scores, secretion_scores, exchange_rxns = compass_exchange(
             model, problem, reaction_penalties,
@@ -101,7 +101,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     # Copy valid uptake/secretion reaction fluxes from uptake/secretion
     #   results into reaction results
 
-    if not (args['no_reactions'] or args['no_metabolites']):
+    if not (args['no_reactions'] or not args['calc_metabolites']):
         for r_id in exchange_rxns:
             assert r_id in model.reactions
             assert r_id not in reaction_scores
@@ -110,13 +110,13 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     # Output results to file
 
     if not args['no_reactions']:
-        reaction_scores = pd.Series(reaction_scores, name=sample_name)
+        reaction_scores = pd.Series(reaction_scores, name=sample_name).sort_index()
         reaction_scores.to_csv(os.path.join(directory, 'reactions.txt'),
                                sep="\t", header=True)
 
-    if not args['no_metabolites']:
-        uptake_scores = pd.Series(uptake_scores, name=sample_name)
-        secretion_scores = pd.Series(secretion_scores, name=sample_name)
+    if args['calc_metabolites']:
+        uptake_scores = pd.Series(uptake_scores, name=sample_name).sort_index()
+        secretion_scores = pd.Series(secretion_scores, name=sample_name).sort_index()
 
         uptake_scores.to_csv(os.path.join(directory, 'uptake.txt'),
                              sep="\t", header=True)
