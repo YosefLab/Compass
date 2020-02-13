@@ -2,7 +2,7 @@
 ### In-Silico Modeling of Metabolic Heterogeneity using Single-Cell Transcriptomes
 Cellular metabolism, a key regulator of immune responses, is difficult to study with current technologies in individual cells. We therefore developed Compass, an in silico approach to infer metabolic status of cells based on transcriptome data, which is readily available even in single cell resolutions.
 
-This page provides an installation guide and a workthrough of a standard analysis. For a detailed description of the algorithm, refer to the biorxiv preprint. (Insert Hyperlink)
+This page provides an installation guide and a workthrough of a standard analysis. For a detailed description of the algorithm, refer to the [biorxiv preprint](https://www.biorxiv.org/content/10.1101/2020.01.23.912717v1?rss=1). 
 
 ## Install
 
@@ -68,6 +68,9 @@ See our instructions [here](https://github.com/YosefLab/Compass/wiki/Compass-Pos
 
 ### Outputs
 When Compass has completed, the outputs for all samples are stored in a tab delimited file `reactions.txt` in the specified output directory (`.` directory when running Compass by default). 
+
+Below is an example of the output matrix:
+<img src="https://i.imgur.com/pwZbqLT.jpg" width="646" height="143"></img>
 
 <sub>*Note: While compass is running, it will store partial results for each sample in the `_tmp` directory/*</sub>
 
