@@ -62,9 +62,9 @@ See our instructions [here](https://github.com/YosefLab/Compass/wiki/Compass-Adv
 
 ### Postprocessing
 
-Once Compass has finished running, it is important to apply postprocessing to the data in order to convert reaction penalties(where high values correspond to low likelihood reactions) to reaction scores (Wwhere high values correspond to likely reactions). 
+Once Compass has finished running, it is important to apply postprocessing to the data in order to convert reaction penalties (where high values correspond to low likelihood reactions) to reaction scores (where high values correspond to likely reactions).
 
-See our instructions [here](https://github.com/YosefLab/Compass/wiki/Compass-Postprocessing-Tutorial) for an in depth tutorial on our postprocessing pipeline.
+Our [compassR package](https://github.com/YosefLab/compassR) appropriately postprocesses the data and provides an easy, expressive framework for conducting subsequent analyses.
 
 ### Outputs
 When Compass has completed, the outputs for all samples are stored in a tab delimited file `reactions.txt` in the specified output directory (`.` directory when running Compass by default). 
