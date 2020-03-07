@@ -437,11 +437,11 @@ def collectCompassResults(data, temp_dir, out_dir, args):
     if not args['no_metabolites']:
         secretions_all = pd.concat(secretions_all, axis=1, sort=True)
         secretions_all.to_csv(
-            os.path.join(out_dir, 'secretions.txt'), sep="\t")
+            os.path.join(out_dir, 'secretions.tsv'), sep="\t")
 
         uptake_all = pd.concat(uptake_all, axis=1, sort=True)
         uptake_all.to_csv(
-            os.path.join(out_dir, 'uptake.txt'), sep="\t")
+            os.path.join(out_dir, 'uptake.tsv'), sep="\t")
 
     # Output a JSON version of the model
     model = init_model(model=args['model'], species=args['species'],
