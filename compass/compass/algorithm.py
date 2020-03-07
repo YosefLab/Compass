@@ -111,7 +111,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
 
     if not args['no_reactions']:
         reaction_scores = pd.Series(reaction_scores, name=sample_name).sort_index()
-        reaction_scores.to_csv(os.path.join(directory, 'reactions.tsv'),
+        reaction_scores.to_csv(os.path.join(directory, 'reactions.txt'),
                                sep="\t", header=True)
 
     if args['calc_metabolites']:
