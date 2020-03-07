@@ -400,7 +400,7 @@ def collectCompassResults(data, temp_dir, out_dir, args):
 
         try:
             reactions = pd.read_csv(
-                os.path.join(sample_dir, 'reactions.txt'),
+                os.path.join(sample_dir, 'reactions.tsv'),
                 sep='\t', index_col=0)
 
             reactions_all.append(reactions)
@@ -432,7 +432,7 @@ def collectCompassResults(data, temp_dir, out_dir, args):
     if not args['no_reactions']:
         reactions_all = pd.concat(reactions_all, axis=1, sort=True)
         reactions_all.to_csv(
-            os.path.join(out_dir, 'reactions.txt'), sep="\t")
+            os.path.join(out_dir, 'reactions.tsv'), sep="\t")
 
     if not args['no_metabolites']:
         secretions_all = pd.concat(secretions_all, axis=1, sort=True)

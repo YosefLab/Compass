@@ -2,7 +2,7 @@
 ### In-Silico Modeling of Metabolic Heterogeneity using Single-Cell Transcriptomes
 Cellular metabolism, a key regulator of immune responses, is difficult to study with current technologies in individual cells. We therefore developed Compass, an in silico approach to infer metabolic status of cells based on transcriptome data, which is readily available even in single cell resolutions.
 
-This page provides an installation guide and a workthrough of a standard analysis. For a detailed description of the algorithm, refer to the [biorxiv preprint](https://www.biorxiv.org/content/10.1101/2020.01.23.912717v1?rss=1). 
+This page provides an installation guide and a workthrough of a standard analysis. For a detailed description of the algorithm, refer to the [biorxiv preprint](https://www.biorxiv.org/content/10.1101/2020.01.23.912717v1?rss=1).
 
 ## Install
 
@@ -30,7 +30,7 @@ compass -h
 You should see the help text print out if installation was succesful :)
 
 ## Running Compass
-Broadly speaking, Compass takes in a gene expression matrix scaled by transcripts per million, and outputs a penalty reaction matrix, whereby higher scores correspond to a reaction being **less** likely. 
+Broadly speaking, Compass takes in a gene expression matrix scaled by transcripts per million, and outputs a penalty reaction matrix, whereby higher scores correspond to a reaction being **less** likely.
 
 
 
@@ -67,7 +67,7 @@ Once Compass has finished running, it is important to apply postprocessing to th
 Our [compassR package](https://github.com/YosefLab/compassR) appropriately postprocesses the data and provides an easy, expressive framework for conducting subsequent analyses.
 
 ### Outputs
-When Compass has completed, the outputs for all samples are stored in a tab delimited file `reactions.txt` in the specified output directory (`.` directory when running Compass by default). 
+When Compass has completed, the outputs for all samples are stored in a tab delimited file `reactions.tsv` in the specified output directory (`.` directory when running Compass by default).
 
 Below is an example of the output matrix:
 <img src="https://i.imgur.com/pwZbqLT.jpg" width="646" height="143"></img>
