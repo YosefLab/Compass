@@ -400,7 +400,7 @@ def collectCompassResults(data, temp_dir, out_dir, args):
 
         try:
             reactions = pd.read_csv(
-                os.path.join(sample_dir, 'reactions.tsv'),
+                os.path.join(sample_dir, 'reactions.txt'),
                 sep='\t', index_col=0)
 
             reactions_all.append(reactions)
