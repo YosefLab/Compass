@@ -434,7 +434,7 @@ def collectCompassResults(data, temp_dir, out_dir, args):
         reactions_all.to_csv(
             os.path.join(out_dir, 'reactions.tsv'), sep="\t")
 
-    if not args['no_metabolites']:
+    if args['calc_metabolites']:
         secretions_all = pd.concat(secretions_all, axis=1, sort=True)
         secretions_all.to_csv(
             os.path.join(out_dir, 'secretions.tsv'), sep="\t")
