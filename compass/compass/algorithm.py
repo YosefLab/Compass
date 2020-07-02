@@ -90,25 +90,27 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
         logger.info("Evaluating Reaction Scores...")
         reaction_scores = compass_reactions(
             model, problem, reaction_penalties,
+            select_reactions=args['select_reactions'],
             TEST_MODE=args['test_mode'])
 
-    if args['calc_metabolites']:
-        logger.info("Evaluating Secretion/Uptake Scores...")
-        uptake_scores, secretion_scores, exchange_rxns = compass_exchange(
-            model, problem, reaction_penalties,
-            TEST_MODE=args['test_mode'])
+    #if user wants to calc reaction scores, but doesn't want to calc metabolite scores, calc only the exchange reactions
+    logger.info("Evaluating Exchange/Secretion/Uptake Scores...")
+    uptake_scores, secretion_scores, exchange_rxns = compass_exchange(
+        model, problem, reaction_penalties,
+        only_exchange=(not args['no_reactions']) and not args['calc_metabolites'],
+        select_reactions=args['select_reactions'],
+        TEST_MODE=args['test_mode'])
 
     # Copy valid uptake/secretion reaction fluxes from uptake/secretion
     #   results into reaction results
-
-    if not (args['no_reactions'] or not args['calc_metabolites']):
+    if (not args['no_reactions']) or args['calc_metabolites']:
         for r_id in exchange_rxns:
             assert r_id in model.reactions
             assert r_id not in reaction_scores
             reaction_scores[r_id] = exchange_rxns[r_id]
 
     # Output results to file
-
+    logger.info("Writing output files...")
     if not args['no_reactions']:
         reaction_scores = pd.Series(reaction_scores, name=sample_name).sort_index()
         reaction_scores.to_csv(os.path.join(directory, 'reactions.txt'),
@@ -137,10 +139,10 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     logger.info('COMPASS Completed Successfully')
 
 
-def compass_exchange(model, problem, reaction_penalties, TEST_MODE=False):
+def compass_exchange(model, problem, reaction_penalties, select_reactions=None, only_exchange=False, TEST_MODE=False):
     """
     Iterates through metabolites, finding each's max
-    uptake and secretion potentials.
+    uptake and secretion potentials. If only_exchange=True, does so only for exchange reactions.
 
     Holds each near its max uptake/secretion while minimizing
     penalty
@@ -171,6 +173,17 @@ def compass_exchange(model, problem, reaction_penalties, TEST_MODE=False):
     if TEST_MODE:
         metabolites = metabolites[0:50]
     shuffle(metabolites)
+
+
+    #populate the list of selected_reaction_ids - do this once outside of the loop
+    if select_reactions:
+        #assume this is a filename with one reaction per row, ignores unrecognized reactions
+        if not os.path.exists(select_reactions):
+            raise Exception("cannot find selected reactions subset file %s" % select_reactions)
+
+        with open(select_reactions) as f:
+            selected_reaction_ids = [line.strip() for line in f]
+
 
     all_names = set(problem.linear_constraints.get_names())
 
@@ -204,6 +217,15 @@ def compass_exchange(model, problem, reaction_penalties, TEST_MODE=False):
         rxn_ids = problem.variables.get_names(sp.ind)
         reactions = [model.reactions[x] for x in rxn_ids]
 
+        #If user wants only exchange reaction - limit the reactions space through which we iterate
+        if only_exchange:
+            reactions = [x for x in reactions if x.is_exchange]
+
+        if select_reactions:
+            #r.id is a unidirectional identifier (ending with _pos or _neg suffix --> we remove it and compare to the undirected reaction id)
+            reactions = [r for r in reactions if ((r.id)[:-4] in selected_reaction_ids)]
+
+
         for reaction in reactions:
             if reaction.is_exchange and met_id in reaction.products:
                 if uptake_rxn is None:
@@ -217,7 +239,11 @@ def compass_exchange(model, problem, reaction_penalties, TEST_MODE=False):
                 else:
                     extra_secretion_rxns.append(reaction.id)
 
-        if secretion_rxn is None:
+        #if the selected_rxns or only_exchange options are used --> then we don't want to add reactions unless one of the pair already exists
+        if(only_exchange or select_reactions) and (uptake_rxn is None) and (secretion_rxn is None):
+            continue
+
+        if (secretion_rxn is None):
             added_secretion = True
             secretion_rxn = met_id + "_SECRETION"
 
@@ -232,7 +258,9 @@ def compass_exchange(model, problem, reaction_penalties, TEST_MODE=False):
             sp.ind.append(rxn_index)
             sp.val.append(-1.0)
 
-        if uptake_rxn is None:
+
+        #if only exchange flag is set - don't add uptakes that do not exist
+        if (uptake_rxn is None):
             added_uptake = True
             uptake_rxn = met_id + "_UPTAKE"
 
@@ -374,7 +402,7 @@ def compass_exchange(model, problem, reaction_penalties, TEST_MODE=False):
     return uptake_scores, secretion_scores, exchange_rxns
 
 
-def compass_reactions(model, problem, reaction_penalties, TEST_MODE=False):
+def compass_reactions(model, problem, reaction_penalties, select_reactions=None, TEST_MODE=False):
     """
     Iterates through reactions, holding each near
     its max value while minimizing penalty.
@@ -395,6 +423,19 @@ def compass_reactions(model, problem, reaction_penalties, TEST_MODE=False):
     if TEST_MODE:
         reactions = reactions[0:100]
     shuffle(reactions)
+
+    if select_reactions:
+        #assume this is a filename with one reaction per row, ignores unrecognized reactions
+        if not os.path.exists(select_reactions):
+            raise Exception("cannot find selected reactions subset file %s" % select_reactions)
+
+        with open(select_reactions) as f:
+            selected_reaction_ids = [line.strip() for line in f]
+
+        #r.id is a unidirectional identifier (ending with _pos or _neg suffix --> we remove it and compare to the undirected reaction id)
+        reactions = [r for r in reactions if ((r.id)[:-4] in selected_reaction_ids)]
+
+
 
     for reaction in tqdm(reactions, file=sys.stderr):
 

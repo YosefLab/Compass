@@ -104,6 +104,12 @@ def parseArgs():
         metavar="FXN",
         default="min")
 
+    parser.add_argument(
+        "--select_reactions",
+        help="Compute compass scores only for the reactions listed in the given file. FILE is expected to be textual, with one line per reaction (directed, namely every line ends with a  \"_pos\" or \"_neg\" suffix). Unrecognized reactions in FILE are ignored.",
+        required=False,
+        metavar="FILE")
+
     # Hidden argument.  Used for batch jobs
     parser.add_argument("--collect", action="store_true",
                         help=argparse.SUPPRESS)
@@ -151,6 +157,9 @@ def parseArgs():
 
     if args['input_weights']:
         args['input_weights'] = os.path.abspath(args['input_weights'])
+
+    if args['select_reactions']:
+        args['select_reactions'] = os.path.abspath(args['select_reactions'])
 
     if args['temp_dir'] == "<output-dir>/_tmp":
         args['temp_dir'] = os.path.join(args['output_dir'], '_tmp')
