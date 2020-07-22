@@ -9,7 +9,7 @@ from typing import Optional
 _current_cell_name = -1
 _current_reaction_id = ""
 # This will hold an object of the class SelectedReactionsForEachCell that
-# will allow us to know
+# will allow us to know what reactions are selected for each cell.
 _selected_reactions_for_each_cell = None
 
 

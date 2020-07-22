@@ -98,7 +98,7 @@ class CompassResourceManager():
 class CompassOracle(MatrixOracle):
     def __init__(self, compass_args: List[str]):
         r"""
-        :param args: Arguments with which Compass is being run.
+        :param compass_args: Arguments with which Compass is being run.
         """
         logger.info("Initializing CompassOracle ...")
         # Let's first figure out on what cells and reactions Compass is being run on.
@@ -190,7 +190,6 @@ class CompassOracle(MatrixOracle):
                 logger.info(
                     f"CompassOracle created temporary output directory "
                     f"'{output_dir_name}' for running Compass")
-                # output_dir_name = "_observe_entries"  # TODO: Remove this line.
                 set_argument(compass_args_to_observe_entries, "--output-dir", output_dir_name)
                 logger.info("CompassOracle running Compass for the selected subset of the reaction score matrix ...")
                 with patch.object(sys, 'argv', compass_args_to_observe_entries):
@@ -287,8 +286,8 @@ def pop_argument(args: List[str], arg: str) -> Tuple[List[str], str]:
 
 
 def turbo_compass_entry() -> None:
-    # Exctract turbo arguments.
     logger.info("******** Turbo Compass started ********")
+    # Extract turbo arguments.
     compass_parsed_args = compass.main.parseArgs()
     requested_cv_spearman_r2, increments, min_pct_meet_sr2_requirement, max_iters =\
         compass_parsed_args['turbo'],\
