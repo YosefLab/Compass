@@ -2,6 +2,7 @@
 Run the procedure for COMPASS
 """
 from __future__ import print_function, division, absolute_import
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from random import shuffle
@@ -13,6 +14,7 @@ from .. import utils
 from .. import models
 from . import cache
 from ..globals import BETA, EXCHANGE_LIMIT
+import compass.global_state as global_state
 
 import cplex
 
@@ -75,7 +77,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
 
     logger.info("Processing Sample %i/%i: %s", sample_index,
                 len(expression.columns), sample_name)
-
+    global_state.set_current_cell_name(sample_name)
     # Run core compass algorithm
 
     # Evaluate reaction penalties
@@ -198,7 +200,7 @@ def compass_exchange(model, problem, reaction_penalties, select_reactions=None, 
 
             uptake_scores[met_id] = 0.0
             secretion_scores[met_id] = 0.0
-            continue
+            continue  # In test mode this always continues!
 
         # Rectify exchange reactions
         # Either find existing pos and neg exchange reactions
@@ -226,7 +228,7 @@ def compass_exchange(model, problem, reaction_penalties, select_reactions=None, 
             reactions = [r for r in reactions if ((r.id)[:-4] in selected_reaction_ids)]
 
 
-        for reaction in reactions:
+        for reaction in reactions:  # This only effectively loops over exchange reactions in fact.
             if reaction.is_exchange and met_id in reaction.products:
                 if uptake_rxn is None:
                     uptake_rxn = reaction.id
@@ -319,8 +321,8 @@ def compass_exchange(model, problem, reaction_penalties, select_reactions=None, 
             problem.objective.set_name('reaction_penalties')
             problem.objective.set_sense(problem.objective.sense.minimize)
 
-        problem.solve()
-        value = problem.solution.get_objective_value()
+        global_state.set_current_reaction_id(secretion_rxn)
+        value = solve_problem_wrapper(problem)
         secretion_scores[met_id] = value
 
         # Clear Secretion constraint
@@ -371,8 +373,8 @@ def compass_exchange(model, problem, reaction_penalties, select_reactions=None, 
             problem.objective.set_name('reaction_penalties')
             problem.objective.set_sense(problem.objective.sense.minimize)
 
-        problem.solve()
-        value = problem.solution.get_objective_value()
+        global_state.set_current_reaction_id(uptake_rxn)
+        value = solve_problem_wrapper(problem)
         uptake_scores[met_id] = value
 
         # Clear Secretion constraint
@@ -436,7 +438,6 @@ def compass_reactions(model, problem, reaction_penalties, select_reactions=None,
         reactions = [r for r in reactions if ((r.id)[:-4] in selected_reaction_ids)]
 
 
-
     for reaction in tqdm(reactions, file=sys.stderr):
 
         if reaction.is_exchange:
@@ -474,8 +475,8 @@ def compass_reactions(model, problem, reaction_penalties, select_reactions=None,
                 problem.objective.set_name('reaction_penalties')
                 problem.objective.set_sense(problem.objective.sense.minimize)
 
-            problem.solve()
-            value = problem.solution.get_objective_value()
+            global_state.set_current_reaction_id(reaction.id)
+            value = solve_problem_wrapper(problem)
             reaction_scores[reaction.id] = value
 
             # Remove Constraint
@@ -552,11 +553,23 @@ def maximize_reaction(model, problem, rxn, use_cache=True):
     problem.objective.set_name(rxn)
     problem.objective.set_sense(problem.objective.sense.maximize)
 
-    problem.solve()
-    rxn_max = problem.solution.get_objective_value()
+    global_state.set_current_reaction_id(rxn)
+    rxn_max = solve_problem_wrapper(problem)
 
     # Save the result
     model_cache = cache.load(model)
     model_cache[rxn] = rxn_max
 
     return rxn_max
+
+
+def solve_problem_wrapper(problem) -> float:
+    r"""
+    Only solve the problem if the reaction is selected for the cell. Else,
+    skip the computation and return np.nan.
+    """
+    if global_state.current_reaction_is_selected_for_current_cell():
+        problem.solve()
+        return problem.solution.get_objective_value()
+    else:
+        return np.nan
