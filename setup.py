@@ -49,7 +49,9 @@ setup(
         'python-libsbml>=5.13',
         'six>=1.10',
         'scikit-learn>=0.19',
-        'scipy>=1.0'],
+        'scipy>=1.0',
+        'turbo-mc @ git+ssh://git@github.com/sprillo/turbo-mc.git@'
+        'master#egg=turbo-mc'],
 
         # 'cplex>=12.7.0.0' also required, but installed separately
 

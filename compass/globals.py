@@ -33,8 +33,7 @@ def init_logger(directory="."):
     fh = logging.FileHandler(log_file, mode='w')
     fh.name = 'logfile'
 
-    formatter = logging.Formatter(
-        '%(message)s')
+    formatter = logging.Formatter("%(levelname)s %(lineno)s %(name)s: %(message)s")
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(formatter)
 
@@ -42,7 +41,7 @@ def init_logger(directory="."):
 
     # Add stream to stdout
     sh = logging.StreamHandler(sys.stdout)
-    formatter = logging.Formatter('%(message)s')
+    formatter = logging.Formatter("%(levelname)s %(lineno)s %(name)s: %(message)s")
     sh.setFormatter(formatter)
     sh.setLevel(logging.INFO)
     logger.addHandler(sh)
