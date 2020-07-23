@@ -323,24 +323,24 @@ def test_turbo_compass_on_40_cells_stubbing_cplex_to_a_rank_1_matrix():
         with patch.object(sys, 'argv', compass_args),\
                 patch.object(compass.compass.algorithm.cplex.Cplex, 'solve', new=cplex_solve_stub):
             compass.main.entry()
-            # Check that the solution makes sense:
-            # (1) Retrieve the imputed solution
-            imputed_reaction_scores_df = CompassResourceManager(compass_args).get_reaction_scores()
-            # (2) Compute the ground truth solution
-            true_reaction_scores_df = imputed_reaction_scores_df.copy()
-            for reaction_id in true_reaction_scores_df.index:
-                for cell_name in true_reaction_scores_df.columns:
-                    true_reaction_scores_df.loc[reaction_id, cell_name] =\
-                        reaction_score(cell_name, reaction_id)
-            # (3) Compute the spearman correlation for each reaction
-            X_true = true_reaction_scores_df.to_numpy().T
-            X_imputed = imputed_reaction_scores_df.to_numpy().T
-            from turbo_mc.models.cv_matrix_completion_model import compute_spearman_r2s
-            cv_spearman_r2s = compute_spearman_r2s(X_true, X_imputed)
-            # (4) Check that the median reconstruction quality of the reactions is good.
-            # NOTE: Because of caching in Compass' maximize_reaction, constant reactions
-            # never hit cplex.solve() and are hardcoded by Compass as 0 (rather than using my
-            # low rank approximation). Thus, true_reaction_scores_df is actually wrong for
-            # these reactions. They are approximately 30%. To avoid these 30% wrong reactions
-            # (that have a SR2 of 0.0), we look at the MEDIAN SR2 in this test, as follows:
-            assert(np.sort(cv_spearman_r2s)[len(cv_spearman_r2s) // 2] > 0.95)
+        # Check that the solution makes sense:
+        # (1) Retrieve the imputed solution
+        imputed_reaction_scores_df = CompassResourceManager(compass_args).get_reaction_scores()
+        # (2) Compute the ground truth solution
+        true_reaction_scores_df = imputed_reaction_scores_df.copy()
+        for reaction_id in true_reaction_scores_df.index:
+            for cell_name in true_reaction_scores_df.columns:
+                true_reaction_scores_df.loc[reaction_id, cell_name] =\
+                    reaction_score(cell_name, reaction_id)
+        # (3) Compute the spearman correlation for each reaction
+        X_true = true_reaction_scores_df.to_numpy().T
+        X_imputed = imputed_reaction_scores_df.to_numpy().T
+        from turbo_mc.models.cv_matrix_completion_model import compute_spearman_r2s
+        cv_spearman_r2s = compute_spearman_r2s(X_true, X_imputed)
+        # (4) Check that the median reconstruction quality of the reactions is good.
+        # NOTE: Because of caching in Compass' maximize_reaction, constant reactions
+        # never hit cplex.solve() and are hardcoded by Compass as 0 (rather than using my
+        # low rank approximation). Thus, true_reaction_scores_df is actually wrong for
+        # these reactions. They are approximately 30%. To avoid these 30% wrong reactions
+        # (that have a SR2 of 0.0), we look at the MEDIAN SR2 in this test, as follows:
+        assert(np.sort(cv_spearman_r2s)[len(cv_spearman_r2s) // 2] > 0.95)
