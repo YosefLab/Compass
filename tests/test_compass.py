@@ -78,7 +78,6 @@ def test_compass_smoke_test_2():
         assert(reaction_scores_df.shape == (10211, 2))
 
 
-@pytest.mark.slow
 def test_compass_select_reactions_argument():
     r"""
     Runs Compass with the '--select_reactions' argument in a minimalistic
