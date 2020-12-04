@@ -16,10 +16,12 @@ import gzip
 from functools import partial
 from tqdm import tqdm
 from six import string_types
+from math import ceil
 
+from .compass import cache
 from ._version import __version__
 from .compass.torque import submitCompassTorque
-from .compass.algorithm import singleSampleCompass
+from .compass.algorithm import singleSampleCompass, maximize_reaction_range, topological_dfs
 from .models import init_model
 from .compass.penalties import eval_reaction_penalties
 from . import globals
@@ -38,7 +40,7 @@ def parseArgs():
                         description="Metabolic Modeling for Single Cells")
 
     parser.add_argument("--data", help="Gene expression matrix",
-                        required=True,
+                        #required=True, Not required if pre-building the cache
                         metavar="FILE")
 
     parser.add_argument("--model", help="Metabolic Model to Use",
@@ -143,6 +145,27 @@ def parseArgs():
                         help="Compute scores for metabolite "
                         "uptake/secretion")
 
+    parser.add_argument("--precache", action="store_true",
+                        help="Preprocesses the model to find "
+                        " maximum fluxes")
+
+    #Hidden argument which tracks more detailed information on runtimes
+    parser.add_argument("--detailed-perf", action="store_true",
+                        help=argparse.SUPPRESS)
+
+    #Hidden argument to determine starting reaction
+    parser.add_argument("--starting-reaction",
+                        help=argparse.SUPPRESS,
+                        default=0,
+                        type=int)
+
+    #Hidden argument to choose the algorithm CPLEX uses. Barrier generally best choice.
+    #See - https://www.ibm.com/support/knowledgecenter/en/SS9UKU_12.10.0/com.ibm.cplex.zos.help/CPLEX/Parameters/topics/LPMETHOD.html
+    parser.add_argument("--lpmethod",
+                        help=argparse.SUPPRESS,
+                        default=4,
+                        type=int)
+                        
     # Also used for batch jobs
     parser.add_argument("--config-file", help=argparse.SUPPRESS)
 
@@ -152,8 +175,13 @@ def parseArgs():
 
     load_config(args)
 
-    # Convert directories/files to absolute paths
-    args['data'] = os.path.abspath(args['data'])
+    
+    if not args['precache']:
+        if not args['data']:
+            parser.error("--data [file] required unless --precache option selected")
+        else:
+            # Convert directories/files to absolute paths
+            args['data'] = os.path.abspath(args['data'])
 
     if args['input_weights']:
         args['input_weights'] = os.path.abspath(args['input_weights'])
@@ -177,27 +205,30 @@ def parseArgs():
 
         parser.error(
             "--generate-cache cannot be run with --no-reactions or "
-            "without --calc-metabolites"
+            "without --calc-metabolites" #Not sure about why this needs metabolites to calculated
         )
-
     return args
 
 
 def entry():
     """Entry point for the compass command-line script
     """
+    
     start_time = datetime.datetime.now()
 
     args = parseArgs()
 
-    if not os.path.isdir(args['output_dir']):
-        os.makedirs(args['output_dir'])
+    if args['data']:
+        if not os.path.isdir(args['output_dir']):
+            os.makedirs(args['output_dir'])
 
-    if not os.path.isdir(args['temp_dir']):
-        os.makedirs(args['temp_dir'])
+        if not os.path.isdir(args['temp_dir']):
+            os.makedirs(args['temp_dir'])
+
+        globals.init_logger(args['output_dir'])
+        
 
     # Log some things for debugging/record
-    globals.init_logger(args['output_dir'])
     logger = logging.getLogger('compass')
     logger.debug("Compass version: " + __version__)
 
@@ -222,6 +253,20 @@ def entry():
 
     logger.debug("\nCOMPASS Started: {}".format(start_time))
     # Parse arguments and decide what course of action to take
+
+    #Check if the cache for (model, media) exists already:
+    size_of_cache = len(cache.load(init_model(model=args['model'], species=args['species'],
+                    exchange_limit=globals.EXCHANGE_LIMIT,
+                    media=args['media']), args['media']))
+    if size_of_cache == 0 or args['precache']:
+        logger.info("Building up model cache")
+        precacheCompass(args=args)
+        end_time = datetime.datetime.now()
+        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
+        if not args['data']:
+            return
+    else:
+        logger.info("Cache already built")
 
     if args['single_sample'] is not None:
         singleSampleCompass(data=args['data'], model=args['model'],
@@ -273,7 +318,6 @@ def entry():
         end_time = datetime.datetime.now()
         logger.debug("\nElapsed Time: {}".format(end_time-start_time))
         return
-
 
 def runCompassParallel(args):
 
@@ -462,7 +506,6 @@ def collectCompassResults(data, temp_dir, out_dir, args):
     with gzip.open(model_file, 'w') as gzfile:
         gzfile.write(model.to_JSON().encode('utf-8'))
 
-
 def load_config(args):
     """
     If a config file is specified, this loads the file
@@ -488,3 +531,39 @@ def load_config(args):
             newArgs[key] = str(newArgs[key])
 
     args.update(newArgs)
+
+def _parallel_map_precache(start_stop, args):
+    return maximize_reaction_range(start_stop, args)
+
+def precacheCompass(args):
+
+    logger = logging.getLogger('compass')
+
+    if args['num_processes'] is None:
+        args['num_processes'] = multiprocessing.cpu_count()
+    if args['num_processes'] > multiprocessing.cpu_count():
+        args['num_processes'] = multiprocessing.cpu_count()
+
+    model = init_model(model=args['model'], species=args['species'],
+        exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'])
+    n_reaction_processes = args['num_processes'] #max(1, args['num_processes'] - 1) #for later multithreading
+    n_reactions = len(model.reactions.values())
+    chunk_size = int(ceil(n_reactions / n_reaction_processes))
+    chunks = [(i*chunk_size, min(n_reactions, (i+1)*chunk_size)) for i in range(n_reaction_processes)]
+
+    combined_cache = {}
+    partial_map_fun = partial(_parallel_map_precache, args=args)
+    pool = multiprocessing.Pool(n_reaction_processes)
+    for sub_cache in pool.imap_unordered(partial_map_fun, chunks):
+        combined_cache.update(sub_cache)
+    
+    #Topological similarity does not effect barrier algorithm
+    #lst = topological_dfs(args)
+
+    cache.clear(model)
+    model_cache = cache.load(model)
+    model_cache.update(combined_cache)
+    #model_cache['dfs_reaction_order'] = lst
+    cache.save(model) 
+
+    
