@@ -23,7 +23,7 @@ from ._version import __version__
 from .compass.torque import submitCompassTorque
 from .compass.algorithm import singleSampleCompass, maximize_reaction_range, topological_dfs
 from .models import init_model
-from .compass.penalties import eval_reaction_penalties
+from .compass.penalties import eval_reaction_penalties, compute_knn
 from . import globals
 
 
@@ -149,11 +149,21 @@ def parseArgs():
                         help="Preprocesses the model to find "
                         " maximum fluxes")
 
+    parser.add_argument("--input-knn", help="Path to search for a precomputed kNN",
+                        default=None, metavar="KNN INPUT")
+
+    parser.add_argument("--output-knn", help="File to save kNN of data to",
+                        default=None, metavar="KNN OUTPUT")
+
     #Hidden argument which tracks more detailed information on runtimes
     parser.add_argument("--detailed-perf", action="store_true",
                         help=argparse.SUPPRESS)
 
     #Hidden argument to determine starting reaction
+    parser.add_argument("--penalties-file",
+                        help=argparse.SUPPRESS,
+                        default='')
+
     parser.add_argument("--starting-reaction",
                         help=argparse.SUPPRESS,
                         default=0,
@@ -253,6 +263,11 @@ def entry():
 
     logger.debug("\nCOMPASS Started: {}".format(start_time))
     # Parse arguments and decide what course of action to take
+
+    if args['output_knn']:
+        compute_knn(args)
+        logger.info("Compass computed knn succesfully")
+        return 
 
     #Check if the cache for (model, media) exists already:
     size_of_cache = len(cache.load(init_model(model=args['model'], species=args['species'],

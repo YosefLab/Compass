@@ -562,9 +562,9 @@ def initialize_cplex_problem(model, num_threads=1, lpmethod=0):
     problem.parameters.emphasis.numerical.set(True)
     problem.parameters.threads.set(num_threads)
     problem.parameters.preprocessing.reduce.set(3) #Turning on primal and dual preprocessing also enables some reoptimization features
-    #problem.parameters.lpmethod.set(problem.parameters.lpmethod.values.barrier) #Barrier performs best in practice, but cannot use an advanced basis
-    #problem.parameters.lpmethod.set(problem.parameters.lpmethod.values.concurrent) #when six or more threads are available, concurrent optimization launches primal simplex, dual simplex, and barrier optimizers
     problem.parameters.advance.set(2) #Will presolve advanced basis again
+    problem.parameters.barrier.convergetol.set(1e-12) #default is 1e-8, minimum is 1e-12.
+    problem.parameters.simplex.tolerances.optimality.set(1e-9) #default 1e-6, minimum is 1e-9
     problem.parameters.lpmethod.set(lpmethod) #default lets CPLEX choose the method
 
     # Add variables
@@ -655,8 +655,8 @@ def maximize_reaction_range(start_stop, args):
     reactions = sorted(list(model.reactions.values()), key=lambda r:r.id) 
     reactions = [reactions[i] for i in range(start_stop[0], start_stop[1])]
     for reaction in reactions:
-        if reaction.is_exchange:
-            continue
+        #if reaction.is_exchange:
+        #    continue
         partner_reaction = reaction.reverse_reaction
         # Set partner reaction upper-limit to 0 in problem
         # Store old limit for later to restore
@@ -681,6 +681,7 @@ def maximize_reaction_range(start_stop, args):
             problem.variables.set_upper_bounds(partner_id, old_partner_ub)
 
     return sub_cache
+        
 
 def topological_dfs(args, start=None):
     """

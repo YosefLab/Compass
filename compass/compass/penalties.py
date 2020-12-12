@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import logging
 from .extensions import tsne_utils
 from .. import models
 from ..globals import EXCHANGE_LIMIT
@@ -49,6 +50,8 @@ def eval_reaction_penalties(expression_file, model, media,
     input_weights_file = args['input_weights']
     penalty_diffusion_mode = args['penalty_diffusion']
     and_function = args['and_function']
+    input_knn = args['input_knn']
+    output_knn = args['output_knn']
 
     expression = pd.read_csv(expression_file, sep='\t', index_col=0)
     expression.index = expression.index.str.upper()  # Gene names to upper
@@ -86,7 +89,8 @@ def eval_reaction_penalties(expression_file, model, media,
         num_neighbors=num_neighbors, symmetric_kernel=symmetric_kernel,
         and_function=and_function,
         penalty_diffusion_mode=penalty_diffusion_mode,
-        input_weights=input_weights)
+        input_weights=input_weights, 
+        input_knn=input_knn, output_knn=output_knn)
 
     return reaction_penalties
 
@@ -95,7 +99,8 @@ def eval_reaction_penalties_shared(model, expression,
                                    lambda_, num_neighbors,
                                    symmetric_kernel, and_function,
                                    penalty_diffusion_mode,
-                                   input_weights=None):
+                                   input_weights=None, 
+                                   input_knn=None, output_knn=None):
     """
     Determines reaction penalties, on the given model, for
     the given expression data
@@ -166,12 +171,11 @@ def eval_reaction_penalties_shared(model, expression,
         pca_expression = model.fit_transform(log_expression.T).T
         pca_expression = pd.DataFrame(pca_expression,
                                       columns=expression.columns)
-
         if penalty_diffusion_mode == 'gaussian':
             weights = sample_weights_tsne_symmetric(
                 pca_expression, num_neighbors, symmetric_kernel)
         elif penalty_diffusion_mode == 'knn':
-            weights = sample_weights_knn(pca_expression, num_neighbors)
+            weights = sample_weights_knn(pca_expression, num_neighbors, input_knn, output_knn)
         else:
             raise ValueError(
                 'Invalid value for penalty_diffusion_mode: {}'
@@ -263,8 +267,33 @@ def sample_weights_tsne_symmetric(data, perplexity, symmetric):
 
     return pvals
 
+def compute_knn(args):
+    expression = pd.read_csv(args['data'], sep='\t', index_col=0)
+    expression.index = expression.index.str.upper()  # Gene names to upper
 
-def sample_weights_knn(data, num_neighbors):
+    # If genes exist with duplicate symbols
+    # Need to aggregate them out
+    if not expression.index.is_unique:
+        expression.index.name = "GeneSymbol"
+        expression = expression.reset_index()
+        expression = expression.groupby("GeneSymbol").sum()
+        
+    log_expression = np.log2(expression+1)
+    model = PCA(n_components=min(
+        log_expression.shape[0], log_expression.shape[1], 20)
+    )
+    pca_expression = model.fit_transform(log_expression.T).T
+    pca_expression = pd.DataFrame(pca_expression,columns=expression.columns)
+
+    nn = NearestNeighbors(n_neighbors=args['num_neighbors'])
+    nn.fit(pca_expression.T)
+    ind = nn.kneighbors(return_distance=False)
+
+    knn_df = pd.DataFrame(ind, index=expression.columns)
+    knn_df.to_csv(args['output_knn'], sep='\t')
+
+
+def sample_weights_knn(data, num_neighbors, input_knn=None, output_knn=None):
     """
     Calculates cell-to-cell weights using knn on data
 
@@ -276,11 +305,26 @@ def sample_weights_knn(data, num_neighbors):
 
     columns = data.columns
     data = data.values
+    ind = None
+    if input_knn:
+        logger = logging.getLogger('compass')
+        ind_df = pd.read_csv(input_knn, sep='\t', index_col=0)
+        #TBD: Check if the knn graph is specified as 2d array or adjacency list
+        if ind_df.shape[0] != data.shape[1]: #incompatible dimensions for data, will recompute kNN
+            logger.info("Input KNN has incompatible dimensions, recomputing KNN")
+        elif not np.all(ind_df.index == columns): #See if the reactions need to be reindexed
+            logger.info("Input KNN does not have the same samples as data, recomputing KNN")
+        else:
+            logger.info("KNN successfully loaded")
+            ind = ind_df.to_numpy()
+    if ind is None:
+        nn = NearestNeighbors(n_neighbors=num_neighbors)
+        nn.fit(data.T)
+        ind = nn.kneighbors(return_distance=False)
 
-    nn = NearestNeighbors(n_neighbors=num_neighbors)
-    nn.fit(data.T)
-
-    ind = nn.kneighbors(return_distance=False)
+    if output_knn:
+        knn_df = pd.DataFrame(ind, index=columns)
+        knn_df.to_csv(output_knn, sep='\t')
 
     weights = np.zeros((data.shape[1], data.shape[1]))
 
@@ -323,3 +367,5 @@ def sample_weights_bio(bio_groups):
     pvals = (aff == 0).astype('float')
 
     return pvals
+
+    
