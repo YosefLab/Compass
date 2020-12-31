@@ -43,7 +43,7 @@ def parseArgs():
 
     parser.add_argument("--model", help="Metabolic Model to Use",
                         default="RECON2_mat",
-                        choices=["RECON1_mat", "RECON2_mat", "RECON2.2"],
+                        choices=["RECON1_mat", "RECON2_mat", "RECON2.2", "RECON3_mat"],
                         metavar="MODEL")
 
     parser.add_argument("--species",
