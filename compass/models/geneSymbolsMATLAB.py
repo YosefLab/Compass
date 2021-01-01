@@ -119,7 +119,7 @@ geneFilePath = os.path.join(model_dir, "model", "model.genes.json")
 
 
 with open(geneFilePath) as geneFile:
-    gene_list = json.load(geneFile)[0]
+    gene_list = json.load(geneFile)
 
 gene_list = [gene[:-2] for gene in gene_list]
 

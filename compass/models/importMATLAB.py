@@ -74,6 +74,14 @@ def load(model_name, species):
     groups = zip(rxns, rxnNames, lbs, ubs, subSystems, rules)
     reactions = []
     for rxn, name, lb, ub, subsystem, rule in groups:
+        if type(lb) == list:
+            lb = lb[0]
+        if type(ub) == list:
+            ub = ub[0]
+        if type(subsystem) == list:
+            subsystem = subsystem[0]
+        if type(rule) == list:
+            rule = ""
 
         reaction = Reaction()
         reaction.id = rxn
@@ -85,7 +93,7 @@ def load(model_name, species):
         # Eval the rule
         reaction.gene_associations = _eval_rule_str(rule, genes)
         reactions.append(reaction)
-
+    
     # Other optional reaction files
 
     # Meta-data
