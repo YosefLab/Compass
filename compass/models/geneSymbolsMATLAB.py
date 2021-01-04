@@ -14,7 +14,6 @@ import json
 import re
 import os
 from collections import OrderedDict
-import pandas as pd
 
 RESOURCE_DIR = os.path.join("..", "Resources")
 MODEL_DIR = os.path.join(RESOURCE_DIR, "Metabolic Models")
