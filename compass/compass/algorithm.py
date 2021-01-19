@@ -10,6 +10,8 @@ import os
 import sys
 import time
 import timeit
+#ARGMAXES
+import numpy as np
 from .. import utils
 from .. import models
 from . import cache
@@ -48,7 +50,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
             - lambda, num_neighbors, symmetric_kernel, species,
               and_function, test_mode, detailed_perf
     """
-    if not os.path.isdir(directory):
+    if not os.path.isdir(directory) and directory != '/dev/null':
         os.makedirs(directory)
 
     if os.path.exists(os.path.join(directory, 'success_token')):
@@ -64,14 +66,15 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
 
     perf_log = None
     if args['detailed_perf']:
-        cols = ['order','max rxn time', 'cached', 'min penalty time'] #'blocked'
+        cols = ['order','max rxn time', 'max rxn method', 'cached', 'min penalty time', 
+        'min penalty method', 'min penalty sensitvivity', 'kappa']
         perf_log = {c:{} for c in cols}
 
     if args['generate_cache']:
-        cache.clear(model)
+        cache.clear(model) #TBD add media specifier here too
 
     # Build model into cplex problem
-    problem = initialize_cplex_problem(model, args['num_threads'], args['lpmethod'])
+    problem = initialize_cplex_problem(model, args['num_threads'], args['lpmethod'], args['advance'])
 
     # Only read this to get the number of samples and the sample name
     # Use nrows=1 so this is fast
@@ -94,27 +97,28 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     penalty_elapsed = timeit.default_timer() - penalty_start
 
 
-    react_start = timeit.default_timer() #time.perf_counter() #not in python2.7
+    react_start = timeit.default_timer()
     if not args['no_reactions']:
         logger.info("Evaluating Reaction Scores...")
         reaction_scores = compass_reactions(
             model, problem, reaction_penalties,
             select_reactions=args['select_reactions'],
-            TEST_MODE=args['test_mode'], 
-            perf_log=perf_log)
-    react_elapsed = timeit.default_timer() - react_start #time.perf_counter() - react_start #not in python2.7
+            TEST_MODE=args['test_mode'], perf_log=perf_log, 
+            save_argmaxes=args['save_argmaxes'], 
+            save_directory=directory)
+    react_elapsed = timeit.default_timer() - react_start
     
 
     #if user wants to calc reaction scores, but doesn't want to calc metabolite scores, calc only the exchange reactions
     logger.info("Evaluating Exchange/Secretion/Uptake Scores...")
-    exchange_start = timeit.default_timer() #time.perf_counter() #not in python2.7
+    exchange_start = timeit.default_timer()
     uptake_scores, secretion_scores, exchange_rxns = compass_exchange(
         model, problem, reaction_penalties,
         only_exchange=(not args['no_reactions']) and not args['calc_metabolites'],
         select_reactions=args['select_reactions'],
         TEST_MODE=args['test_mode'], 
         perf_log=perf_log)
-    exchange_elapsed = timeit.default_timer() - exchange_start #time.perf_counter() - exchange_start #not in python2.7
+    exchange_elapsed = timeit.default_timer() - exchange_start 
 
     # Copy valid uptake/secretion reaction fluxes from uptake/secretion
     #   results into reaction results
@@ -438,7 +442,8 @@ def compass_exchange(model, problem, reaction_penalties, select_reactions=None, 
     return uptake_scores, secretion_scores, exchange_rxns
 
 
-def compass_reactions(model, problem, reaction_penalties, select_reactions=None, TEST_MODE=False, perf_log=None):
+def compass_reactions(model, problem, reaction_penalties, select_reactions=None, TEST_MODE=False, 
+    perf_log=None, save_argmaxes=False, save_directory=None):
     """
     Iterates through reactions, holding each near
     its max value while minimizing penalty.
@@ -457,8 +462,8 @@ def compass_reactions(model, problem, reaction_penalties, select_reactions=None,
     
     reactions = list(model.reactions.values())
     model_cache = cache.load(model)
-    if 'dfs_reaction_order' in model_cache:
-        reactions = [reactions[i] for i in model_cache['dfs_reaction_order']]
+    if 'reaction_order' in model_cache:
+        reactions = [reactions[i] for i in model_cache['reaction_order']]
 
     if TEST_MODE:
         reactions = reactions[0:100]
@@ -477,8 +482,14 @@ def compass_reactions(model, problem, reaction_penalties, select_reactions=None,
 
     
     #reactions = partition_reactions(reactions)#sorted(reactions, key=lambda r:reaction_penalties[r.id])
+    if save_argmaxes:
+        argmaxes_order = []
+        argmaxes = []
 
-    for reaction in tqdm(reactions, file=sys.stderr):
+    for i in tqdm(range(len(reactions)), file=sys.stderr):
+        reaction = reactions[i]
+        if 'lpmethods' in model_cache:
+            problem.parameters.lpmethod.set(model_cache['lpmethods'][i])
 
         if reaction.is_exchange:
             continue
@@ -525,7 +536,15 @@ def compass_reactions(model, problem, reaction_penalties, select_reactions=None,
             
             problem.solve()
             if perf_log is not None:
-               perf_log['min penalty time'][reaction.id] = timeit.default_timer() - start_time #time.perf_counter() - start_time #Not in python2.7
+                perf_log['min penalty time'][reaction.id] = timeit.default_timer() - start_time #time.perf_counter() - start_time #Not in python2.7
+                perf_log['min penalty method'][reaction.id] = problem.solution.get_method()
+                perf_log['min penalty sensitvivity'][reaction.id] = problem.solution.sensitivity.objective(reaction.id)
+                if hasattr(problem.solution.get_quality_metrics(),'kappa'):
+                   perf_log['kappa'][reaction.id] = problem.solution.get_quality_metrics().kappa
+            
+            if save_argmaxes:
+                argmaxes.append(np.array(problem.solution.get_values()))
+                argmaxes_order.append(reaction.id)
 
             value = problem.solution.get_objective_value()
             reaction_scores[reaction.id] = value
@@ -538,10 +557,17 @@ def compass_reactions(model, problem, reaction_penalties, select_reactions=None,
             partner_id = partner_reaction.id
             problem.variables.set_upper_bounds(partner_id, old_partner_ub)
 
+    #ARGMAXES
+    if save_argmaxes:
+        argmaxes = np.vstack(argmaxes)
+        np.save(os.path.join(save_directory,'argmaxes.npy'), argmaxes)
+        argmaxes_order = np.array(argmaxes_order)
+        np.save(os.path.join(save_directory,'argmaxes_order.npy'), argmaxes_order)
+
     return reaction_scores
 
 
-def initialize_cplex_problem(model, num_threads=1, lpmethod=0):
+def initialize_cplex_problem(model, num_threads=1, lpmethod=0, adv=2):
     # type: (compass.models.MetabolicModel)
     """
     Builds and returns a cplex problem representing our metabolic model
@@ -562,7 +588,7 @@ def initialize_cplex_problem(model, num_threads=1, lpmethod=0):
     problem.parameters.emphasis.numerical.set(True)
     problem.parameters.threads.set(num_threads)
     problem.parameters.preprocessing.reduce.set(3) #Turning on primal and dual preprocessing also enables some reoptimization features
-    problem.parameters.advance.set(2) #Will presolve advanced basis again
+    problem.parameters.advance.set(adv) #Will presolve advanced basis again
     problem.parameters.barrier.convergetol.set(1e-12) #default is 1e-8, minimum is 1e-12.
     problem.parameters.simplex.tolerances.optimality.set(1e-9) #default 1e-6, minimum is 1e-9
     problem.parameters.lpmethod.set(lpmethod) #default lets CPLEX choose the method
@@ -626,6 +652,7 @@ def maximize_reaction(model, problem, rxn, use_cache=True, perf_log=None):
     if perf_log is not None:
         perf_log['cached'][rxn] = False
         perf_log['max rxn time'][rxn] = timeit.default_timer() - start_time #time.perf_counter() - start_time #Not in python2.7
+        perf_log['max rxn method'][rxn] = problem.solution.get_method()
 
     return rxn_max
 
@@ -652,9 +679,8 @@ def maximize_reaction_range(start_stop, args):
     problem = initialize_cplex_problem(model, args['num_threads'], args['lpmethod'])
 
     #sort by id to ensure consistency across threads
-    reactions = sorted(list(model.reactions.values()), key=lambda r:r.id) 
-    reactions = [reactions[i] for i in range(start_stop[0], start_stop[1])]
-    for reaction in reactions:
+    reactions = sorted(list(model.reactions.values()), key=lambda r:r.id)[start_stop[0]:start_stop[1]]
+    for reaction in tqdm(reactions, file=sys.stderr):
         #if reaction.is_exchange:
         #    continue
         partner_reaction = reaction.reverse_reaction
@@ -681,39 +707,283 @@ def maximize_reaction_range(start_stop, args):
             problem.variables.set_upper_bounds(partner_id, old_partner_ub)
 
     return sub_cache
-        
 
-def topological_dfs(args, start=None):
+def maximize_metab_range(start_stop, args):
     """
-    Traverses the metabolic network looking for reactions in the same reaction
+    For precaching the maxmimum feasible exchange values of metabolites
+
+    Returns
+    -------
+    uptake_scores: dict
+        key: species_id
+        value: minimum penalty achieved
+
+    secretion_scores: dict
+        key: species_id
+        value: minimum penalty achieved
+
+    exchange_rxns: dict
+        Separate storage for exchange reactions.  These
+        are skipped in the reaction loop.
+        key: rxn_id
+        value: minimum penalty achieved
     """
-    model = models.init_model(model=args['model'], species=args['species'],
-        exchange_limit=EXCHANGE_LIMIT, media=args['media'])
+    #secretion_scores = {}
+    #uptake_scores = {}
+    #exchange_rxns = {}
+    sub_cache = {}
+    model = models.init_model(args['model'], species=args['species'],
+                              exchange_limit=EXCHANGE_LIMIT,
+                              media=args['media'])
     problem = initialize_cplex_problem(model, args['num_threads'], args['lpmethod'])
-    if start == None:
-        if 'starting_reaction' in args:
-            start = args['starting_reaction']
-        else:
-            start = 0
-    lst = []
-    unvisited = set(range(len(problem.variables.get_names())))
-    while len(unvisited) > 0:
-        stack = [start]
-        while len(stack) > 0:
-            rxn_ind = stack.pop()
-            if rxn_ind in unvisited:
-                lst.append(rxn_ind)
-                unvisited.remove(rxn_ind)
-                col = problem.variables.get_cols(rxn_ind)
-                rows = sorted([c for c in problem.linear_constraints.get_rows(col.ind)],
-                            key=lambda s:-len(s.ind))
-                for row in rows:
-                    coeff = row.val[row.ind.index(rxn_ind)]
-                    adjs = sorted([i for i in range(len(row.ind))],
-                                key=lambda x: -row.val[x]*coeff)
-                    for j in adjs:
-                        if j in unvisited:
-                            stack.append(row.ind[j])
-        if len(stack) == 0 and len(unvisited) > 0:
-            start = next(iter(unvisited))
-    return lst
+
+    metabolites = sorted(list(model.species.values()), key=lambda r:r.id)[start_stop[0]:start_stop[1]]
+
+    """#populate the list of selected_reaction_ids - do this once outside of the loop
+    if select_reactions:
+        #assume this is a filename with one reaction per row, ignores unrecognized reactions
+        if not os.path.exists(select_reactions):
+            raise Exception("cannot find selected reactions subset file %s" % select_reactions)
+
+        with open(select_reactions) as f:
+            selected_reaction_ids = [line.strip() for line in f]"""
+
+
+    all_names = set(problem.linear_constraints.get_names())
+
+    for metabolite in tqdm(metabolites, file=sys.stderr):
+
+        met_id = metabolite.id
+
+        if met_id not in all_names:
+            # This can happen if the metabolite does not participate
+            # in any reaction. As a result, it won't be in any
+            # constraints - happens in RECON2
+
+            """uptake_scores[met_id] = 0.0
+            secretion_scores[met_id] = 0.0"""
+            continue
+
+        # Rectify exchange reactions
+        # Either find existing pos and neg exchange reactions
+        # Or create new ones
+
+        uptake_rxn = None
+        extra_uptake_rxns = []
+        secretion_rxn = None
+        extra_secretion_rxns = []
+
+        added_uptake = False     # Did we add an uptake reaction?
+        added_secretion = False  # "   "   "  "  secretion reaction?
+
+        # Metabolites represented by a constraint: get associated reactions
+        sp = problem.linear_constraints.get_rows(met_id)
+        rxn_ids = problem.variables.get_names(sp.ind)
+        reactions = [model.reactions[x] for x in rxn_ids]
+
+        """#If user wants only exchange reaction - limit the reactions space through which we iterate
+        if only_exchange:
+            reactions = [x for x in reactions if x.is_exchange]"""
+
+        """if select_reactions:
+            #r.id is a unidirectional identifier (ending with _pos or _neg suffix --> we remove it and compare to the undirected reaction id)
+            reactions = [r for r in reactions if ((r.id)[:-4] in selected_reaction_ids)]"""
+
+
+        for reaction in reactions:
+            if reaction.is_exchange and met_id in reaction.products:
+                if uptake_rxn is None:
+                    uptake_rxn = reaction.id
+                else:
+                    extra_uptake_rxns.append(reaction.id)
+
+            elif reaction.is_exchange and met_id in reaction.reactants:
+                if secretion_rxn is None:
+                    secretion_rxn = reaction.id
+                else:
+                    extra_secretion_rxns.append(reaction.id)
+
+        #if the selected_rxns or only_exchange options are used --> then we don't want to add reactions unless one of the pair already exists
+
+        if (secretion_rxn is None):
+            added_secretion = True
+            secretion_rxn = met_id + "_SECRETION"
+
+            # Add secretion reaction to the problem as a variable
+            problem.variables.add(
+                names=[secretion_rxn],
+                ub=[model.maximum_flux],
+                lb=[0.0],)
+
+            # Add it to the metabolites constraint
+            rxn_index = problem.variables.get_indices(secretion_rxn)
+            sp.ind.append(rxn_index)
+            sp.val.append(-1.0)
+
+
+        #if only exchange flag is set - don't add uptakes that do not exist
+        if (uptake_rxn is None):
+            added_uptake = True
+            uptake_rxn = met_id + "_UPTAKE"
+
+            # Add uptake reaction to the problem as a variable
+            problem.variables.add(
+                names=[uptake_rxn],
+                ub=[EXCHANGE_LIMIT],
+                lb=[0.0],)
+
+            # Add it to the metabolite's constraint
+            rxn_index = problem.variables.get_indices(uptake_rxn)
+            sp.ind.append(rxn_index)
+            sp.val.append(1.0)
+
+        # Modify the constraint in the problem
+        #   e.g. Add the metabolites connections
+        problem.linear_constraints.set_linear_components(met_id, sp)
+
+        all_uptake = [uptake_rxn] + extra_uptake_rxns
+        all_secretion = [secretion_rxn] + extra_secretion_rxns
+
+        # -----------------
+        # Optimal Secretion
+        # -----------------
+
+        # Close all uptake, storing their upper-bounds to restore later
+        old_uptake_upper = {}
+        for rxn_id in all_uptake:
+            old_ub = problem.variables.get_upper_bounds(rxn_id)
+            old_uptake_upper[rxn_id] = old_ub
+            problem.variables.set_upper_bounds(rxn_id, 0.0)
+
+        # Close extra secretion, storing upper-bounds to restore later
+        old_secretion_upper = {}
+        for rxn_id in extra_secretion_rxns:
+            old_ub = problem.variables.get_upper_bounds(rxn_id)
+            old_secretion_upper[rxn_id] = old_ub
+            problem.variables.set_upper_bounds(rxn_id, 0.0)
+
+        # Get max of secretion reaction
+        #secretion_max = maximize_reaction(model, problem, secretion_rxn)
+        utils.reset_objective(problem)
+        problem.objective.set_linear(secretion_rxn, 1.0)
+        problem.objective.set_name(str(secretion_rxn))
+        problem.objective.set_sense(problem.objective.sense.maximize)
+
+        problem.solve()
+        rxn_max = problem.solution.get_objective_value()
+
+        sub_cache[secretion_rxn] = rxn_max
+
+        """# Set contraint of max secretion to BETA*max
+        problem.linear_constraints.add(
+            lin_expr=[cplex.SparsePair(ind=[secretion_rxn], val=[1.0])],
+            senses=['R'],
+            rhs=[BETA * secretion_max],
+            names=['SECRETION_OPT'])
+
+        # Find minimimum penalty
+        if(problem.objective.get_name() != 'reaction_penalties'):
+            utils.reset_objective(problem)
+            problem.objective.set_linear(
+                list(reaction_penalties.iteritems())
+            )
+            problem.objective.set_name('reaction_penalties')
+            problem.objective.set_sense(problem.objective.sense.minimize)
+
+        if perf_log is not None:
+            start_time = timeit.default_timer()#time.perf_counter() #Not in python2.7
+        problem.solve()
+        if perf_log is not None:
+            perf_log['min penalty time'][secretion_rxn] = timeit.default_timer() - start_time #time.perf_counter() - start_time #Not in python2.7
+        value = problem.solution.get_objective_value()
+        secretion_scores[met_id] = value
+
+        # Clear Secretion constraint
+        problem.linear_constraints.delete('SECRETION_OPT')"""
+
+        # Restore all uptake
+        for rxn_id, old_ub in old_uptake_upper.items():
+            problem.variables.set_upper_bounds(rxn_id, old_ub)
+
+        # Restore extra secretion
+        for rxn_id, old_ub in old_secretion_upper.items():
+            problem.variables.set_upper_bounds(rxn_id, old_ub)
+
+        # -----------------
+        # Optimal Uptake
+        # -----------------
+
+        # Close extra uptake
+        old_uptake_upper = {}
+        for rxn_id in extra_uptake_rxns:
+            old_ub = problem.variables.get_upper_bounds(rxn_id)
+            old_uptake_upper[rxn_id] = old_ub
+            problem.variables.set_upper_bounds(0.0)
+
+        # Close all secretion
+        old_secretion_upper = {}
+        for rxn_id in all_secretion:
+            old_ub = problem.variables.get_upper_bounds(rxn_id)
+            old_secretion_upper[rxn_id] = old_ub
+            problem.variables.set_upper_bounds(rxn_id, 0.0)
+
+        # Get max of uptake reaction
+        #uptake_max = maximize_reaction(model, problem, uptake_rxn)
+        utils.reset_objective(problem)
+        problem.objective.set_linear(uptake_rxn, 1.0)
+        problem.objective.set_name(str(uptake_rxn))
+        problem.objective.set_sense(problem.objective.sense.maximize)
+
+        problem.solve()
+        rxn_max = problem.solution.get_objective_value()
+
+        sub_cache[uptake_rxn] = rxn_max
+
+        """# Set contraint of max uptake with BETA*max
+        problem.linear_constraints.add(
+            lin_expr=[cplex.SparsePair(ind=[uptake_rxn], val=[1.0])],
+            senses=['R'],
+            rhs=[BETA * uptake_max],
+            names=['UPTAKE_OPT'])
+
+        # Find minimimum penalty
+        if(problem.objective.get_name() != 'reaction_penalties'):
+            utils.reset_objective(problem)
+            problem.objective.set_linear(
+                list(reaction_penalties.iteritems())
+            )
+            problem.objective.set_name('reaction_penalties')
+            problem.objective.set_sense(problem.objective.sense.minimize)
+
+        if perf_log is not None:
+            start_time = timeit.default_timer() #time.perf_counter() #Not in python2.7
+        problem.solve()
+        if perf_log is not None:
+            perf_log['min penalty time'][uptake_rxn] = timeit.default_timer() - start_time #time.perf_counter() - start_time #Not in python2.7
+        value = problem.solution.get_objective_value()
+        uptake_scores[met_id] = value
+
+        # Clear Secretion constraint
+        problem.linear_constraints.delete('UPTAKE_OPT')"""
+
+        # Restore extra uptake
+        for rxn_id, old_ub in old_uptake_upper.items():
+            problem.variables.set_upper_bounds(rxn_id, old_ub)
+
+        # Restore all secretion
+        for rxn_id, old_ub in old_secretion_upper.items():
+            problem.variables.set_upper_bounds(rxn_id, old_ub)
+
+        # Remove added uptake and secretion reactions
+        if added_uptake:
+            problem.variables.delete(uptake_rxn)
+        """else:
+            for rxn_id in all_uptake:
+                exchange_rxns[rxn_id] = uptake_scores[met_id]"""
+
+        if added_secretion:
+            problem.variables.delete(secretion_rxn)
+        """else:
+            for rxn_id in all_secretion:
+                exchange_rxns[rxn_id] = secretion_scores[met_id]"""
+    return sub_cache
