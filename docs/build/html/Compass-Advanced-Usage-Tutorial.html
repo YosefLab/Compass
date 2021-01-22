@@ -1,0 +1,221 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced Usage Tutorial &#8212; Compass 2021 documentation</title>
+    
+  <link rel="stylesheet" href="_static/css/index.73d71520a4ca3b99cfee5594769eaaae.css">
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    
+  <link rel="preload" as="script" href="_static/js/index.3da636dd464baa7582d2.js">
+
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="AWS Tutorial" href="AWS-tutorial.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="index.html">
+    
+      <p class="title">Compass</p>
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="install.html">Installing Compass</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="tutorial.html">Tutorial</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="extra.html">Extra Features</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+            
+                <li class="">
+                    <a href="AWS-tutorial.html">AWS Tutorial</a>
+                </li>
+            
+          
+            
+                <li class="active">
+                    <a href="">Advanced Usage Tutorial</a>
+                </li>
+            
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="advanced-usage-tutorial">
+<h1>Advanced Usage Tutorial<a class="headerlink" href="#advanced-usage-tutorial" title="Permalink to this headline">¶</a></h1>
+<p>Compass allows users to customize various features when using compass.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: compass <span class="o">[</span>-h<span class="o">]</span> --data FILE <span class="o">[</span>--model MODEL<span class="o">]</span> <span class="o">[</span>--species SPECIES<span class="o">]</span>
+               <span class="o">[</span>--media MEDIA<span class="o">]</span> <span class="o">[</span>--output-dir DIR<span class="o">]</span> <span class="o">[</span>--temp-dir DIR<span class="o">]</span>
+               <span class="o">[</span>--torque-queue QUEUE<span class="o">]</span> <span class="o">[</span>--num-processes N<span class="o">]</span> <span class="o">[</span>--lambda F<span class="o">]</span>
+               <span class="o">[</span>--num-threads N<span class="o">]</span> <span class="o">[</span>--and-function FXN<span class="o">]</span> <span class="o">[</span>--num-neighbors N<span class="o">]</span>
+               <span class="o">[</span>--symmetric-kernel<span class="o">]</span> <span class="o">[</span>--input-weights FILE<span class="o">]</span>
+               <span class="o">[</span>--penalty-diffusion MODE<span class="o">]</span> <span class="o">[</span>--no-reactions<span class="o">]</span> <span class="o">[</span>--no-metabolites<span class="o">]</span>
+</pre></div>
+</div>
+<p>Below we describe the features in more detail:</p>
+<ul class="simple">
+<li><p><strong>and-function</strong>: Which function used to aggregate AND
+associations(min, median, mean). Default min</p></li>
+<li><p><strong>input-weights</strong>:</p></li>
+<li><p><strong>lambda</strong>: Smoothing factor for single-cell data. Should be set
+between 0 and 1</p></li>
+<li><p><strong>media</strong>:</p></li>
+<li><p><strong>model</strong>: Metabolic model to use (RECON1_mat, RECON2_mat, RECON2.2).
+Default is RECON2_mat</p></li>
+<li><p><strong>no-metabolites</strong>: Flag to disable calculation and output of
+uptake/secretion scores in addition to reaction scores.</p></li>
+<li><p><strong>no-reactions</strong>: Flag to disable calculation and output of reaction
+scores in addition to uptake/secretion scores.</p></li>
+<li><p><strong>num-neighbors</strong>: Either effective number of neighbors for gaussian
+penalty diffusion or exact number of neighbors for KNN penalty
+diffusion. Default is 30</p></li>
+<li><p><strong>num-processes</strong>: Number of processes for Compass to use. Ignored
+when submitting job onto a queue</p></li>
+<li><p><strong>num-threads</strong>: Number of threads to use per sample. Default is 1. Generally scaling the number of processes results is better than the number of threads.</p></li>
+<li><p><strong>output-dir</strong>: Final directory to output concatenated reactions.txt
+file</p></li>
+<li><p><strong>penalty-diffusion</strong>: Mode to use to share reaction penalty values
+between single cells (gaussian, knn). Default gaussian</p></li>
+<li><p><strong>species</strong>: Species to use to match genes to model (homo_sapiens,
+mus_musculus). Default is homo_sapiens</p></li>
+<li><p><strong>symmetric-kernel</strong>:</p></li>
+<li><p><strong>temp-dir</strong>: Directory to store partial results for completed
+samples in a dataset</p></li>
+<li><p><strong>torque-queue</strong>: Name of the torque queue to submit to</p></li>
+</ul>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+    <a class='left-prev' id="prev-link" href="AWS-tutorial.html" title="previous page">AWS Tutorial</a>
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="_static/js/index.3da636dd464baa7582d2.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2021, Yosef Lab.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
