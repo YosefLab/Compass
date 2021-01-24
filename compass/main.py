@@ -25,6 +25,7 @@ from .compass.algorithm import singleSampleCompass, maximize_reaction_range, max
 from .models import init_model
 from .compass.penalties import eval_reaction_penalties, compute_knn
 from . import globals
+from . import utils
 
 
 def parseArgs():
@@ -39,9 +40,11 @@ def parseArgs():
                         prog="Compass",
                         description="Metabolic Modeling for Single Cells")
 
-    parser.add_argument("--data", help="Gene expression matrix",
-                        #required=True, Not required if pre-building the cache
-                        metavar="FILE")
+    parser.add_argument("--data", help="Gene expression matrix." 
+                        "For .mtx inputs, it must be followed by a tsv with gene names"
+                        "and optionally a list of cell barcodes",
+                        nargs="+", 
+                        metavar="FILES")
 
     parser.add_argument("--model", help="Metabolic Model to Use",
                         default="RECON2_mat",
@@ -189,6 +192,9 @@ def parseArgs():
     # Also used for batch jobs
     parser.add_argument("--config-file", help=argparse.SUPPRESS)
 
+    #Argument to output the list of needed genes to a file
+    parser.add_argument("--list-genes", default=None, help=argparse.SUPPRESS)
+
     args = parser.parse_args()
 
     args = vars(args)  # Convert to a Dictionary
@@ -196,11 +202,12 @@ def parseArgs():
     load_config(args)
 
     if not args['data']:
-        if not args['precache']:
-            parser.error("--data [file] required unless --precache option selected")
+        if not args['precache'] and not args['list_genes']:
+            parser.error("--data [file] required unless --precache or --list-genes option selected")
     else:
-        # Convert directories/files to absolute paths
-        args['data'] = os.path.abspath(args['data'])          
+        args['data'] = [os.path.abspath(p) for p in args['data']]
+        if len(args['data']) == 2:
+            args['data'].append(None)
 
     if args['input_weights']:
         args['input_weights'] = os.path.abspath(args['input_weights'])
@@ -272,6 +279,17 @@ def entry():
 
     logger.debug("\nCOMPASS Started: {}".format(start_time))
     # Parse arguments and decide what course of action to take
+
+    if args['list_genes'] is not None:
+        model = init_model(model=args['model'], species=args['species'],
+                exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'])
+        genes = list(set.union(*[set(reaction.list_genes()) for rxn_id, reaction in model.reactions.items()]))
+        genes = "\n".join(genes)
+        with open(args['list_genes'], 'w') as fout:
+            fout.write(genes.encode('utf8'))
+            fout.close()
+        return
+            
 
     if args['output_knn']:
         compute_knn(args)
@@ -355,7 +373,7 @@ def runCompassParallel(args):
         args['num_processes'] = multiprocessing.cpu_count()
 
     # Get the number of samples
-    data = pd.read_csv(args['data'], sep='\t', index_col=0)
+    data = utils.read_data(args['data'])#pd.read_csv(args['data'], sep='\t', index_col=0)
     n_samples = len(data.columns)
 
     partial_map_fun = partial(_parallel_map_fun, args=args)
@@ -462,7 +480,7 @@ def collectCompassResults(data, temp_dir, out_dir, args):
     logger.info("Writing output to: " + out_dir)
 
     # Get the number of samples
-    expression = pd.read_csv(data, sep='\t', index_col=0)
+    expression = utils.read_data(data)#pd.read_csv(data, sep='\t', index_col=0)
     n_samples = len(expression.columns)
 
     reactions_all = []

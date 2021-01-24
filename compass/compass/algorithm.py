@@ -78,7 +78,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
 
     # Only read this to get the number of samples and the sample name
     # Use nrows=1 so this is fast
-    expression = pd.read_csv(data, sep='\t', index_col=0, nrows=1)
+    expression = utils.read_data(data)#pd.read_csv(data, sep='\t', index_col=0, nrows=1) #TBD add similar function for counting mtx stuff
     sample_name = expression.columns[sample_index]
 
     logger.info("Processing Sample %i/%i: %s", sample_index,
@@ -467,7 +467,7 @@ def compass_reactions(model, problem, reaction_penalties, select_reactions=None,
 
     if TEST_MODE:
         reactions = reactions[0:100]
-    shuffle(reactions)
+    #shuffle(reactions)
 
     if select_reactions:
         #assume this is a filename with one reaction per row, ignores unrecognized reactions
