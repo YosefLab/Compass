@@ -11,10 +11,11 @@ higher scores correspond to a reaction being **less** likely.
 Running Compass (Simple)
 ------------------------
 
-Input file ``expression.txt`` should be a tab-delimited text file
+The input file can be either a tab-delimited text file (tsv) or a matrix market format (mtx)
 containing gene expression estimates (TPM) with one row per gene, one
-column per sample. Must contain both row and column labels,
-corresponding to genes and sample IDs/names respectively. 
+column per sample. 
+Tab-delimited files need row and column labels corresponding to genes and sample names. Market matrix formats need a separate tab delimited file of of gene names and optionally a tab delimited file of cell names.
+
 
 You can find an example input in the Compass install directory under /Compass/Resources/Test Data. You can find the Compass install directory with 
 
@@ -34,25 +35,33 @@ Then you can run compass on the data with the following command, which will limi
 
    compass --data expression.txt --num-processes 10
 
+And to run compass on mtx formatted data you:
+
+.. code:: bash
+
+   compass --data expression.mtx genes.tsv sample_names.tsv --num-processes 10
+
+Though the sample names file can be omitted, in which case the samples will be labelled by index.
+
 Below is an example of the formatting for gene expression (We only show
 a small portion of the matrix):
 
 .. image:: images/input_ex.png
 
 For the first run of compass on a given model and media there will be overhead building up Compass's cache. 
-Depending on the number of threads available this can be reasonbly fast, taking 5-10 minuts on 20 threads. 
-You can manually build up the cache before running compass with:
+Compass will automatically build up the cache if it is empty, but you can also manually build up the cache before running compass with:
 
 .. code:: bash
 
    compass --precache
 
-\ *Note: For every individual sample, Compass takes roughly 30 minutes
-to calculate the reaction penalties (varying by machine). This can
-be expedited by running more than one process at once. In addition,
-Compass saves the results of all samples that it has already processed in the _tmp directory.
-Therefore, Compass can also be stopped and restarted after it is done
-processing a subset of samples so long as the _tmp directory is still there.*\ 
+.. note::
+   For every individual sample, Compass takes roughly 30 minutes
+   to calculate the reaction penalties (varying by machine). This can
+   be expedited by running more than one process at once. In addition,
+   Compass saves the results of all samples that it has already processed in the _tmp directory.
+   Therefore, Compass can also be stopped and restarted after it is done
+   processing a subset of samples so long as the _tmp directory is still there. 
 
 Running Compass (Advanced settings)
 -----------------------------------

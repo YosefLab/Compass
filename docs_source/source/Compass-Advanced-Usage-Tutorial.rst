@@ -14,31 +14,161 @@ Compass allows users to customize various features when using compass.
 
 Below we describe the features in more detail:
 
--  **and-function**: Which function used to aggregate AND
-   associations(min, median, mean). Default min
--  **input-weights**:
--  **lambda**: Smoothing factor for single-cell data. Should be set
-   between 0 and 1
--  **media**:
--  **model**: Metabolic model to use (RECON1_mat, RECON2_mat, RECON2.2).
-   Default is RECON2_mat
--  **no-metabolites**: Flag to disable calculation and output of
+Metabolic Model Settings
+------------------------
+
+**\-\-model** [MODEL]
+   Metabolic model to use. Options:
+
+   - RECON1_mat 
+   - RECON2_mat (default)
+   - RECON2.2
+
+**\-\-media** [MEDIA]
+   The media to simulate the model with.
+
+**\-\-species** [SPECIES]
+   Species to use to match genes to model. Options:
+
+   - homo_sapiens (default)
+   - mus_musculus
+
+**\-\-and-function** [AND]
+   Which function used to aggregate AND
+   associations. Options: 
+   
+   - min (default)
+   - median
+   - mean
+
+**\-\-calc-metabolites**
+   Flag to enable calculation and output of
    uptake/secretion scores in addition to reaction scores.
--  **no-reactions**: Flag to disable calculation and output of reaction
+
+**\-\-no-reactions**
+   Flag to disable calculation and output of reaction
    scores in addition to uptake/secretion scores.
--  **num-neighbors**: Either effective number of neighbors for gaussian
+
+**\-\-list-genes** [FILE]
+   File to output a list of metabolic genes needed for selected metabolic model.
+
+**\-\-select-reactions** [FILE]
+   Compute compass scores only for the reactions listed in the given file. 
+   FILE is expected to be textual, with one line per reaction 
+   (undirected, namely adding the suffix \"_pos\" or \"_neg\" to a line will create a valid directed reaction id). 
+   Unrecognized reactions in FILE are ignored.
+
+Penalty Settings
+----------------
+
+**\-\-penalty-diffusion** [MODE]
+   Mode to use to share reaction penalty values
+   between single cells. Options:
+
+   - gaussian (default)
+   - knn
+
+**\-\-lambda** [LAMBDA]
+   Smoothing factor for single-cell data. Should be set between 0 and 1
+
+**\-\-num-neighbors** [K]
+   Either effective number of neighbors for gaussian
    penalty diffusion or exact number of neighbors for KNN penalty
    diffusion. Default is 30
--  **num-processes**: Number of processes for Compass to use. Ignored
-   when submitting job onto a queue
--  **num-threads**: Number of threads to use per sample. Default is 1. Generally scaling the number of processes results is better than the number of threads.
--  **output-dir**: Final directory to output concatenated reactions.txt
-   file
--  **penalty-diffusion**: Mode to use to share reaction penalty values
-   between single cells (gaussian, knn). Default gaussian
--  **species**: Species to use to match genes to model (homo_sapiens,
-   mus_musculus). Default is homo_sapiens
--  **symmetric-kernel**:
--  **temp-dir**: Directory to store partial results for completed
+
+**\-\-input-weights** [FILE]
+   File to input custom weights for averaging of single-cell data.
+   The column and row labels should be the same as the names of samples in expression data.
+
+**\-\-symmetric-kernel**
+   Flag to enable symmetrizing the TSNE kernel which takes longer
+
+**\-\-input-knn** [FILE]
+   File to input a precomputed kNN graph for the samples.
+
+**\-\-output-knn** [FILE]
+   File to save kNN graph of the samples to.
+
+**\-\-latent-space** [FILE]
+   File with latent space representation of the samples on which to do the kNN clustering
+
+Input and Output settings
+-------------------------
+
+**\-\-data** [FILES]
+   File to input gene expression data with rows as genes and columns as sample names. 
+   The input can a single tab-delimited file with row and column labels:
+
+   .. code:: bash
+
+      --data expression.tsv
+
+   Or the input can be in the matrix market format followed by two tab separted files, with the first file being row labels corresponding to genes and the second file being column labels corresponding to sample names:
+
+   .. code:: bash
+
+      --data expression.mtx genes.tsv sample_names.tsv
+
+   The sample names file can be omitted in which case the samples will be labelled by index, but the genes file must be included.
+
+**\-\-output-dir** [DIR]
+   Final directory to output concatenated reactions.txt file
+
+**\-\-temp-dir** [DIR]
+   Directory to store partial results for completed
    samples in a dataset
--  **torque-queue**: Name of the torque queue to submit to
+
+Computing Settings
+------------------
+
+**\-\-num-processes** [N]
+   Number of processes for Compass to use. Must be a positive integer and defaults to the number of processors on machine (using Python's :code:`multiprocessing.cpu_count()`). Ignored
+   when submitting job onto a queue
+
+**\-\-num-threads** [N]
+   Number of threads to use per sample. Default is 1. 
+
+.. note::
+   It is generally better to increase the number of processes than the number of threads for better performance, unless the number of processes is greater than the number of samples.
+
+**\-\-torque-queue** [QUEUE]
+   Name of the torque queue to submit to
+
+**\-\-precache**
+   A flag to force compass to build up the cache for the selected model and media. This will rebuild the cache even if one already exists.
+
+Testing and Hidden Settings
+---------------------------
+There are several Compass arguments which are supprsed by argparse because they are primarily for testing or for batch jobs.
+
+**\-\-test-mode**
+   Flag which limits computing scores to the first 100 reactions and first 50 metabolites
+
+**\-\-detailed-perf**
+   Flag which enables more performance data collection such as runtimes per reaction per sample.
+
+**\-\-collect** 
+   Flag to have compass collect results. Used for batch jobs
+
+**\-\-config-file** [FILE]
+   Setting used for batch jobs
+
+**\-\-penalties-file** [FILE]
+   File which allows for specifying a penalties file other than the default one (which is _tmp/penalties.txt.gz)
+
+**\-\-lpmethod** [N]
+   Argument to choose the algorithm CPLEX uses. 
+   See `Cplex documentation for more details <https://www.ibm.com/support/knowledgecenter/SSSA5P_20.1.0/ilog.odms.cplex.help/CPLEX/Parameters/topics/LPMETHOD.html>`__. 
+   Through testing the barrier algorithm (4) is fastest and therefore default, with automatic selection (0) or dual simplex (2) also performing well.
+
+**\-\-advance** [N]
+   Argument to choose the setting for Cplex's advanced basis setting.
+   See `Cplex documentaton for more details <https://www.ibm.com/support/knowledgecenter/SSSA5P_20.1.0/ilog.odms.cplex.help/CPLEX/Parameters/topics/AdvInd.html>`__.
+   Defaults to 2 as best runtime was found using that for tests.
+
+**\-\-save-argmaxes**
+   Flag to enable saving the argmaxes for computing Compass scores of each reaction.
+
+
+
+

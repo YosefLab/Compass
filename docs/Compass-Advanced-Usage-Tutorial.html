@@ -128,9 +128,32 @@
           
           <div class="d-none d-xl-block col-xl-2 bd-toc">
               
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
 
 <nav id="bd-toc-nav">
     <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#metabolic-model-settings" class="nav-link">Metabolic Model Settings</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#penalty-settings" class="nav-link">Penalty Settings</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#input-and-output-settings" class="nav-link">Input and Output settings</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#computing-settings" class="nav-link">Computing Settings</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#testing-and-hidden-settings" class="nav-link">Testing and Hidden Settings</a>
+        </li>
     
     </ul>
 </nav>
@@ -157,36 +180,143 @@
 </pre></div>
 </div>
 <p>Below we describe the features in more detail:</p>
+<div class="section" id="metabolic-model-settings">
+<h2>Metabolic Model Settings<a class="headerlink" href="#metabolic-model-settings" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt><strong>--model</strong> [MODEL]</dt><dd><p>Metabolic model to use. Options:</p>
 <ul class="simple">
-<li><p><strong>and-function</strong>: Which function used to aggregate AND
-associations(min, median, mean). Default min</p></li>
-<li><p><strong>input-weights</strong>:</p></li>
-<li><p><strong>lambda</strong>: Smoothing factor for single-cell data. Should be set
-between 0 and 1</p></li>
-<li><p><strong>media</strong>:</p></li>
-<li><p><strong>model</strong>: Metabolic model to use (RECON1_mat, RECON2_mat, RECON2.2).
-Default is RECON2_mat</p></li>
-<li><p><strong>no-metabolites</strong>: Flag to disable calculation and output of
-uptake/secretion scores in addition to reaction scores.</p></li>
-<li><p><strong>no-reactions</strong>: Flag to disable calculation and output of reaction
-scores in addition to uptake/secretion scores.</p></li>
-<li><p><strong>num-neighbors</strong>: Either effective number of neighbors for gaussian
-penalty diffusion or exact number of neighbors for KNN penalty
-diffusion. Default is 30</p></li>
-<li><p><strong>num-processes</strong>: Number of processes for Compass to use. Ignored
-when submitting job onto a queue</p></li>
-<li><p><strong>num-threads</strong>: Number of threads to use per sample. Default is 1. Generally scaling the number of processes results is better than the number of threads.</p></li>
-<li><p><strong>output-dir</strong>: Final directory to output concatenated reactions.txt
-file</p></li>
-<li><p><strong>penalty-diffusion</strong>: Mode to use to share reaction penalty values
-between single cells (gaussian, knn). Default gaussian</p></li>
-<li><p><strong>species</strong>: Species to use to match genes to model (homo_sapiens,
-mus_musculus). Default is homo_sapiens</p></li>
-<li><p><strong>symmetric-kernel</strong>:</p></li>
-<li><p><strong>temp-dir</strong>: Directory to store partial results for completed
-samples in a dataset</p></li>
-<li><p><strong>torque-queue</strong>: Name of the torque queue to submit to</p></li>
+<li><p>RECON1_mat</p></li>
+<li><p>RECON2_mat (default)</p></li>
+<li><p>RECON2.2</p></li>
 </ul>
+</dd>
+<dt><strong>--media</strong> [MEDIA]</dt><dd><p>The media to simulate the model with.</p>
+</dd>
+<dt><strong>--species</strong> [SPECIES]</dt><dd><p>Species to use to match genes to model. Options:</p>
+<ul class="simple">
+<li><p>homo_sapiens (default)</p></li>
+<li><p>mus_musculus</p></li>
+</ul>
+</dd>
+<dt><strong>--and-function</strong> [AND]</dt><dd><p>Which function used to aggregate AND
+associations. Options:</p>
+<ul class="simple">
+<li><p>min (default)</p></li>
+<li><p>median</p></li>
+<li><p>mean</p></li>
+</ul>
+</dd>
+<dt><strong>--calc-metabolites</strong></dt><dd><p>Flag to enable calculation and output of
+uptake/secretion scores in addition to reaction scores.</p>
+</dd>
+<dt><strong>--no-reactions</strong></dt><dd><p>Flag to disable calculation and output of reaction
+scores in addition to uptake/secretion scores.</p>
+</dd>
+<dt><strong>--list-genes</strong> [FILE]</dt><dd><p>File to output a list of metabolic genes needed for selected metabolic model.</p>
+</dd>
+<dt><strong>--select-reactions</strong> [FILE]</dt><dd><p>Compute compass scores only for the reactions listed in the given file.
+FILE is expected to be textual, with one line per reaction
+(undirected, namely adding the suffix &quot;_pos&quot; or &quot;_neg&quot; to a line will create a valid directed reaction id).
+Unrecognized reactions in FILE are ignored.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="penalty-settings">
+<h2>Penalty Settings<a class="headerlink" href="#penalty-settings" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt><strong>--penalty-diffusion</strong> [MODE]</dt><dd><p>Mode to use to share reaction penalty values
+between single cells. Options:</p>
+<ul class="simple">
+<li><p>gaussian (default)</p></li>
+<li><p>knn</p></li>
+</ul>
+</dd>
+<dt><strong>--lambda</strong> [LAMBDA]</dt><dd><p>Smoothing factor for single-cell data. Should be set between 0 and 1</p>
+</dd>
+<dt><strong>--num-neighbors</strong> [K]</dt><dd><p>Either effective number of neighbors for gaussian
+penalty diffusion or exact number of neighbors for KNN penalty
+diffusion. Default is 30</p>
+</dd>
+<dt><strong>--input-weights</strong> [FILE]</dt><dd><p>File to input custom weights for averaging of single-cell data.
+The column and row labels should be the same as the names of samples in expression data.</p>
+</dd>
+<dt><strong>--symmetric-kernel</strong></dt><dd><p>Flag to enable symmetrizing the TSNE kernel which takes longer</p>
+</dd>
+<dt><strong>--input-knn</strong> [FILE]</dt><dd><p>File to input a precomputed kNN graph for the samples.</p>
+</dd>
+<dt><strong>--output-knn</strong> [FILE]</dt><dd><p>File to save kNN graph of the samples to.</p>
+</dd>
+<dt><strong>--latent-space</strong> [FILE]</dt><dd><p>File with latent space representation of the samples on which to do the kNN clustering</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="input-and-output-settings">
+<h2>Input and Output settings<a class="headerlink" href="#input-and-output-settings" title="Permalink to this headline">¶</a></h2>
+<dl>
+<dt><strong>--data</strong> [FILES]</dt><dd><p>File to input gene expression data with rows as genes and columns as sample names.
+The input can a single tab-delimited file with row and column labels:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>--data expression.tsv
+</pre></div>
+</div>
+<p>Or the input can be in the matrix market format followed by two tab separted files, with the first file being row labels corresponding to genes and the second file being column labels corresponding to sample names:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>--data expression.mtx genes.tsv sample_names.tsv
+</pre></div>
+</div>
+<p>The sample names file can be omitted in which case the samples will be labelled by index, but the genes file must be included.</p>
+</dd>
+<dt><strong>--output-dir</strong> [DIR]</dt><dd><p>Final directory to output concatenated reactions.txt file</p>
+</dd>
+<dt><strong>--temp-dir</strong> [DIR]</dt><dd><p>Directory to store partial results for completed
+samples in a dataset</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="computing-settings">
+<h2>Computing Settings<a class="headerlink" href="#computing-settings" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt><strong>--num-processes</strong> [N]</dt><dd><p>Number of processes for Compass to use. Must be a positive integer and defaults to the number of processors on machine (using Python’s <code class="code docutils literal notranslate"><span class="pre">multiprocessing.cpu_count()</span></code>). Ignored
+when submitting job onto a queue</p>
+</dd>
+<dt><strong>--num-threads</strong> [N]</dt><dd><p>Number of threads to use per sample. Default is 1.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It is generally better to increase the number of processes than the number of threads for better performance, unless the number of processes is greater than the number of samples.</p>
+</div>
+<dl class="simple">
+<dt><strong>--torque-queue</strong> [QUEUE]</dt><dd><p>Name of the torque queue to submit to</p>
+</dd>
+<dt><strong>--precache</strong></dt><dd><p>A flag to force compass to build up the cache for the selected model and media. This will rebuild the cache even if one already exists.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="testing-and-hidden-settings">
+<h2>Testing and Hidden Settings<a class="headerlink" href="#testing-and-hidden-settings" title="Permalink to this headline">¶</a></h2>
+<p>There are several Compass arguments which are supprsed by argparse because they are primarily for testing or for batch jobs.</p>
+<dl class="simple">
+<dt><strong>--test-mode</strong></dt><dd><p>Flag which limits computing scores to the first 100 reactions and first 50 metabolites</p>
+</dd>
+<dt><strong>--detailed-perf</strong></dt><dd><p>Flag which enables more performance data collection such as runtimes per reaction per sample.</p>
+</dd>
+<dt><strong>--collect</strong></dt><dd><p>Flag to have compass collect results. Used for batch jobs</p>
+</dd>
+<dt><strong>--config-file</strong> [FILE]</dt><dd><p>Setting used for batch jobs</p>
+</dd>
+<dt><strong>--penalties-file</strong> [FILE]</dt><dd><p>File which allows for specifying a penalties file other than the default one (which is _tmp/penalties.txt.gz)</p>
+</dd>
+<dt><strong>--lpmethod</strong> [N]</dt><dd><p>Argument to choose the algorithm CPLEX uses.
+See <a class="reference external" href="https://www.ibm.com/support/knowledgecenter/SSSA5P_20.1.0/ilog.odms.cplex.help/CPLEX/Parameters/topics/LPMETHOD.html">Cplex documentation for more details</a>.
+Through testing the barrier algorithm (4) is fastest and therefore default, with automatic selection (0) or dual simplex (2) also performing well.</p>
+</dd>
+<dt><strong>--advance</strong> [N]</dt><dd><p>Argument to choose the setting for Cplex’s advanced basis setting.
+See <a class="reference external" href="https://www.ibm.com/support/knowledgecenter/SSSA5P_20.1.0/ilog.odms.cplex.help/CPLEX/Parameters/topics/AdvInd.html">Cplex documentaton for more details</a>.
+Defaults to 2 as best runtime was found using that for tests.</p>
+</dd>
+<dt><strong>--save-argmaxes</strong></dt><dd><p>Flag to enable saving the argmaxes for computing Compass scores of each reaction.</p>
+</dd>
+</dl>
+</div>
 </div>
 
 
