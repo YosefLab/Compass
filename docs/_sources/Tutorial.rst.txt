@@ -33,7 +33,7 @@ Then you can run compass on the data with the following command, which will limi
 
 .. code:: bash
 
-   compass --data expression.txt --num-processes 10
+   compass --data expression.tsv --num-processes 10
 
 And to run compass on mtx formatted data you:
 
