@@ -72,16 +72,21 @@ def eval_reaction_penalties(expression_file, model, media,
     # Evaluate reaction penalties
     input_weights = None
     if input_weights_file:
-        input_weights = pd.read_csv(input_weights_file, sep='\t', index_col=0)
-        # ensure same cell labels
-        if len(input_weights.index & expression.columns) != \
-                input_weights.shape[0]:
-            raise Exception("Input weights file rows must have same sample "
-                            "labels as expression columns")
-        if len(input_weights.columns & expression.columns) != \
-                input_weights.shape[1]:
-            raise Exception("Input weights file columns must have same sample "
-                            "labels as expression columns")
+        if input_weights_file[-3:] == 'mtx':
+            input_weights = scipy.io.mmread(input_weights_file).todense()
+            input_weights = input_weights / input_weights.sum(axis=1,keepdims=1) #normalize the weights so each row sums to 1.
+            input_weights = pd.DataFrame(input_weights, index=input_weights.index, columns=input_weights.index)
+        else:
+            input_weights = pd.read_csv(input_weights_file, sep='\t', index_col=0)
+            # ensure same cell labels
+            if len(input_weights.index & expression.columns) != \
+                    input_weights.shape[0]:
+                raise Exception("Input weights file rows must have same sample "
+                                "labels as expression columns")
+            if len(input_weights.columns & expression.columns) != \
+                    input_weights.shape[1]:
+                raise Exception("Input weights file columns must have same sample "
+                                "labels as expression columns")
 
         input_weights = input_weights.loc[expression.columns, :] \
             .loc[:, expression.columns]
@@ -166,7 +171,7 @@ def eval_reaction_penalties_shared(model, expression,
         )
     else:
         if latent_input is not None:
-            expression_data = pd.read_csv(latent_input, sep='\t', index_col=0)
+            expression_data = pd.read_csv(latent_input, sep='\t', index_col=0).T
         # log scale and PCA expresion
         else:
             log_expression = np.log2(expression+1)

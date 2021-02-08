@@ -11,23 +11,24 @@ higher scores correspond to a reaction being **less** likely.
 Running Compass (Simple)
 ------------------------
 
-The input file can be either a tab-delimited text file (tsv) or a matrix market format (mtx)
-containing gene expression estimates (TPM) with one row per gene, one
-column per sample. 
+The input gene expression matrix can be either a tab-delimited text file (tsv) or a matrix market format (mtx)
+containing gene expression estimates (TPM) with one row per gene, one column per sample. 
+
 Tab-delimited files need row and column labels corresponding to genes and sample names. Market matrix formats need a separate tab delimited file of of gene names and optionally a tab delimited file of cell names.
 
+Example input
+^^^^^^^^^^^^^
 
-You can find an example input in the Compass install directory under /Compass/Resources/Test Data. You can find the Compass install directory with 
+You can find an example input in tab-delimited format (tsv) and market matrix format (mtx) on this github repo under `compass/Resources/Test-Data <https://github.com/YosefLab/Compass/tree/master/compass/Resources/Test-Data>`__. 
 
-.. code:: bash
-
-   which compass
-
-Or on Windows
+The file will exist locally as well under the Compass install directory which will generally be stored in Python's ``site-packages`` folder (this might vary depending on your python setup). The site-packages directory will be listed by running this command:
 
 .. code:: bash
 
-   where compass
+   python -c 'import site; print(site.getsitepackages())'
+
+Running Compass
+---------------
 
 Then you can run compass on the data with the following command, which will limit the number of processes to 10:
 
@@ -35,7 +36,7 @@ Then you can run compass on the data with the following command, which will limi
 
    compass --data expression.tsv --num-processes 10
 
-And to run compass on mtx formatted data you:
+And to run compass on mtx formatted data use the following:
 
 .. code:: bash
 
@@ -43,8 +44,7 @@ And to run compass on mtx formatted data you:
 
 Though the sample names file can be omitted, in which case the samples will be labelled by index.
 
-Below is an example of the formatting for gene expression (We only show
-a small portion of the matrix):
+Below is an example of the formatting for gene expression (We only showa small portion of the matrix):
 
 .. image:: images/input_ex.png
 
@@ -63,8 +63,8 @@ Compass will automatically build up the cache if it is empty, but you can also m
    Therefore, Compass can also be stopped and restarted after it is done
    processing a subset of samples so long as the _tmp directory is still there. 
 
-Running Compass (Advanced settings)
------------------------------------
+Compass Setttings
+-----------------
 
 Compass also allows users to customize a variaty of settings seen below:
 
@@ -78,8 +78,8 @@ Compass also allows users to customize a variaty of settings seen below:
                   [--penalty-diffusion MODE] [--no-reactions] [--no-metabolites]
 
 See our instructions
-:doc:`here </Compass-Advanced-Usage-Tutorial>`
-for an in depth tutorial on using Compass’s advanced settings
+:doc:`here </Compass-Settings>`
+for an in depth tutorial on using Compass’s settings
 
 Postprocessing
 --------------

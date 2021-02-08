@@ -35,7 +35,9 @@ Installing Cplex
 ****************
 
 CPLEX is an optimization engine that COMPASS uses and it must be
-installed from IBM. We use the Python API for Cplex (not Docplex which is a higher level API). We note that it may be simpler to download the
+installed from IBM. We use the Python API for Cplex (not Docplex which is a higher level API). 
+
+We note that it may be simpler to download the
 installation files locally and SCP/File Transfer them over to the
 corresponding server.
 
@@ -43,7 +45,9 @@ Download
 --------
 
 First navigate to the main page for CPLEX `here <https://www.ibm.com/products/ilog-cplex-optimization-studio>`__ 
+
 COMPASS requires the full edition of CPLEX, which is free for academic use. Click the ‘Get student and faculty editions’ link.
+
 Register an account or Log In to an existing account. Once logged in, \
 scroll down to the ‘Software’ section and to a download page for “ILOG CPLEX Optimization Studio”.
 

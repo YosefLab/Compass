@@ -53,22 +53,31 @@ def read_data(data):
     else:
         return read_mtx(data[0], data[1], data[2])
 
-def read_mtx(mtx_file, genes_file, barcodes_file=None):
+def read_mtx(mtx_file, rows_file, columns_file=None):
     """
-        Reads an mtx file into a pandas dataframe for doing Compass stuff with
+        Reads an mtx file into a pandas dataframe for doing Compass stuff with. Primarily for reading gene expression files.
     """
     mtx = scipy.io.mmread(mtx_file)
-    genes = pd.read_csv(genes_file, sep='\t', header=None)
-    if barcodes_file is not None:
-        barcodes = pd.read_csv(barcodes_file, sep='\t', header=None)
+    rows = pd.read_csv(rows_file, sep='\t', header=None)
+    if columns_file is not None:
+        columns = pd.read_csv(columns_file, sep='\t', header=None)
         if pd.__version__ >= '1':
-            return pd.DataFrame.sparse.from_spmatrix(mtx, index=genes.to_numpy().ravel(), columns = barcodes.to_numpy().ravel())
+            return pd.DataFrame.sparse.from_spmatrix(mtx, index=rows.to_numpy().ravel(), columns = columns.to_numpy().ravel())
         else:
-            return pd.SparseDataFrame(mtx, index=genes.to_numpy().ravel(), columns = barcodes.to_numpy().ravel())
+            return pd.SparseDataFrame(mtx, index=rows.to_numpy().ravel(), columns = columns.to_numpy().ravel())
     else:
         if pd.__version__ >= '1':
-            return pd.DataFrame.sparse.from_spmatrix(mtx, index=genes.to_numpy().ravel())
+            return pd.DataFrame.sparse.from_spmatrix(mtx, index=rows.to_numpy().ravel())
         else:
-            return pd.SparseDataFrame(mtx, index=genes.to_numpy().ravel())
+            return pd.SparseDataFrame(mtx, index=rows.to_numpy().ravel())
 
-        
+def read_knn(knn_data):
+    """
+        Reads a knn_file in either csv or sparse format
+    """
+    if len(knn_data) > 2:
+        return read_mtx(knn_data[0], knn_data[1], knn_data[2])
+    elif len(knn_data) > 1:
+        return read_mtx(knn_data[0], knn_data[1], knn_data[1])
+    else:
+        return pd.read_csv(knn_data[0], sep='\t', index_col=0)

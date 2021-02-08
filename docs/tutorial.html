@@ -36,8 +36,8 @@
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Extra Features" href="extra.html" />
-    <link rel="prev" title="Installing Compass" href="install.html" />
+    <link rel="next" title="Compass Settings" href="Compass-Settings.html" />
+    <link rel="prev" title="Compass User Guide" href="user-guide.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
   </head>
@@ -64,11 +64,15 @@
         </li>
         
         <li class="nav-item active">
-            <a class="nav-link" href="">Tutorial</a>
+            <a class="nav-link" href="user-guide.html">Compass User Guide</a>
         </li>
         
         <li class="nav-item ">
-            <a class="nav-link" href="extra.html">Extra Features</a>
+            <a class="nav-link" href="Compass-Postprocessing-Tutorial.html">Compass Postprocessing</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="Compass-Settings.html">Compass Settings</a>
         </li>
         
         
@@ -104,6 +108,32 @@
         
         
           
+            
+                <li class="">
+                    <a href="install.html">Installing Compass</a>
+                </li>
+            
+          
+            
+                <li class="active">
+                    <a href="">Tutorial</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="Compass-Settings.html">Compass Settings</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="Compass-Postprocessing-Tutorial.html">Compass Postprocessing</a>
+                </li>
+            
+          
+        
+        
         
         
         
@@ -125,11 +155,21 @@
     <ul class="nav section-nav flex-column">
     
         <li class="nav-item toc-entry toc-h2">
-            <a href="#running-compass-simple" class="nav-link">Running Compass (Simple)</a>
+            <a href="#running-compass-simple" class="nav-link">Running Compass (Simple)</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#example-input" class="nav-link">Example input</a>
+        </li>
+    
+            </ul>
         </li>
     
         <li class="nav-item toc-entry toc-h2">
-            <a href="#running-compass-advanced-settings" class="nav-link">Running Compass (Advanced settings)</a>
+            <a href="#running-compass" class="nav-link">Running Compass</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#compass-setttings" class="nav-link">Compass Setttings</a>
         </li>
     
         <li class="nav-item toc-entry toc-h2">
@@ -158,10 +198,15 @@
 <div class="contents local topic" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#running-compass-simple" id="id1">Running Compass (Simple)</a></p></li>
-<li><p><a class="reference internal" href="#running-compass-advanced-settings" id="id2">Running Compass (Advanced settings)</a></p></li>
-<li><p><a class="reference internal" href="#postprocessing" id="id3">Postprocessing</a></p></li>
-<li><p><a class="reference internal" href="#outputs" id="id4">Outputs</a></p></li>
+<li><p><a class="reference internal" href="#running-compass-simple" id="id1">Running Compass (Simple)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#example-input" id="id2">Example input</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#running-compass" id="id3">Running Compass</a></p></li>
+<li><p><a class="reference internal" href="#compass-setttings" id="id4">Compass Setttings</a></p></li>
+<li><p><a class="reference internal" href="#postprocessing" id="id5">Postprocessing</a></p></li>
+<li><p><a class="reference internal" href="#outputs" id="id6">Outputs</a></p></li>
 </ul>
 </div>
 <p>Broadly speaking, Compass takes in a gene expression matrix scaled by
@@ -169,29 +214,30 @@ transcripts per million, and outputs a penalty reaction matrix, whereby
 higher scores correspond to a reaction being <strong>less</strong> likely.</p>
 <div class="section" id="running-compass-simple">
 <h2><a class="toc-backref" href="#id1">Running Compass (Simple)</a><a class="headerlink" href="#running-compass-simple" title="Permalink to this headline">¶</a></h2>
-<p>The input file can be either a tab-delimited text file (tsv) or a matrix market format (mtx)
-containing gene expression estimates (TPM) with one row per gene, one
-column per sample.
-Tab-delimited files need row and column labels corresponding to genes and sample names. Market matrix formats need a separate tab delimited file of of gene names and optionally a tab delimited file of cell names.</p>
-<p>You can find an example input in the Compass install directory under /Compass/Resources/Test Data. You can find the Compass install directory with</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>which compass
+<p>The input gene expression matrix can be either a tab-delimited text file (tsv) or a matrix market format (mtx)
+containing gene expression estimates (TPM) with one row per gene, one column per sample.</p>
+<p>Tab-delimited files need row and column labels corresponding to genes and sample names. Market matrix formats need a separate tab delimited file of of gene names and optionally a tab delimited file of cell names.</p>
+<div class="section" id="example-input">
+<h3><a class="toc-backref" href="#id2">Example input</a><a class="headerlink" href="#example-input" title="Permalink to this headline">¶</a></h3>
+<p>You can find an example input in tab-delimited format (tsv) and market matrix format (mtx) on this github repo under <a class="reference external" href="https://github.com/YosefLab/Compass/tree/master/compass/Resources/Test-Data">compass/Resources/Test-Data</a>.</p>
+<p>The file will exist locally as well under the Compass install directory which will generally be stored in Python’s <code class="docutils literal notranslate"><span class="pre">site-packages</span></code> folder (this might vary depending on your python setup). The site-packages directory will be listed by running this command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -c <span class="s1">&#39;import site; print(site.getsitepackages())&#39;</span>
 </pre></div>
 </div>
-<p>Or on Windows</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>where compass
-</pre></div>
 </div>
+</div>
+<div class="section" id="running-compass">
+<h2><a class="toc-backref" href="#id3">Running Compass</a><a class="headerlink" href="#running-compass" title="Permalink to this headline">¶</a></h2>
 <p>Then you can run compass on the data with the following command, which will limit the number of processes to 10:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>compass --data expression.tsv --num-processes <span class="m">10</span>
 </pre></div>
 </div>
-<p>And to run compass on mtx formatted data you:</p>
+<p>And to run compass on mtx formatted data use the following:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>compass --data expression.mtx genes.tsv sample_names.tsv --num-processes <span class="m">10</span>
 </pre></div>
 </div>
 <p>Though the sample names file can be omitted, in which case the samples will be labelled by index.</p>
-<p>Below is an example of the formatting for gene expression (We only show
-a small portion of the matrix):</p>
+<p>Below is an example of the formatting for gene expression (We only showa small portion of the matrix):</p>
 <img alt="_images/input_ex.png" src="_images/input_ex.png" />
 <p>For the first run of compass on a given model and media there will be overhead building up Compass’s cache.
 Compass will automatically build up the cache if it is empty, but you can also manually build up the cache before running compass with:</p>
@@ -208,8 +254,8 @@ Therefore, Compass can also be stopped and restarted after it is done
 processing a subset of samples so long as the _tmp directory is still there.</p>
 </div>
 </div>
-<div class="section" id="running-compass-advanced-settings">
-<h2><a class="toc-backref" href="#id2">Running Compass (Advanced settings)</a><a class="headerlink" href="#running-compass-advanced-settings" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="compass-setttings">
+<h2><a class="toc-backref" href="#id4">Compass Setttings</a><a class="headerlink" href="#compass-setttings" title="Permalink to this headline">¶</a></h2>
 <p>Compass also allows users to customize a variaty of settings seen below:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: compass <span class="o">[</span>-h<span class="o">]</span> --data FILE <span class="o">[</span>--model MODEL<span class="o">]</span> <span class="o">[</span>--species SPECIES<span class="o">]</span>
                <span class="o">[</span>--media MEDIA<span class="o">]</span> <span class="o">[</span>--output-dir DIR<span class="o">]</span> <span class="o">[</span>--temp-dir DIR<span class="o">]</span>
@@ -220,11 +266,11 @@ processing a subset of samples so long as the _tmp directory is still there.</p>
 </pre></div>
 </div>
 <p>See our instructions
-<a class="reference internal" href="Compass-Advanced-Usage-Tutorial.html"><span class="doc">here</span></a>
-for an in depth tutorial on using Compass’s advanced settings</p>
+<a class="reference internal" href="Compass-Settings.html"><span class="doc">here</span></a>
+for an in depth tutorial on using Compass’s settings</p>
 </div>
 <div class="section" id="postprocessing">
-<h2><a class="toc-backref" href="#id3">Postprocessing</a><a class="headerlink" href="#postprocessing" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id5">Postprocessing</a><a class="headerlink" href="#postprocessing" title="Permalink to this headline">¶</a></h2>
 <p>Once Compass has finished running, it is important to apply
 postprocessing to the data in order to convert reaction penalties (where
 high values correspond to low likelihood reactions) to reaction scores
@@ -234,7 +280,7 @@ appropriately postprocesses the data and provides an easy, expressive
 framework for conducting subsequent analyses. See <a class="reference internal" href="Compass-Postprocessing-Tutorial.html"><span class="doc">compass postprocessing tutorial</span></a> for more on how to use it.</p>
 </div>
 <div class="section" id="outputs">
-<h2><a class="toc-backref" href="#id4">Outputs</a><a class="headerlink" href="#outputs" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id6">Outputs</a><a class="headerlink" href="#outputs" title="Permalink to this headline">¶</a></h2>
 <p>When Compass has completed, the outputs for all samples are stored in a
 tab delimited file <code class="docutils literal notranslate"><span class="pre">reactions.tsv</span></code> in the specified output directory
 (<code class="docutils literal notranslate"><span class="pre">.</span></code> directory when running Compass by default).</p>
@@ -251,8 +297,8 @@ each sample in the _tmp directory/ (or the directory following --temp-dir)</em><
               
               <div class='prev-next-bottom'>
                 
-    <a class='left-prev' id="prev-link" href="install.html" title="previous page">Installing Compass</a>
-    <a class='right-next' id="next-link" href="extra.html" title="next page">Extra Features</a>
+    <a class='left-prev' id="prev-link" href="user-guide.html" title="previous page">Compass User Guide</a>
+    <a class='right-next' id="next-link" href="Compass-Settings.html" title="next page">Compass Settings</a>
 
               </div>
               

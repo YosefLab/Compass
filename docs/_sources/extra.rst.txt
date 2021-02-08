@@ -5,5 +5,10 @@ Extra Features
    :maxdepth: 1
    :caption: Contents:
 
+   /Compass-Settings
+   /Compass-Postprocessing-Tutorial
    /AWS-tutorial
-   /Compass-Advanced-Usage-Tutorial
+   
+There are a variety of other settings Compass has that might be useful which are documented here. 
+
+As the Compass algorithm scales very well in parrallel, using cloud computing resources like AWS can come in handy so we provide a `guide <` for using them.

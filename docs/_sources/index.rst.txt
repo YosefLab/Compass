@@ -15,13 +15,13 @@ single cell resolutions. For a detailed description of the algorithm, refer to t
 `biorxiv
 preprint <https://www.biorxiv.org/content/10.1101/2020.01.23.912717v2>`__.
 
-These page provide an installation guide, workthrough of a standard
-analysis, and other documentation to help using Compass.
+These pages have guides on how to install and use Compass, including a walkthrough of an analysis to replicate figures from the preprint.
 
 .. toctree::
    :maxdepth: 1
    :caption: Contents:
 
    /install
-   /tutorial
-   /extra
+   /user-guide
+   /Compass-Postprocessing-Tutorial
+   /Compass-Settings
