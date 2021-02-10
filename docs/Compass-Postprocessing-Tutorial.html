@@ -1,0 +1,437 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Compass Postprocessing &#8212; Compass 2021 documentation</title>
+    
+  <link rel="stylesheet" href="_static/css/index.73d71520a4ca3b99cfee5594769eaaae.css">
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    
+  <link rel="preload" as="script" href="_static/js/index.3da636dd464baa7582d2.js">
+
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Compass Settings" href="Compass-Settings.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="index.html">
+    
+      <p class="title">Compass</p>
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="install.html">Installing Compass</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="user-guide.html">Compass User Guide</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="">Compass Postprocessing</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="Compass-Settings.html">Compass Settings</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+          
+            
+                <li class="">
+                    <a href="install.html">Installing Compass</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="tutorial.html">Tutorial</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="Compass-Settings.html">Compass Settings</a>
+                </li>
+            
+          
+            
+                <li class="active">
+                    <a href="">Compass Postprocessing</a>
+                </li>
+            
+          
+        
+        
+        
+          
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#requirements" class="nav-link">Requirements</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#compassr-installation" class="nav-link">CompassR Installation</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#usage" class="nav-link">Usage</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#loading-your-data" class="nav-link">Loading your data</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#exploring-the-statistical-analysis-suite" class="nav-link">Exploring the statistical analysis suite</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="compass-postprocessing">
+<h1>Compass Postprocessing<a class="headerlink" href="#compass-postprocessing" title="Permalink to this headline">¶</a></h1>
+<p>Our <a class="reference external" href="https://github.com/YosefLab/compassR">compassR package</a>
+appropriately postprocesses the data and provides an easy, expressive
+framework for conducting subsequent analyses based on the
+single-cell metabolic reaction consistency matrix produced by the
+COMPASS algorithm. It also
+includes a suite of expressive utility functions for conducting
+statistical analyses building thereupon.</p>
+<p>The presentation of the algorithm assumes a single-cell data set.
+However, you may choose to group cells together (e.g. via
+<a class="reference external" href="https://github.com/tanaylab/metacell">metacell</a> or
+<a class="reference external" href="https://github.com/YosefLab/Vision">micropooling</a>) to reduce
+computational overhead. You may also apply COMPASS to bulk transcriptome
+data sets (e.g. bulk RNA-seq or microarray data sets) of ample size.</p>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>R (3.5.3+)</p></li>
+<li><p>R devtools package</p></li>
+</ul>
+</div></blockquote>
+<p>Any devtools version with install_github should work.</p>
+</div>
+<div class="section" id="compassr-installation">
+<h2>CompassR Installation<a class="headerlink" href="#compassr-installation" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Make sure you have installed <cite>the ``devtools`</cite>
+package &lt;<a class="reference external" href="https://github.com/r-lib/devtools">https://github.com/r-lib/devtools</a>&gt;`__ from CRAN.</p></li>
+<li><p>To install the CompassR package from github, run <code class="docutils literal notranslate"><span class="pre">devtools::install_github(&quot;YosefLab/compassR&quot;)</span></code>.</p></li>
+</ol>
+<p>You can accomplish both of these steps by running the following R code.</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install devtools from CRAN.</span>
+<span class="nf">install.packages</span><span class="p">(</span><span class="s">&quot;devtools&quot;</span><span class="p">)</span>
+
+<span class="c1"># Install compassR from YosefLab.</span>
+<span class="n">devtools</span><span class="o">::</span><span class="nf">install_github</span><span class="p">(</span><span class="s">&quot;YosefLab/compassR&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>In the following tutorial, we’ll explore the Th17 cell data set (<a class="reference external" href="https://www.biorxiv.org/content/10.1101/2020.01.23.912717v1">Wagner
+et al.</a>;
+<a class="reference external" href="https://www.biorxiv.org/content/10.1101/2020.01.23.911966v1">Wang et
+al.</a>)
+that ships with the package. It will help you get acquainted with the
+basics, while skipping over some of the finer details; if you’re an
+advanced user looking for the full documentation, please refer to the
+<a class="reference external" href="https://github.com/YosefLab/compassR/wiki">the wiki</a> instead.</p>
+<div class="section" id="loading-your-data">
+<h3>Loading your data<a class="headerlink" href="#loading-your-data" title="Permalink to this headline">¶</a></h3>
+<p>Our first step is to import the libaries we need.</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="nf">library</span><span class="p">(</span><span class="n">compassR</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">tidyverse</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The next step is to specify a few settings via a <code class="docutils literal notranslate"><span class="pre">CompassSettings</span></code> object.</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">compass_settings</span> <span class="o">&lt;-</span> <span class="n">CompassSettings</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span>
+    <span class="n">user_data_directory</span> <span class="o">=</span> <span class="nf">system.file</span><span class="p">(</span><span class="s">&quot;extdata&quot;</span><span class="p">,</span> <span class="s">&quot;Th17&quot;</span><span class="p">,</span> <span class="n">package</span> <span class="o">=</span> <span class="s">&quot;compassR&quot;</span><span class="p">),</span>
+    <span class="n">cell_id_col_name</span> <span class="o">=</span> <span class="s">&quot;cell_id&quot;</span><span class="p">,</span>
+    <span class="n">gene_id_col_name</span> <span class="o">=</span> <span class="s">&quot;HGNC.symbol&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>There are 3 important parameters.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">user_data_directory</span></code> is the path to the directory that contains
+the data you want to analyze. This directory should include files
+named <code class="docutils literal notranslate"><span class="pre">&quot;cell_metadata.csv&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;reactions.tsv&quot;</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">&quot;linear_gene_expression_matrix.tsv&quot;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cell_id_col_name</span></code> is the column in <code class="docutils literal notranslate"><span class="pre">&quot;cell_metadata.csv&quot;</span></code> that
+uniquely identifies the cells in your data set.</p></li>
+<li><p>And finally, <code class="docutils literal notranslate"><span class="pre">gene_id_col_name</span></code> is the column in
+<code class="docutils literal notranslate"><span class="pre">&quot;gene_metadata.csv&quot;</span></code> that uniquely identifies the genes you’re
+interested in. Note that you do not have to provide this file unless
+you’re an advanced user. By default, analyses will just use the one
+included in the version of RECON2 that comes with the package – in
+which case you can use <code class="docutils literal notranslate"><span class="pre">&quot;HGNC.symbol&quot;</span></code> for human genes or
+<code class="docutils literal notranslate"><span class="pre">&quot;MGI.symbol&quot;</span></code> for mouse genes.</p></li>
+</ul>
+<p>Now we can load our data by creating a <code class="docutils literal notranslate"><span class="pre">CompassData</span></code> object.</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">compass_data</span> <span class="o">&lt;-</span> <span class="n">CompassData</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="n">compass_settings</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This line may take a minute to run. Under the hood, it’s postprocessing
+the results of the COMPASS algorithm and populating a few tables that
+we’ll find useful for our analyses later on:</p>
+<table class="table">
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 9%" />
+<col style="width: 63%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Table</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reactio</span>
+<span class="pre">n_consistencies</span></code></p></td>
+<td><p>Data
+f
+rame</p></td>
+<td><p>Each row is a reaction and each column is
+a cell. <code class="docutils literal notranslate"><span class="pre">reaction_consistencies[i,</span> <span class="pre">j]</span></code>
+is the consitency (or “compatibility”)
+between reaction <code class="docutils literal notranslate"><span class="pre">i</span></code> and cell <code class="docutils literal notranslate"><span class="pre">j</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">metareactio</span>
+<span class="pre">n_consistencies</span></code></p></td>
+<td><p>Data
+f
+rame</p></td>
+<td><p>Each row is a metareaction and each
+column is a cell.
+<code class="docutils literal notranslate"><span class="pre">metareaction_consistencies[i,</span> <span class="pre">j]</span></code> is
+the consistency (or “compatibility”)
+between metareaction <code class="docutils literal notranslate"><span class="pre">i</span></code> and cell
+<code class="docutils literal notranslate"><span class="pre">j</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>``
+metabolic_genes``</p></td>
+<td><p>Ti
+bble</p></td>
+<td><p>Each row describes a gene in terms of its
+ID and whether it’s a metabolic gene.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">gene_expres</span>
+<span class="pre">sion_statistics</span></code></p></td>
+<td><p>Ti
+bble</p></td>
+<td><p>Each row describes a cell in terms of its
+ID, total expression, metabolic
+expression, and metabolic activity.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cell_metadata</span></code></p></td>
+<td><p>Ti
+bble</p></td>
+<td><p>The cell metadata from
+<code class="docutils literal notranslate"><span class="pre">cell_metadata.csv</span></code>. In this example
+it’s the Th17 cell data from the papers
+linked above.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">gene_metadata</span></code></p></td>
+<td><p>Ti
+bble</p></td>
+<td><p>The gene metadata from the metabolic
+model (RECON2, by default).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">meta</span>
+<span class="pre">bolite_metadata</span></code></p></td>
+<td><p>Ti
+bble</p></td>
+<td><p>The metabolite metadata from the
+metabolic model (RECON2, by default).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">re</span>
+<span class="pre">action_metadata</span></code></p></td>
+<td><p>Ti
+bble</p></td>
+<td><p>The reaction metadata from the metabolic
+model (RECON2, by default).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reac</span>
+<span class="pre">tion_partitions</span></code></p></td>
+<td><p>Ti
+bble</p></td>
+<td><p>Each row describes a reaction in terms of
+its ID, undirected ID, direction, and
+which metareaction (i.e. reaction group)
+it belongs to.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Note that all the metadata tables’ fields are read as characters, and
+must manually be coerced into other data types if desired.</p>
+</div>
+<div class="section" id="exploring-the-statistical-analysis-suite">
+<h3>Exploring the statistical analysis suite<a class="headerlink" href="#exploring-the-statistical-analysis-suite" title="Permalink to this headline">¶</a></h3>
+<p>Now we’re ready to start our analysis! We begin by making a
+<code class="docutils literal notranslate"><span class="pre">CompassAnalyzer</span></code> object.</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">compass_analyzer</span> <span class="o">&lt;-</span> <span class="n">CompassAnalyzer</span><span class="o">$</span><span class="nf">new</span><span class="p">(</span><span class="n">compass_settings</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>With the <code class="docutils literal notranslate"><span class="pre">CompassAnalyzer</span></code>, it’s easy to conduct statistical analyses.
+Let’s do a Wilcoxon rank-sum test for whether each reaction achieves a
+higher consistency among Th17p cells or Th17n cells.</p>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="n">group_A_cell_ids</span> <span class="o">&lt;-</span>
+    <span class="n">compass_data</span><span class="o">$</span><span class="n">cell_metadata</span> <span class="o">%&gt;%</span>
+    <span class="nf">filter</span><span class="p">(</span><span class="n">cell_type</span> <span class="o">==</span> <span class="s">&quot;Th17p&quot;</span><span class="p">)</span> <span class="o">%&gt;%</span>
+    <span class="nf">pull</span><span class="p">(</span><span class="n">cell_id</span><span class="p">)</span>
+<span class="n">group_B_cell_ids</span> <span class="o">&lt;-</span>
+    <span class="n">compass_data</span><span class="o">$</span><span class="n">cell_metadata</span> <span class="o">%&gt;%</span>
+    <span class="nf">filter</span><span class="p">(</span><span class="n">cell_type</span> <span class="o">==</span> <span class="s">&quot;Th17n&quot;</span><span class="p">)</span> <span class="o">%&gt;%</span>
+    <span class="nf">pull</span><span class="p">(</span><span class="n">cell_id</span><span class="p">)</span>
+<span class="n">wilcoxon_results</span> <span class="o">&lt;-</span> <span class="n">compass_analyzer</span><span class="o">$</span><span class="nf">conduct_wilcoxon_test</span><span class="p">(</span>
+    <span class="n">compass_data</span><span class="o">$</span><span class="n">reaction_consistencies</span><span class="p">,</span>
+    <span class="n">group_A_cell_ids</span><span class="p">,</span>
+    <span class="n">group_B_cell_ids</span><span class="p">,</span>
+    <span class="n">for_metareactions</span> <span class="o">=</span> <span class="kc">FALSE</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>We can use functions from the tidyverse to combine the results of our
+Wilcoxon test with the data we loaded earlier. Then, with just <cite>a little
+``ggplot2`</cite> &lt;ex/&gt;`__, we can even reproduce figures 2(c) and 2(e) from
+the papers linked above!</p>
+</div>
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+    <a class='left-prev' id="prev-link" href="Compass-Settings.html" title="previous page">Compass Settings</a>
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="_static/js/index.3da636dd464baa7582d2.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2021, Yosef Lab.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

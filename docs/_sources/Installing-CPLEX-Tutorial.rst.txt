@@ -1,0 +1,70 @@
+Installing CPLEX
+================
+
+CPLEX is an optimization engine that COMPASS uses and it must be
+installed from IBM. We note that it may be simpler to download the
+installation files locally and SCP/File Transfer them over to the
+corresponding server.
+
+First navigate to the main page for CPLEX
+`here <https://www.ibm.com/products/ilog-cplex-optimization-studio>`__
+
+COMPASS requires the full edition of CPLEX. However, if you are an
+Academic (Student or Faculty) you can get a copy for free.
+
+Click the ‘Get student and faculty editions’ link:
+
+Register an account or Log In to an existing account. Once logged in,
+scroll down to the ‘Software’ section and to a download page for “ILOG
+CPLEX Optimization Studio” v12.9.
+
+Here there are a bunch of options. Find the one corresponding to your
+operating system, for example “IBM ILOG CPLEX Optimization Studio 12.9
+for Linux x86-64 Multilingual (CNZM2ML)” and check it. Then click
+‘Download Now’ at the bottom of the page. Then you probably will need to
+click the ‘install / re-install Download Director’ popup on the bottom
+and follow the instructions there.
+
+Finally, you will be able to download
+``cplex_studio129.linux-x86-64.bin``.
+
+Once the file has been transferred, on the Ubuntu instance, execute the
+installer by running the following commands:
+
+First install Java (required by CPLEX) if you haven’t already done so.
+
+::
+
+   sudo apt-get install default-jre
+
+Then:
+
+::
+
+   cd ~
+   chmod +x cplex_studio129.linux-x86-64.bin
+   sudo ./cplex_studio129.linux-x86-64.bin
+
+Follow the instructions in the installer, accepting the license
+agreement and choosing to install to the default path
+``/opt/ibm/ILOG/CPLEX_Studio129``.
+
+Afterwards, if it has installed successfully, remove the installer file
+with ``rm ~/cplex_studio129.linux-x86-64.bin``
+
+Lastly, we need to install the Python module that comes with cplex. To
+do this, run these commands:
+
+::
+
+   cd /opt/ibm/ILOG/CPLEX_Studio129/cplex/python/3.6/x86-64_linux
+   sudo python3 setup.py install
+
+If all is good, cplex will be installed! To test this simply open a
+python instance and run the following command
+
+::
+
+   import cplex
+
+If there are no errors, you’re good to go!
