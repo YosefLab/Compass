@@ -1,0 +1,668 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS Tutorial &#8212; Compass 2021 documentation</title>
+    
+  <link rel="stylesheet" href="_static/css/index.73d71520a4ca3b99cfee5594769eaaae.css">
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    
+  <link rel="preload" as="script" href="_static/js/index.3da636dd464baa7582d2.js">
+
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Advanced Usage Tutorial" href="Compass-Advanced-Usage-Tutorial.html" />
+    <link rel="prev" title="Extra Features" href="extra.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="index.html">
+    
+      <p class="title">Compass</p>
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="install.html">Installing Compass</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="tutorial.html">Tutorial</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="extra.html">Extra Features</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+            
+                <li class="active">
+                    <a href="">AWS Tutorial</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="Compass-Advanced-Usage-Tutorial.html">Advanced Usage Tutorial</a>
+                </li>
+            
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#creating-an-aws-account" class="nav-link">Creating an AWS Account</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#aws-basics" class="nav-link">AWS Basics</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#services" class="nav-link">Services</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#regions" class="nav-link">Regions</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#instances-and-images" class="nav-link">Instances and Images</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#setting-up-the-compass-image-only-need-to-do-this-once" class="nav-link">Setting up the COMPASS Image (only need to do this once)</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#creating-an-instance" class="nav-link">Creating an Instance</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#logging-into-your-instance" class="nav-link">Logging into your Instance</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#installing-python-and-python-dependencies" class="nav-link">Installing Python and Python Dependencies</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#installing-cplex" class="nav-link">Installing CPLEX</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#testing-everyting-out" class="nav-link">Testing everyting out</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#saving-the-image" class="nav-link">Saving the image</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#running-an-analysis" class="nav-link">Running an Analysis</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#launching-a-more-powerful-instance-with-our-ami" class="nav-link">Launching a (more powerful) instance with our AMI</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#raising-utilization-limit-for-instance" class="nav-link">Raising utilization limit for instance</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#sending-data-to-the-instance" class="nav-link">Sending data to the instance</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#running-the-analysis" class="nav-link">Running the analysis</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#downloading-the-results" class="nav-link">Downloading the results</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#cleanup" class="nav-link">Cleanup</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#appendix" class="nav-link">Appendix</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#spot-instances" class="nav-link">Spot Instances</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="aws-tutorial">
+<h1>AWS Tutorial<a class="headerlink" href="#aws-tutorial" title="Permalink to this headline">¶</a></h1>
+<div class="contents local topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#creating-an-aws-account" id="id1">Creating an AWS Account</a></p></li>
+<li><p><a class="reference internal" href="#aws-basics" id="id2">AWS Basics</a></p>
+<ul>
+<li><p><a class="reference internal" href="#services" id="id3">Services</a></p></li>
+<li><p><a class="reference internal" href="#regions" id="id4">Regions</a></p></li>
+<li><p><a class="reference internal" href="#instances-and-images" id="id5">Instances and Images</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#setting-up-the-compass-image-only-need-to-do-this-once" id="id6">Setting up the COMPASS Image (only need to do this once)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#creating-an-instance" id="id7">Creating an Instance</a></p></li>
+<li><p><a class="reference internal" href="#logging-into-your-instance" id="id8">Logging into your Instance</a></p></li>
+<li><p><a class="reference internal" href="#installing-python-and-python-dependencies" id="id9">Installing Python and Python Dependencies</a></p></li>
+<li><p><a class="reference internal" href="#installing-cplex" id="id10">Installing CPLEX</a></p></li>
+<li><p><a class="reference internal" href="#testing-everyting-out" id="id11">Testing everyting out</a></p></li>
+<li><p><a class="reference internal" href="#saving-the-image" id="id12">Saving the image</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#running-an-analysis" id="id13">Running an Analysis</a></p>
+<ul>
+<li><p><a class="reference internal" href="#launching-a-more-powerful-instance-with-our-ami" id="id14">Launching a (more powerful) instance with our AMI</a></p>
+<ul>
+<li><p><a class="reference internal" href="#raising-utilization-limit-for-instance" id="id15">Raising utilization limit for instance</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#sending-data-to-the-instance" id="id16">Sending data to the instance</a></p></li>
+<li><p><a class="reference internal" href="#running-the-analysis" id="id17">Running the analysis</a></p></li>
+<li><p><a class="reference internal" href="#downloading-the-results" id="id18">Downloading the results</a></p></li>
+<li><p><a class="reference internal" href="#cleanup" id="id19">Cleanup</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#appendix" id="id20">Appendix</a></p>
+<ul>
+<li><p><a class="reference internal" href="#spot-instances" id="id21">Spot Instances</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="creating-an-aws-account">
+<h2><a class="toc-backref" href="#id1">Creating an AWS Account</a><a class="headerlink" href="#creating-an-aws-account" title="Permalink to this headline">¶</a></h2>
+<p>The first step is to create an Amazon AWS account if you don’t have one
+already.</p>
+<p>Go to <a class="reference external" href="https://aws.amazon.com">https://aws.amazon.com</a> and look for an option to create an
+account.</p>
+</div>
+<div class="section" id="aws-basics">
+<h2><a class="toc-backref" href="#id2">AWS Basics</a><a class="headerlink" href="#aws-basics" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="services">
+<h3><a class="toc-backref" href="#id3">Services</a><a class="headerlink" href="#services" title="Permalink to this headline">¶</a></h3>
+<p>AWS is divided up into many services.</p>
+<p>Most of these are enterprise-grade features that we don’t have to worry
+about. The two services you should know about are:</p>
+<ul class="simple">
+<li><p><strong>EC2</strong>: “Elastic Compute Cloud”, this is the service for renting
+compute time on the servers in Amazon’s cloud</p></li>
+<li><p><strong>S3</strong>: “Simple Storage Service”, this service is for storing data</p></li>
+</ul>
+<p>Everything we’ll be doing here is within the <strong>EC2</strong> service.</p>
+<p>To get to the EC2 dashboard, after logging in:</p>
+<ul class="simple">
+<li><p>Click ‘Services’ on the toolbar in the upper-left</p></li>
+<li><p>Navigate to “EC2” under the “Compute” section</p></li>
+</ul>
+</div>
+<div class="section" id="regions">
+<h3><a class="toc-backref" href="#id4">Regions</a><a class="headerlink" href="#regions" title="Permalink to this headline">¶</a></h3>
+<p>Most things you work with in AWS will be scoped to a ‘Region’.
+Basically, Amazon has datacenters all over the world and you can choose
+which one you want to use for renting servers and storing data.</p>
+<p>If you were running a large website, you’d want servers in many regions
+for speed and redundancy.</p>
+<p>In our case, we just need to be aware that regions exist and how to
+select the ‘current’ region.</p>
+<p>Whenever you view a service, you are only showed the servers and data
+that are in the ‘current’ region. You can see your region and switch it
+by looking at the dropdown in the upper-right corner (shown below).</p>
+<p>The choice of region isn’t permanent in any sense - you can create
+servers in one region, then create some more in another region, and
+switch back and forth as you manage either group. However, best to just
+pick a region close to you and remain in it. If you ever sign on and all
+your servers seem to be missing - don’t fret, you probably just have the
+wrong region selected.</p>
+</div>
+<div class="section" id="instances-and-images">
+<h3><a class="toc-backref" href="#id5">Instances and Images</a><a class="headerlink" href="#instances-and-images" title="Permalink to this headline">¶</a></h3>
+<p>To understand why we need to create an Image, it’s important to
+understand the AWS terminology:</p>
+<ul class="simple">
+<li><p><strong>Instances</strong>: Each server (cloud computer) you provision (rent) is
+called an <em>instance</em>.</p></li>
+<li><p><strong>Volume</strong>: A <em>volume</em> is the storage that can be attached to an
+instance. Think of it like plugging a hard drive into a computer.
+Every instance needs at least one volume that contains its operating
+system.</p></li>
+<li><p><strong>Image</strong>: An <em>image</em> is a saved volume that can be used to launch an
+instance.</p></li>
+</ul>
+<p>When you launch an instance, you select an image. This image is copied
+onto the volume that is attached to the instance and then the instance
+is booted up. The same image can be used to launch multiple volumes.</p>
+<p>You don’t have to create your own image - Amazon has many images with
+different operating systems already prepared. However, if you use one of
+these, you’ll have to install any extra software every time you create
+an instance. Instead, we’re going to create an Image with COMPASS and
+its dependencies installed on it so that we only have to do this once.</p>
+<p>Note: Images are also referred to as <strong>AMI</strong>s (Amazon Machine Images).</p>
+</div>
+</div>
+<div class="section" id="setting-up-the-compass-image-only-need-to-do-this-once">
+<h2><a class="toc-backref" href="#id6">Setting up the COMPASS Image (only need to do this once)</a><a class="headerlink" href="#setting-up-the-compass-image-only-need-to-do-this-once" title="Permalink to this headline">¶</a></h2>
+<p>We are going to create an Image with COMPASS and its dependencies
+installed.</p>
+<p>To do this, first we are going to create a server with a basic Ubuntu
+instance. Install the software. Then save it as an Image.</p>
+<div class="section" id="creating-an-instance">
+<h3><a class="toc-backref" href="#id7">Creating an Instance</a><a class="headerlink" href="#creating-an-instance" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Navigate to EC2</p></li>
+<li><p>Select ‘Instances’ in the left menu-bar</p></li>
+<li><p>Click the ‘Launch Instance’ button in them middle</p></li>
+</ul>
+<p>Here we choose the base AMI for our instance. Scroll until you see
+Ubuntu Server 18.04 and click ‘Select’ on the right.</p>
+<p>Next we choose an instance type. Here we get to decide how powerful our
+machine is. The caveat is that more powerful machines cost more per
+hour. To see pricing, follow <a class="reference external" href="https://aws.amazon.com/ec2/pricing/on-demand/">this
+link</a>. Since we are
+just installing software, let’s choose a lower-end instance, the
+‘t2.large’. Then click ‘Next: Configure Instance Details’ in the bottom
+right.</p>
+<p>There are a lot of options on this page, but you can ignore most of
+them. The one that is good to know about is the ‘Request Spot Instances’
+option towards the top. Don’t click this now, but in the future, when
+running long jobs, you may want to select this option as spot instances
+can save a lot of money. See the <a class="reference external" href="#spot-instances">appendix item on Spot
+Instances</a> for info. For now, just click ‘Next’ on
+the bottom right.</p>
+<p>On this page, you can set the storage space for your instance. For now,
+let’s just leave this one at the default of 8GB since we’re only
+installing software. Click ‘Next’ on the bottom right.</p>
+<p>On this page you can add tags. This is only useful if you have many
+servers and you want to organize them all using tags. Click Next.</p>
+<p>On this page you can define which ports are open for your instance. By
+default, 22 will be open for SSH. There will be a warning that any IP
+address can access your instance. If you’d like you can fix this by
+specifying your devices IP address on this page to restrict access to
+your machine, but this isn’t necessary. Click ‘Review and Launch’ in the
+bottom right.</p>
+<p>On this summary page click ‘Launch’. Here it asks you to create an
+encrypted key pair for SSH. Once you make a key pair, you can use the
+same one for future instances. Since this is our first instance, select
+‘Create a new key pair’ from the first dropdown, then give your key pair
+a name, e.g. ‘AWSKey’, and click “Download Key Pair”. Make sure to save
+the Key Pair .pem file somewhere where you won’t lose it. You can only
+download the key pair once, but you can always create new key pairs in
+the future if you lose the file.</p>
+<p>Now click ‘Launch Instances’. On the next page, you can click ‘View
+Instances’ on the bottom to go back to the EC2 &gt;&gt; Instances page where
+you can see the status of your instance as it’s booting.</p>
+</div>
+<div class="section" id="logging-into-your-instance">
+<h3><a class="toc-backref" href="#id8">Logging into your Instance</a><a class="headerlink" href="#logging-into-your-instance" title="Permalink to this headline">¶</a></h3>
+<p>On the EC2 &gt;&gt; Instances page, you can see your instance. To connect to
+it via SSH, right-click the instance and click ‘Connect’. You will then
+be shown a popup with instructions on how to use your key pair to SSH
+into the instance. In this case, I am using this command to connect:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ssh</span> <span class="o">-</span><span class="n">i</span> <span class="s2">&quot;~/AmazonKeys/AWSKey.pem&quot;</span> <span class="n">ubuntu</span><span class="nd">@ec2</span><span class="o">-</span><span class="mi">35</span><span class="o">-</span><span class="mi">167</span><span class="o">-</span><span class="mi">139</span><span class="o">-</span><span class="mf">94.</span><span class="n">us</span><span class="o">-</span><span class="n">west</span><span class="o">-</span><span class="mf">2.</span><span class="n">compute</span><span class="o">.</span><span class="n">amazonaws</span><span class="o">.</span><span class="n">com</span>
+</pre></div>
+</div>
+<p>Note that you must provide your own path to the key pair (AWSKey above)
+you created. You’ll also have to make sure it’s permissions are ‘400’
+(AWS provides instructions on this too on the same popup).</p>
+</div>
+<div class="section" id="installing-python-and-python-dependencies">
+<h3><a class="toc-backref" href="#id9">Installing Python and Python Dependencies</a><a class="headerlink" href="#installing-python-and-python-dependencies" title="Permalink to this headline">¶</a></h3>
+<p>The bare Ubuntu 18.04 instance we launched has Python 3.6 installed
+already, but we’ll need to install ‘pip’ to download other packages:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">update</span>
+<span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">python3</span><span class="o">-</span><span class="n">pip</span>
+</pre></div>
+</div>
+<p>Now, let’s install the COMPASS python package along with all Python
+dependencies:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">numpy</span>
+<span class="n">pip3</span> <span class="n">install</span> <span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">yoseflab</span><span class="o">/</span><span class="n">Compass</span><span class="o">.</span><span class="n">git</span>
+<span class="n">source</span> <span class="o">~/.</span><span class="n">profile</span>
+</pre></div>
+</div>
+<p>That last line just addes the ~/.local/bin directory to the path so
+compass can be run more easily.</p>
+</div>
+<div class="section" id="installing-cplex">
+<h3><a class="toc-backref" href="#id10">Installing CPLEX</a><a class="headerlink" href="#installing-cplex" title="Permalink to this headline">¶</a></h3>
+<p>CPLEX is an optimization engine that COMPASS uses and it must be
+installed from IBM.</p>
+<p>First navigate to the main page for CPLEX
+<a class="reference external" href="https://www.ibm.com/products/ilog-cplex-optimization-studio">here</a></p>
+<p>COMPASS requires the full edition of CPLEX. However, if you are an
+Academic (Student or Faculty) you can get a copy for free.</p>
+<p>Click the ‘Get student and faculty editions’ link:</p>
+<p>Register an account or Log In to an existing account. Once logged in,
+scroll down to the ‘Software’ section and to a download page for “ILOG
+CPLEX Optimization Studio” v12.9.</p>
+<p>Here there are a bunch of options. Find the one named “IBM ILOG CPLEX
+Optimization Studio 12.9 for Linux x86-64 Multilingual (CNZM2ML)” and
+check it. Then click ‘Download Now’ at the bottom of the page. Then you
+probably will need to click the ‘install / re-install Download Director’
+popup on the bottom and follow the instructions there.</p>
+<p>Finally, you will be able to download
+<code class="docutils literal notranslate"><span class="pre">cplex_studio129.linux-x86-64.bin</span></code>. Now we have to send this file to
+our running server. To do this, we’ll use scp. One <em>your computer</em> (not
+the server) run this command, filling in your own paths to files and
+your own <a class="reference external" href="mailto:ubuntu&#37;&#52;&#48;e2">ubuntu<span>&#64;</span>e2</a>-… command that you used when SSHing into the server.
+Notice that we add the <code class="docutils literal notranslate"><span class="pre">:~</span></code> designation at the end to send this file
+to the home directory on your server instance.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scp</span> <span class="o">-</span><span class="n">i</span> <span class="s2">&quot;&lt;path-to-key&gt;/AWSKey.pem&quot;</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">-</span><span class="n">to</span><span class="o">-</span><span class="n">cplex</span><span class="o">-</span><span class="nb">bin</span><span class="o">-</span><span class="n">file</span><span class="o">&gt;</span> <span class="n">ubuntu</span><span class="nd">@ec2</span><span class="o">-</span><span class="mi">35</span><span class="o">-</span><span class="mi">167</span><span class="o">-</span><span class="mi">139</span><span class="o">-</span><span class="mf">94.</span><span class="n">us</span><span class="o">-</span><span class="n">west</span><span class="o">-</span><span class="mf">2.</span><span class="n">compute</span><span class="o">.</span><span class="n">amazonaws</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="o">~</span>
+</pre></div>
+</div>
+<p>Once the file has been transferred, on the Ubuntu instance, execute the
+installer by running:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">default</span><span class="o">-</span><span class="n">jre</span>
+</pre></div>
+</div>
+<p>To first install Java (required by CPLEX). Then:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">~</span>
+<span class="n">chmod</span> <span class="o">+</span><span class="n">x</span> <span class="n">cplex_studio129</span><span class="o">.</span><span class="n">linux</span><span class="o">-</span><span class="n">x86</span><span class="o">-</span><span class="mf">64.</span><span class="n">bin</span>
+<span class="n">sudo</span> <span class="o">./</span><span class="n">cplex_studio129</span><span class="o">.</span><span class="n">linux</span><span class="o">-</span><span class="n">x86</span><span class="o">-</span><span class="mf">64.</span><span class="n">bin</span>
+</pre></div>
+</div>
+<p>Follow the instructions in the installer, accepting the license
+agreement and choosing to install to the default path
+<code class="docutils literal notranslate"><span class="pre">/opt/ibm/ILOG/CPLEX_Studio129</span></code>.</p>
+<p>Afterwards, if it has installed succesffully, remove the installer file
+with <code class="docutils literal notranslate"><span class="pre">rm</span> <span class="pre">~/cplex_studio129.linux-x86-64.bin</span></code></p>
+<p>Lastly, we need to install the Python module that comes with cplex. To
+do this, run these commands:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">ibm</span><span class="o">/</span><span class="n">ILOG</span><span class="o">/</span><span class="n">CPLEX_Studio129</span><span class="o">/</span><span class="n">cplex</span><span class="o">/</span><span class="n">python</span><span class="o">/</span><span class="mf">3.6</span><span class="o">/</span><span class="n">x86</span><span class="o">-</span><span class="mi">64</span><span class="n">_linux</span>
+<span class="n">sudo</span> <span class="n">python3</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="testing-everyting-out">
+<h3><a class="toc-backref" href="#id11">Testing everyting out</a><a class="headerlink" href="#testing-everyting-out" title="Permalink to this headline">¶</a></h3>
+<p>Now to test if everything is installed, simply run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">compass</span> <span class="o">-</span><span class="n">h</span>
+</pre></div>
+</div>
+<p>And you should see the help text print out.</p>
+</div>
+<div class="section" id="saving-the-image">
+<h3><a class="toc-backref" href="#id12">Saving the image</a><a class="headerlink" href="#saving-the-image" title="Permalink to this headline">¶</a></h3>
+<p>Now that we have everything set up, we’re going to save our instance as
+an AMI. This will let us launch instances in the future with all the
+software already installed.</p>
+<p>On the EC2 Console (in your web browser), right click you instance and
+select “Create Image”</p>
+<p>Give the image a name and description and hit ‘Create Image’.</p>
+<p>Now, on the left side of the dashboard, you can select ‘AMIs’ under the
+‘Images’ heading and see the status of your image being created. When
+the status goes from ‘pending’ to ‘available’, then you can launch new
+instances from this Image.</p>
+</div>
+</div>
+<div class="section" id="running-an-analysis">
+<h2><a class="toc-backref" href="#id13">Running an Analysis</a><a class="headerlink" href="#running-an-analysis" title="Permalink to this headline">¶</a></h2>
+<p>Now that we have a COMPASS Image, we can run an analysis in the Amazon
+cloud</p>
+<div class="section" id="launching-a-more-powerful-instance-with-our-ami">
+<h3><a class="toc-backref" href="#id14">Launching a (more powerful) instance with our AMI</a><a class="headerlink" href="#launching-a-more-powerful-instance-with-our-ami" title="Permalink to this headline">¶</a></h3>
+<p>Let’s launch an instance using our AMI. First navigate to the EC2 &gt;&gt;
+Instances page and click the ‘Launch Instance’ button at the top.</p>
+<p>Instead of choosing the Ubuntu 18.04 AMI, we are going to select our
+own. Click the MY AMIs tab on the left and select the AMI we just
+created by clicking ‘select’ next to it on the right.</p>
+<p>On the next page, instead of selecting the low-pwered t2.large instance
+type, we are going to select something with much more processing power.
+Scroll down and select the c5.24xlarge instance.</p>
+<p>Click through the next page until you get the to ‘Add Storage’ page.
+Here, up the storage a bit higher so we have more room for data - 20 GB
+should be fine.</p>
+<div class="section" id="raising-utilization-limit-for-instance">
+<h4><a class="toc-backref" href="#id15">Raising utilization limit for instance</a><a class="headerlink" href="#raising-utilization-limit-for-instance" title="Permalink to this headline">¶</a></h4>
+<p>You <em>may</em> get an error launching the instance - something about your
+utilization limit for that instance being exceeded. This happens because
+for some instance types, Amazon automatically sets a limit of 0 intances
+on new AWS accounts. I believe this is done for security purposes (so
+that someone getting your login key can’t just spin up 1000 instances to
+mine bitcoin at your expense). If you run into this error, it’s fairly
+easy to request a limit increase in the support center. I’ve found that
+usually Amazon responds to these requests in a few hours.</p>
+<p>Click ‘Support’ in the upper-right corner and select ‘Suppert Center’
+from the dropdown.</p>
+<p>Create a support case and select ‘Service limit increase’. Here select
+the Region you are using and the Instance tpe (c5.24xlarge) and request
+to raise the instance limit to 1.</p>
+</div>
+</div>
+<div class="section" id="sending-data-to-the-instance">
+<h3><a class="toc-backref" href="#id16">Sending data to the instance</a><a class="headerlink" href="#sending-data-to-the-instance" title="Permalink to this headline">¶</a></h3>
+<p>Once your instance is running, before logging into it, we are going to
+send our expression matrix to the instance using <code class="docutils literal notranslate"><span class="pre">scp</span></code>.</p>
+<p>Remember, you can view connection details for your instance by
+right-clicking it and selecting ‘Connect’.</p>
+<p>If your ssh command looks like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ssh</span> <span class="o">-</span><span class="n">i</span> <span class="s2">&quot;~/AmazonKeys/AWSKey.pem&quot;</span> <span class="n">ubuntu</span><span class="nd">@ec2</span><span class="o">-</span><span class="mi">54</span><span class="o">-</span><span class="mi">212</span><span class="o">-</span><span class="mi">82</span><span class="o">-</span><span class="mf">196.</span><span class="n">us</span><span class="o">-</span><span class="n">west</span><span class="o">-</span><span class="mf">2.</span><span class="n">compute</span><span class="o">.</span><span class="n">amazonaws</span><span class="o">.</span><span class="n">com</span>
+</pre></div>
+</div>
+<p>Then your scp command should look like this (assuming your expression
+matrix is in a file called data.txt)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scp</span> <span class="o">-</span><span class="n">i</span> <span class="s2">&quot;~/AmazonKeys/AWSKey.pem&quot;</span> <span class="n">data</span><span class="o">.</span><span class="n">txt</span> <span class="n">ubuntu</span><span class="nd">@ec2</span><span class="o">-</span><span class="mi">54</span><span class="o">-</span><span class="mi">212</span><span class="o">-</span><span class="mi">82</span><span class="o">-</span><span class="mf">196.</span><span class="n">us</span><span class="o">-</span><span class="n">west</span><span class="o">-</span><span class="mf">2.</span><span class="n">compute</span><span class="o">.</span><span class="n">amazonaws</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="o">~</span>
+</pre></div>
+</div>
+<p>You may get an error “please log in as ‘ubuntu’ instead of ‘root’”. If
+this happens, replace ‘root’ in your scp/ssh command with ‘ubuntu’ and
+repeat.</p>
+</div>
+<div class="section" id="running-the-analysis">
+<h3><a class="toc-backref" href="#id17">Running the analysis</a><a class="headerlink" href="#running-the-analysis" title="Permalink to this headline">¶</a></h3>
+<p>To run the analysis, first log into the instance using SSH.</p>
+<p>Next, we are going to start a <code class="docutils literal notranslate"><span class="pre">tmux</span></code> session on our instance so that
+we can log off of it while the algorithm continues to run.</p>
+<p>To start a tmux session, type <code class="docutils literal notranslate"><span class="pre">tmux</span></code> at the BASH prompt and hit enter.</p>
+<p>Now, follow the instructions on our <a class="reference external" href="https://github.com/yoseflab/compass">Github
+page</a> to start the analysis. Use
+the ‘Running on a Single Machine’ option and select 48 processes (half
+the number of vCPUs is optimal).</p>
+<p>The algorithm will run approximately 48 cells per hour, so if you don’t
+want to wait around, you can simply close your terminal window here.
+Since we are running inside a <code class="docutils literal notranslate"><span class="pre">tmux</span></code> session, the process will
+continue.</p>
+<p>When logging back in later, to re-attach the <code class="docutils literal notranslate"><span class="pre">tmux</span></code> session, simply
+run <code class="docutils literal notranslate"><span class="pre">tmux</span> <span class="pre">attach</span></code>.</p>
+</div>
+<div class="section" id="downloading-the-results">
+<h3><a class="toc-backref" href="#id18">Downloading the results</a><a class="headerlink" href="#downloading-the-results" title="Permalink to this headline">¶</a></h3>
+<p>When COMPASS has completed, the outputs are stored in <code class="docutils literal notranslate"><span class="pre">reactions.txt</span></code>,
+<code class="docutils literal notranslate"><span class="pre">secretions.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">uptake.txt</span></code>. These should be in the directory
+where compass was run by default (can be overridden with the
+<code class="docutils literal notranslate"><span class="pre">--output-dir</span></code> option), which is the home directory in this tutorial.</p>
+<p>Now, before we shut down our server, we need to download the results. On
+<em>your computer</em>, use scp to do this. The command should look like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scp</span> <span class="o">-</span><span class="n">i</span> <span class="s2">&quot;~/AmazonKeys/AWSKey.pem&quot;</span> <span class="n">ubuntu</span><span class="nd">@ec2</span><span class="o">-</span><span class="mi">54</span><span class="o">-</span><span class="mi">212</span><span class="o">-</span><span class="mi">82</span><span class="o">-</span><span class="mf">196.</span><span class="n">us</span><span class="o">-</span><span class="n">west</span><span class="o">-</span><span class="mf">2.</span><span class="n">compute</span><span class="o">.</span><span class="n">amazonaws</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="o">~/</span><span class="n">reactions</span><span class="o">.</span><span class="n">txt</span> <span class="o">.</span>
+</pre></div>
+</div>
+<p>Again, you’ll need to fill in the correct path to your AWSKey.pem file
+and your particular instance address. Repeat this two more times for the
+<code class="docutils literal notranslate"><span class="pre">secretions.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">uptake.txt</span></code> files.</p>
+</div>
+<div class="section" id="cleanup">
+<h3><a class="toc-backref" href="#id19">Cleanup</a><a class="headerlink" href="#cleanup" title="Permalink to this headline">¶</a></h3>
+<p>Now we need to shut down our instance. You will be charged as long as
+the instance is in the ‘running’ state, so this is VERY IMPORTANT.</p>
+<p>On the EC2 &gt;&gt; Instances page, right click your instance, select
+‘Instance State &gt;&gt; Terminate’. You can also ‘Stop’ an instance (unless
+it’s a Spot instance) which will let you ‘Start’ it again later without
+incurring compute charges while it’s stopped.</p>
+<p>Note: You’ll continue to pay a small monthly fee to store the AMI for
+Compass we created (about $0.40/month). If you know you won’t need it
+again, you can delete it on the EC2 &gt;&gt; AMIs page by right clicking the
+AMI and selecting ‘Deregister’</p>
+</div>
+</div>
+<div class="section" id="appendix">
+<h2><a class="toc-backref" href="#id20">Appendix</a><a class="headerlink" href="#appendix" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="spot-instances">
+<h3><a class="toc-backref" href="#id21">Spot Instances</a><a class="headerlink" href="#spot-instances" title="Permalink to this headline">¶</a></h3>
+<p>Spot instances are available for much cheaper (often around 1/3 the
+cost, <a class="reference external" href="https://aws.amazon.com/ec2/spot/pricing/">pricing here</a>) but
+they come with two caveats. First, the price of spot instances can
+increase with demand. When you request spot instances you specify what
+you are willing to pay and if the price goes above that, then your
+instances will be halted. However, if you just bid the current on-demand
+price (the default if you leave the bid price blank), then this is not
+likely to happen. The second caveat is that you can’t Stop and Start a
+spot instance. With on-demand instances you can ‘Stop’ the instance,
+essentially pausing it indefinitely. You won’t be charged for compute
+costs while it is stopped and then you can start it again at a later
+time. With a spot instance, once you stop it you can’t start it again,
+so you must download the results of a computation before stopping the
+instance. Alternately, you can attach an extra storage volume to the
+instance and save your results on that volume, then mount that with
+another instance later to get a similar kind of behavior - just with a
+bit more work.</p>
+</div>
+</div>
+</div>
+
+
+              </div>
+              
+              
+              <div class='prev-next-bottom'>
+                
+    <a class='left-prev' id="prev-link" href="extra.html" title="previous page">Extra Features</a>
+    <a class='right-next' id="next-link" href="Compass-Advanced-Usage-Tutorial.html" title="next page">Advanced Usage Tutorial</a>
+
+              </div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="_static/js/index.3da636dd464baa7582d2.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright 2021, Yosef Lab.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.4.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
