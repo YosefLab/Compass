@@ -41,20 +41,20 @@ def parseArgs():
                         description="Metabolic Modeling for Single Cells")
 
     parser.add_argument("--data", help="Gene expression matrix." 
-                        "For .mtx inputs, it must be followed by a tsv with gene names"
-                        "and optionally a list of cell barcodes",
+                        " For .mtx inputs, it must be followed by a tsv with gene names"
+                        " and optionally a list of cell barcodes",
                         nargs="+", 
                         metavar="FILES")
 
     parser.add_argument("--model", help="Metabolic Model to Use."
-                        "Currently supporting: RECON1_mat, RECON2_mat, or RECON2.2",
+                        " Currently supporting: RECON1_mat, RECON2_mat, or RECON2.2",
                         default="RECON2_mat",
                         choices=["RECON1_mat", "RECON2_mat", "RECON2.2"],
                         metavar="MODEL")
 
     parser.add_argument("--species",
-                        help="Species to use to match genes to model"
-                        "Currently supporting: homo_sapiens or mus_musculus",
+                        help="Species to use to match genes to model."
+                        " Currently supporting: homo_sapiens or mus_musculus",
                         choices=["homo_sapiens", "mus_musculus"],
                         metavar="SPECIES",
                         default="homo_sapiens")
