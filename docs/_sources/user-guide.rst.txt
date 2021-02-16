@@ -1,7 +1,7 @@
 Compass User Guide
 ==================
 
-Welcome to the user guide for Compass, if you haven't already installed Compass visit `the install guide </install>`__. 
+Welcome to the user guide for Compass, if you haven't already installed Compass visit :doc:`the install guide <install>`. 
 
 .. toctree::
    :maxdepth: 1
@@ -30,7 +30,8 @@ If your gene expression matrix is in a sparse matrix market format (.mtx file), 
 
 Once Compass has finished running, it will output a matrix ``reactions.tsv`` with reaction penalties where higher scores correspond to a reaction being less likely.
 
- - For a more detailed example of running Compass, visit `the tutorial </tutorial>`__. 
- - If you want to see all the settings you can customize visit `here </Compass-Settings>`__.
- - For tools to postprocess and analyze the results of Compass, visit `here </Compass-Postprocessing-Tutorial>`__
- - Cloud computing like AWS can help Compass scale because each cell can be handled in parallel, so we provide a `guide <\AWS-tutorial>`__ for running Compass on AWS.
+
+ - For a more detailed example of running Compass, visit :doc:`the tutorial <tutorial>`. 
+ - If you want to see all the settings you can customize visit :doc:`here <Compass-Settings>`.
+ - For tools to postprocess and analyze the results of Compass, visit :doc:`here </Compass-Postprocessing-Tutorial>`
+ - Cloud computing like AWS can help Compass scale because each cell can be handled in parallel, so we provide a :doc:`guide <AWS-tutorial>` for running Compass on AWS.

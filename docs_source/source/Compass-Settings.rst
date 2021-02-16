@@ -70,9 +70,9 @@ Metabolic Model Settings
    Which function used to aggregate AND
    associations. Options: 
    
-   - min (default)
+   - min 
    - median
-   - mean
+   - mean (default)
 
 **\-\-calc-metabolites**
    Flag to enable calculation and output of
@@ -142,11 +142,11 @@ Computing Settings
    Name of the torque queue to submit to
 
 **\-\-precache**
-   A flag to force compass to build up the cache for the selected model and media. This will rebuild the cache even if one already exists.
+   A flag to force compass to build up the cache for the input selected model and media. This will rebuild the cache even if one already exists.
 
 Testing and Hidden Settings
 ---------------------------
-There are several Compass arguments which are supprsed by argparse because they are primarily for testing or for batch jobs.
+There are several Compass arguments which are not listed by the parser because they are primarily for testing or for batch jobs.
 
 **\-\-test-mode**
    Flag which limits computing scores to the first 100 reactions and first 50 metabolites
@@ -174,7 +174,7 @@ There are several Compass arguments which are supprsed by argparse because they 
    Defaults to 2 as best runtime was found using that for tests.
 
 **\-\-save-argmaxes**
-   Flag to enable saving the argmaxes for computing Compass scores of each reaction.
+   Flag to enable saving the argmaxes for computing Compass scores of each reaction. Fun fact: solving the TSP greedily on the argmaxes graph to make full use of the advanced basis setting with the simplex algorithm did not outperform the barrier algorithm in practice.
 
 
 

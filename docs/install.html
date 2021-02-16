@@ -134,6 +134,12 @@
                 </li>
             
           
+            
+                <li class="">
+                    <a href="AWS-tutorial.html">AWS Tutorial</a>
+                </li>
+            
+          
         
         
         
@@ -167,6 +173,10 @@
         <li class="nav-item toc-entry toc-h2">
             <a href="#installing-cplex" class="nav-link">Installing Cplex</a><ul class="nav section-nav flex-column">
                 
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#cplex-versions" class="nav-link">Cplex Versions</a>
+        </li>
+    
         <li class="nav-item toc-entry toc-h3">
             <a href="#download" class="nav-link">Download</a>
         </li>
@@ -204,9 +214,10 @@
 <li><p><a class="reference internal" href="#installing-compass-with-pip" id="id2">Installing Compass with Pip</a></p></li>
 <li><p><a class="reference internal" href="#installing-cplex" id="id3">Installing Cplex</a></p>
 <ul>
-<li><p><a class="reference internal" href="#download" id="id4">Download</a></p></li>
-<li><p><a class="reference internal" href="#linux-install-walkthrough" id="id5">Linux Install Walkthrough</a></p></li>
-<li><p><a class="reference internal" href="#installing-on-other-operating-systems" id="id6">Installing on other Operating Systems</a></p></li>
+<li><p><a class="reference internal" href="#cplex-versions" id="id4">Cplex Versions</a></p></li>
+<li><p><a class="reference internal" href="#download" id="id5">Download</a></p></li>
+<li><p><a class="reference internal" href="#linux-install-walkthrough" id="id6">Linux Install Walkthrough</a></p></li>
+<li><p><a class="reference internal" href="#installing-on-other-operating-systems" id="id7">Installing on other Operating Systems</a></p></li>
 </ul>
 </li>
 </ul>
@@ -219,7 +230,7 @@
 <li><p>IBM CPLEX Optimization Studio (12.9+ recommended)</p></li>
 </ul>
 </div></blockquote>
-<p>If you are using Python 2.x you will need to install Cplex version 12.9 or earlier as <a class="reference external" href="https://www.ibm.com/support/knowledgecenter/SSSA5P_12.10.0/ilog.odms.studio.help/CPLEX/ReleaseNotes/topics/releasenotes12100/convert.html">Cplex 12.10 has dropped support for Python 2.x.</a> As of Cplex version 20.1.0 Python 3.7 and 3.8 are supported. See the following sections for more details on installing Cplex.</p>
+<p>For more details on installing Cplex and what version to use see this section on <a class="reference internal" href="#cplex-install"><span class="std std-ref">Installing Cplex</span></a>.</p>
 <p>Older Python or Cplex versions may work but have not been tested.</p>
 </div>
 <div class="section" id="installing-compass-with-pip">
@@ -235,14 +246,28 @@
 <p>You should see the help text print out if installation was succesful :) For more details on how to use Compass you can visit our <a class="reference internal" href="tutorial.html"><span class="doc">tutorial</span></a>.</p>
 </div>
 <div class="section" id="installing-cplex">
-<h2><a class="toc-backref" href="#id3">Installing Cplex</a><a class="headerlink" href="#installing-cplex" title="Permalink to this headline">¶</a></h2>
+<span id="cplex-install"></span><h2><a class="toc-backref" href="#id3">Installing Cplex</a><a class="headerlink" href="#installing-cplex" title="Permalink to this headline">¶</a></h2>
 <p>CPLEX is an optimization engine that COMPASS uses and it must be
-installed from IBM. We use the Python API for Cplex (not Docplex which is a higher level API).</p>
+installed from IBM. In particular Compass uses its Python API (distinct from Docplex).</p>
 <p>We note that it may be simpler to download the
 installation files locally and SCP/File Transfer them over to the
 corresponding server.</p>
+<div class="section" id="cplex-versions">
+<h3><a class="toc-backref" href="#id4">Cplex Versions</a><a class="headerlink" href="#cplex-versions" title="Permalink to this headline">¶</a></h3>
+<p>The version of Cplex to install will depend on what version of Python you want to use Cplex with, as IBM has gradually phased out support for older Python versions
+with <a class="reference external" href="https://www.ibm.com/support/knowledgecenter/SSSA5P_12.10.0/ilog.odms.studio.help/CPLEX/ReleaseNotes/topics/releasenotes12100/convert.html">Cplex 12.10 dropping support for Python 2.x.</a>
+As a non-exhaustive list of tested Cplex versions (followed by their part number):</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Python 3.7 or 3.8: Cplex 20.10 (CJ8GXML)</p></li>
+<li><p>Python 3.6: Cplex 12.10 (CJ6BPML)</p></li>
+<li><p>Python 2.7: Cplex 12.9 (CJ4Z5ML)</p></li>
+</ul>
+</div></blockquote>
+<p>To more directly find these versions of Cplex, you can use <a class="reference external" href="https://www-03.ibm.com/isc/esd/dswdown/home.wss">IBM’s software search page</a> and enter the part numbers into the “Find by part number” search box.</p>
+</div>
 <div class="section" id="download">
-<h3><a class="toc-backref" href="#id4">Download</a><a class="headerlink" href="#download" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id5">Download</a><a class="headerlink" href="#download" title="Permalink to this headline">¶</a></h3>
 <p>First navigate to the main page for CPLEX <a class="reference external" href="https://www.ibm.com/products/ilog-cplex-optimization-studio">here</a></p>
 <p>COMPASS requires the full edition of CPLEX, which is free for academic use. Click the ‘Get student and faculty editions’ link.</p>
 <p>Register an account or Log In to an existing account. Once logged in, scroll down to the ‘Software’ section and to a download page for “ILOG CPLEX Optimization Studio”.</p>
@@ -256,7 +281,7 @@ and follow the instructions there.</p>
 <code class="docutils literal notranslate"><span class="pre">cplex_studio129.linux-x86-64.bin</span></code> (or the corresponding file for your version and OS) .</p>
 </div>
 <div class="section" id="linux-install-walkthrough">
-<h3><a class="toc-backref" href="#id5">Linux Install Walkthrough</a><a class="headerlink" href="#linux-install-walkthrough" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id6">Linux Install Walkthrough</a><a class="headerlink" href="#linux-install-walkthrough" title="Permalink to this headline">¶</a></h3>
 <p>Once the file has been transferred, on the Ubuntu instance, execute the
 installer by running the following commands:</p>
 <p>First install Java (required by CPLEX) if you haven’t already done so.</p>
@@ -292,13 +317,13 @@ python instance and run the following command</p>
 <p>If there are no errors, you’re good to go!</p>
 </div>
 <div class="section" id="installing-on-other-operating-systems">
-<h3><a class="toc-backref" href="#id6">Installing on other Operating Systems</a><a class="headerlink" href="#installing-on-other-operating-systems" title="Permalink to this headline">¶</a></h3>
-<p>For installation on Windows or Mac the process will be similar. Navigate to [Cplex Install Directory]/cplex/python/3.6/[OS] and run</p>
+<h3><a class="toc-backref" href="#id7">Installing on other Operating Systems</a><a class="headerlink" href="#installing-on-other-operating-systems" title="Permalink to this headline">¶</a></h3>
+<p>For installation on Windows or Mac the process will be similar. Navigate to [Cplex Install Directory]/cplex/python/[Python Version]/[OS] and run</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 setup.py install
 </pre></div>
 </div>
 <p>For more detailed instructions see <a class="reference external" href="https://www.ibm.com/support/knowledgecenter/SSSA5P_20.1.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_installing.html">IBM’s Knowledge Center</a> and
-using the ‘’Change version or product’’ to navigate to the version of Cplex you downloaded.
+using the “Change version or product” to navigate to the version of Cplex you downloaded.
 Then see <a class="reference external" href="https://www.ibm.com/support/knowledgecenter/SSSA5P_20.1.0/ilog.odms.cplex.help/CPLEX/GettingStarted/topics/set_up/Python_setup.html">here</a> for how to setup the Python API of Cplex.
 As before, if you can open a Python instance and run</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>import cplex

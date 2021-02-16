@@ -63,7 +63,7 @@
             <a class="nav-link" href="install.html">Installing Compass</a>
         </li>
         
-        <li class="nav-item ">
+        <li class="nav-item active">
             <a class="nav-link" href="user-guide.html">Compass User Guide</a>
         </li>
         
@@ -106,6 +106,38 @@
         
         
         
+        
+          
+            
+                <li class="">
+                    <a href="install.html">Installing Compass</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="tutorial.html">Tutorial</a>
+                </li>
+            
+          
+            
+                <li class="active">
+                    <a href="">Compass Settings</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="Compass-Postprocessing-Tutorial.html">Compass Postprocessing</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="AWS-tutorial.html">AWS Tutorial</a>
+                </li>
+            
+          
         
         
         
@@ -231,9 +263,9 @@ samples in a dataset</p>
 <dt><strong>--and-function</strong> [AND]</dt><dd><p>Which function used to aggregate AND
 associations. Options:</p>
 <ul class="simple">
-<li><p>min (default)</p></li>
+<li><p>min</p></li>
 <li><p>median</p></li>
-<li><p>mean</p></li>
+<li><p>mean (default)</p></li>
 </ul>
 </dd>
 <dt><strong>--calc-metabolites</strong></dt><dd><p>Flag to enable calculation and output of
@@ -296,13 +328,13 @@ when submitting job onto a queue</p>
 <dl class="simple">
 <dt><strong>--torque-queue</strong> [QUEUE]</dt><dd><p>Name of the torque queue to submit to</p>
 </dd>
-<dt><strong>--precache</strong></dt><dd><p>A flag to force compass to build up the cache for the selected model and media. This will rebuild the cache even if one already exists.</p>
+<dt><strong>--precache</strong></dt><dd><p>A flag to force compass to build up the cache for the input selected model and media. This will rebuild the cache even if one already exists.</p>
 </dd>
 </dl>
 </div>
 <div class="section" id="testing-and-hidden-settings">
 <h2><a class="toc-backref" href="#id5">Testing and Hidden Settings</a><a class="headerlink" href="#testing-and-hidden-settings" title="Permalink to this headline">¶</a></h2>
-<p>There are several Compass arguments which are supprsed by argparse because they are primarily for testing or for batch jobs.</p>
+<p>There are several Compass arguments which are not listed by the parser because they are primarily for testing or for batch jobs.</p>
 <dl class="simple">
 <dt><strong>--test-mode</strong></dt><dd><p>Flag which limits computing scores to the first 100 reactions and first 50 metabolites</p>
 </dd>
@@ -322,7 +354,7 @@ Through testing the barrier algorithm (4) is fastest and therefore default, with
 See <a class="reference external" href="https://www.ibm.com/support/knowledgecenter/SSSA5P_20.1.0/ilog.odms.cplex.help/CPLEX/Parameters/topics/AdvInd.html">Cplex documentaton for more details</a>.
 Defaults to 2 as best runtime was found using that for tests.</p>
 </dd>
-<dt><strong>--save-argmaxes</strong></dt><dd><p>Flag to enable saving the argmaxes for computing Compass scores of each reaction.</p>
+<dt><strong>--save-argmaxes</strong></dt><dd><p>Flag to enable saving the argmaxes for computing Compass scores of each reaction. Fun fact: solving the TSP greedily on the argmaxes graph to make full use of the advanced basis setting with the simplex algorithm did not outperform the barrier algorithm in practice.</p>
 </dd>
 </dl>
 </div>

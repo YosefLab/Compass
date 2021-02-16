@@ -9,7 +9,7 @@ Requirements
  - Python (2.7+ recommended)
  - IBM CPLEX Optimization Studio (12.9+ recommended)
 
-If you are using Python 2.x you will need to install Cplex version 12.9 or earlier as `Cplex 12.10 has dropped support for Python 2.x. <https://www.ibm.com/support/knowledgecenter/SSSA5P_12.10.0/ilog.odms.studio.help/CPLEX/ReleaseNotes/topics/releasenotes12100/convert.html>`__ As of Cplex version 20.1.0 Python 3.7 and 3.8 are supported. See the following sections for more details on installing Cplex.
+For more details on installing Cplex and what version to use see this section on :ref:`Installing Cplex<cplex-install>`.
 
 Older Python or Cplex versions may work but have not been tested.
 
@@ -31,15 +31,29 @@ Now to test if everything is installed, simply run:
 You should see the help text print out if installation was succesful :) For more details on how to use Compass you can visit our :doc:`tutorial <tutorial>`.
 
 
+.. _cplex-install:
+
 Installing Cplex
 ****************
 
 CPLEX is an optimization engine that COMPASS uses and it must be
-installed from IBM. We use the Python API for Cplex (not Docplex which is a higher level API). 
+installed from IBM. In particular Compass uses its Python API (distinct from Docplex). 
 
 We note that it may be simpler to download the
 installation files locally and SCP/File Transfer them over to the
 corresponding server.
+
+Cplex Versions
+--------------
+The version of Cplex to install will depend on what version of Python you want to use Cplex with, as IBM has gradually phased out support for older Python versions 
+with `Cplex 12.10 dropping support for Python 2.x. <https://www.ibm.com/support/knowledgecenter/SSSA5P_12.10.0/ilog.odms.studio.help/CPLEX/ReleaseNotes/topics/releasenotes12100/convert.html>`__ 
+As a non-exhaustive list of tested Cplex versions (followed by their part number):
+
+ - Python 3.7 or 3.8: Cplex 20.10 (CJ8GXML)
+ - Python 3.6: Cplex 12.10 (CJ6BPML)
+ - Python 2.7: Cplex 12.9 (CJ4Z5ML)
+
+To more directly find these versions of Cplex, you can use `IBM's software search page <https://www-03.ibm.com/isc/esd/dswdown/home.wss>`__ and enter the part numbers into the "Find by part number" search box.
 
 Download
 --------
@@ -111,14 +125,14 @@ If there are no errors, you’re good to go!
 Installing on other Operating Systems
 -------------------------------------
 
-For installation on Windows or Mac the process will be similar. Navigate to [Cplex Install Directory]/cplex/python/3.6/[OS] and run
+For installation on Windows or Mac the process will be similar. Navigate to [Cplex Install Directory]/cplex/python/[Python Version]/[OS] and run
 
 .. code:: bash
 
    python3 setup.py install
 
 For more detailed instructions see `IBM's Knowledge Center <https://www.ibm.com/support/knowledgecenter/SSSA5P_20.1.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_installing.html>`__ and 
-using the ''Change version or product'' to navigate to the version of Cplex you downloaded. 
+using the "Change version or product" to navigate to the version of Cplex you downloaded. 
 Then see `here <https://www.ibm.com/support/knowledgecenter/SSSA5P_20.1.0/ilog.odms.cplex.help/CPLEX/GettingStarted/topics/set_up/Python_setup.html>`__ for how to setup the Python API of Cplex.
 As before, if you can open a Python instance and run
 

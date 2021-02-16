@@ -46,13 +46,15 @@ def parseArgs():
                         nargs="+", 
                         metavar="FILES")
 
-    parser.add_argument("--model", help="Metabolic Model to Use",
+    parser.add_argument("--model", help="Metabolic Model to Use."
+                        "Currently supporting: RECON1_mat, RECON2_mat, or RECON2.2",
                         default="RECON2_mat",
                         choices=["RECON1_mat", "RECON2_mat", "RECON2.2"],
                         metavar="MODEL")
 
     parser.add_argument("--species",
-                        help="Species to use to match genes to model",
+                        help="Species to use to match genes to model"
+                        "Currently supporting: homo_sapiens or mus_musculus",
                         choices=["homo_sapiens", "mus_musculus"],
                         metavar="SPECIES",
                         default="homo_sapiens")
@@ -107,7 +109,7 @@ def parseArgs():
         help="Which function used to aggregate AND associations",
         choices=["min", "median", "mean"],
         metavar="FXN",
-        default="min")
+        default="mean")
 
     parser.add_argument(
         "--select_reactions",
@@ -155,13 +157,13 @@ def parseArgs():
                         help="Preprocesses the model to find "
                         " maximum fluxes")
 
-    parser.add_argument("--input-knn", help="Path to search for a precomputed kNN",
-                        default=None, metavar="KNN INPUT")
+    parser.add_argument("--input-knn", help="File with a precomputed knn graph for the samples",
+                        default=None, metavar="KNN_INPUT")
 
     parser.add_argument("--output-knn", help="File to save kNN of data to",
-                        default=None, metavar="KNN OUTPUT")
+                        default=None, metavar="KNN_OUTPUT")
 
-    parser.add_argument("--latent-space", help="File with latent space for clustering",
+    parser.add_argument("--latent-space", help="File with latent space reprsentation of samples for knn clustering",
                         default=None, metavar="LATENT")
 
     #Hidden argument which tracks more detailed information on runtimes
