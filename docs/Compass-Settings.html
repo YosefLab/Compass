@@ -215,9 +215,8 @@
             <span class="o">[</span>--select_reactions FILE<span class="o">]</span> <span class="o">[</span>--num-neighbors N<span class="o">]</span>
             <span class="o">[</span>--symmetric-kernel<span class="o">]</span> <span class="o">[</span>--input-weights FILE<span class="o">]</span>
             <span class="o">[</span>--penalty-diffusion MODE<span class="o">]</span> <span class="o">[</span>--no-reactions<span class="o">]</span>
-            <span class="o">[</span>--calc-metabolites<span class="o">]</span> <span class="o">[</span>--precache<span class="o">]</span> <span class="o">[</span>--input-knn KNN INPUT<span class="o">]</span>
-            <span class="o">[</span>--output-knn KNN OUTPUT<span class="o">]</span> <span class="o">[</span>--latent-space LATENT<span class="o">]</span>
-            <span class="o">[</span>--list-genes LIST_GENES<span class="o">]</span>
+            <span class="o">[</span>--calc-metabolites<span class="o">]</span> <span class="o">[</span>--precache<span class="o">]</span> <span class="o">[</span>--input-knn FILE<span class="o">]</span>
+            <span class="o">[</span>--output-knn FILE<span class="o">]</span> <span class="o">[</span>--latent-space FILE<span class="o">]</span> <span class="o">[</span>--list-genes FILE<span class="o">]</span>
 </pre></div>
 </div>
 <p>Below we describe the features in more detail:</p>
@@ -260,7 +259,7 @@ samples in a dataset</p>
 <li><p>mus_musculus</p></li>
 </ul>
 </dd>
-<dt><strong>--and-function</strong> [AND]</dt><dd><p>Which function used to aggregate AND
+<dt><strong>--and-function</strong> [FXN]</dt><dd><p>Which function used to aggregate and
 associations. Options:</p>
 <ul class="simple">
 <li><p>min</p></li>
@@ -293,7 +292,7 @@ between single cells. Options:</p>
 <li><p>knn</p></li>
 </ul>
 </dd>
-<dt><strong>--lambda</strong> [LAMBDA]</dt><dd><p>Smoothing factor for single-cell data. Should be set between 0 and 1</p>
+<dt><strong>--lambda</strong> [F]</dt><dd><p>Smoothing factor for single-cell data. Should be set between 0 and 1</p>
 </dd>
 <dt><strong>--num-neighbors</strong> [K]</dt><dd><p>Either effective number of neighbors for gaussian
 penalty diffusion or exact number of neighbors for KNN penalty
@@ -304,11 +303,16 @@ The column and row labels should be the same as the names of samples in expressi
 </dd>
 <dt><strong>--symmetric-kernel</strong></dt><dd><p>Flag to enable symmetrizing the TSNE kernel which takes longer</p>
 </dd>
-<dt><strong>--input-knn</strong> [FILE]</dt><dd><p>File to input a precomputed kNN graph for the samples.</p>
+<dt><strong>--input-knn</strong> [FILE]</dt><dd><p>File to input a precomputed kNN graph for the samples.
+File must be a tsv with one row per sample and (k+1) columns.
+The first column should be sample names, and the next k columns should be indices of the k nearest neighbors (by their order in column 1).</p>
 </dd>
-<dt><strong>--output-knn</strong> [FILE]</dt><dd><p>File to save kNN graph of the samples to.</p>
+<dt><strong>--output-knn</strong> [FILE]</dt><dd><p>File to save kNN graph of the samples to.
+File will be a tsv with one row per sample and (k+1) columns.
+The first column will be sample names, and the next k columns will be indices of the k nearest neighbors (by their order in column 1).</p>
 </dd>
-<dt><strong>--latent-space</strong> [FILE]</dt><dd><p>File with latent space representation of the samples on which to do the kNN clustering</p>
+<dt><strong>--latent-space</strong> [FILE]</dt><dd><p>File with latent space representation of the samples on which to do the kNN clustering.
+Should be a tsv with one row per sample and one column per dimension of the latent space.</p>
 </dd>
 </dl>
 </div>

@@ -38,7 +38,8 @@ def parseArgs():
     """
     parser = argparse.ArgumentParser(
                         prog="Compass",
-                        description="Metabolic Modeling for Single Cells")
+                        description="Metabolic Modeling for Single Cells"
+                        "For more details on usage refer to the documentation: https://yoseflab.github.io/Compass/")
 
     parser.add_argument("--data", help="Gene expression matrix." 
                         " For .mtx inputs, it must be followed by a tsv with gene names"
@@ -157,14 +158,19 @@ def parseArgs():
                         help="Preprocesses the model to find "
                         " maximum fluxes")
 
-    parser.add_argument("--input-knn", help="File with a precomputed knn graph for the samples",
-                        default=None, metavar="KNN_INPUT")
+    parser.add_argument("--input-knn", help="File with a precomputed knn graph for the samples. "
+                        "File must be a tsv with one row per sample and (k+1) columns. The first column should be sample names, "
+                        "and the next k columns should be indices of the k nearest neighbors (by their order in column 1)",
+                        default=None, metavar="FILE")
 
-    parser.add_argument("--output-knn", help="File to save kNN of data to",
-                        default=None, metavar="KNN_OUTPUT")
+    parser.add_argument("--output-knn", help="File to save kNN of data to. "
+                        "File will be a tsv with one row per sample and (k+1) columns. The first column will be sample names, "
+                        "and the next k columns will be indices of the k nearest neighbors (by their order in column 1)",
+                        default=None, metavar="FILE")
 
-    parser.add_argument("--latent-space", help="File with latent space reprsentation of samples for knn clustering",
-                        default=None, metavar="LATENT")
+    parser.add_argument("--latent-space", help="File with latent space reprsentation of samples for knn clustering. "
+                        "File must a tsv with one row per sample and one column per dimension of the latent space.",
+                        default=None, metavar="FILE")
 
     #Hidden argument which tracks more detailed information on runtimes
     parser.add_argument("--detailed-perf", action="store_true",
@@ -193,7 +199,8 @@ def parseArgs():
                         
 
     #Argument to output the list of needed genes to a file
-    parser.add_argument("--list-genes", default=None, help="File to output a list of metabolic genes needed for selected metabolic model.")
+    parser.add_argument("--list-genes", default=None, metavar="FILE",
+                        help="File to output a list of metabolic genes needed for selected metabolic model.")
 
     args = parser.parse_args()
 

@@ -15,9 +15,9 @@ Compass allows users to customize various features:
                [--select_reactions FILE] [--num-neighbors N]
                [--symmetric-kernel] [--input-weights FILE]
                [--penalty-diffusion MODE] [--no-reactions]
-               [--calc-metabolites] [--precache] [--input-knn KNN INPUT]
-               [--output-knn KNN OUTPUT] [--latent-space LATENT]
-               [--list-genes LIST_GENES]
+               [--calc-metabolites] [--precache] [--input-knn FILE]
+               [--output-knn FILE] [--latent-space FILE] [--list-genes FILE]
+
 
 Below we describe the features in more detail:
 
@@ -66,8 +66,8 @@ Metabolic Model Settings
    - homo_sapiens (default)
    - mus_musculus
 
-**\-\-and-function** [AND]
-   Which function used to aggregate AND
+**\-\-and-function** [FXN]
+   Which function used to aggregate and
    associations. Options: 
    
    - min 
@@ -101,7 +101,7 @@ Penalty Settings
    - gaussian (default)
    - knn
 
-**\-\-lambda** [LAMBDA]
+**\-\-lambda** [F]
    Smoothing factor for single-cell data. Should be set between 0 and 1
 
 **\-\-num-neighbors** [K]
@@ -117,13 +117,18 @@ Penalty Settings
    Flag to enable symmetrizing the TSNE kernel which takes longer
 
 **\-\-input-knn** [FILE]
-   File to input a precomputed kNN graph for the samples.
+   File to input a precomputed kNN graph for the samples. 
+   File must be a tsv with one row per sample and (k+1) columns. 
+   The first column should be sample names, and the next k columns should be indices of the k nearest neighbors (by their order in column 1).
 
 **\-\-output-knn** [FILE]
    File to save kNN graph of the samples to.
+   File will be a tsv with one row per sample and (k+1) columns. 
+   The first column will be sample names, and the next k columns will be indices of the k nearest neighbors (by their order in column 1).
 
 **\-\-latent-space** [FILE]
-   File with latent space representation of the samples on which to do the kNN clustering
+   File with latent space representation of the samples on which to do the kNN clustering.
+   Should be a tsv with one row per sample and one column per dimension of the latent space.
 
 Computing Settings
 ------------------

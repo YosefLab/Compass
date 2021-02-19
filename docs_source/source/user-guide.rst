@@ -26,7 +26,7 @@ If your gene expression matrix is in a sparse matrix market format (.mtx file), 
 
 .. code:: bash
 
-   compass --data expression.mtx genes.tsv --num-processes 10
+   compass --data expression.mtx genes.tsv sample_names.tsv --num-processes 10
 
 Once Compass has finished running, it will output a matrix ``reactions.tsv`` with reaction penalties where higher scores correspond to a reaction being less likely.
 

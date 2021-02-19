@@ -12,7 +12,7 @@ Running Compass (Simple)
 ------------------------
 
 The input gene expression matrix can be either a tab-delimited text file (tsv) or a matrix market format (mtx)
-containing gene expression estimates (TPM) with one row per gene, one column per sample. 
+containing gene expression estimates (TPM or CPM) with one row per gene, one column per sample. 
 
 Tab-delimited files need row and column labels corresponding to genes and sample names. Market matrix formats need a separate tab delimited file of of gene names and optionally a tab delimited file of cell names.
 
@@ -77,9 +77,9 @@ Compass also allows users to customize a variaty of settings seen below:
                [--select_reactions FILE] [--num-neighbors N]
                [--symmetric-kernel] [--input-weights FILE]
                [--penalty-diffusion MODE] [--no-reactions]
-               [--calc-metabolites] [--precache] [--input-knn KNN INPUT]
-               [--output-knn KNN OUTPUT] [--latent-space LATENT]
-               [--list-genes LIST_GENES]
+               [--calc-metabolites] [--precache] [--input-knn FILE]
+               [--output-knn FILE] [--latent-space FILE] [--list-genes FILE]
+
 
 See our instructions
 :doc:`here </Compass-Settings>`
