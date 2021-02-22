@@ -42,10 +42,13 @@ def parseArgs():
                         "For more details on usage refer to the documentation: https://yoseflab.github.io/Compass/")
 
     parser.add_argument("--data", help="Gene expression matrix." 
-                        " For .mtx inputs, it must be followed by a tsv with gene names"
-                        " and optionally a list of cell barcodes",
+                        " Should be a tsv file with one row per gene and one column per sample", 
+                        metavar="FILE")
+
+    parser.add_argument("--data-mtx", help="Gene expression matrix." 
+                        " Should be a matrix market (mtx) formatted gene file. Must be followed by a tsv file with row names corresponding to genes and optionally that can be followed by a tsv file with sample names. ",
                         nargs="+", 
-                        metavar="FILES")
+                        metavar="FILE")
 
     parser.add_argument("--model", help="Metabolic Model to Use."
                         " Currently supporting: RECON1_mat, RECON2_mat, or RECON2.2",
@@ -172,7 +175,7 @@ def parseArgs():
                         "File must a tsv with one row per sample and one column per dimension of the latent space.",
                         default=None, metavar="FILE")
 
-    parser.add_argument("--only-penalties", help="Flag for Compass to only compute the penalties for the dataset.",
+    parser.add_argument("--only-penalties", help="Flag for Compass to only compute the reaction penalties for the dataset.",
                         action="store_true", default=None)
 
     #Hidden argument which tracks more detailed information on runtimes
@@ -212,10 +215,16 @@ def parseArgs():
 
     load_config(args)
 
-    if not args['data']:
+    if args['data'] and args['data_mtx']:
+        parser.error("--data and --data-mtx cannot be used at the same time. Select only one input per run.")
+    if not args['data'] and not args['data_mtx']:
         if not args['precache'] and not args['list_genes']:
-            parser.error("--data [file] required unless --precache or --list-genes option selected")
+            parser.error("--data or --data-mtx required unless --precache or --list-genes option selected")
     else:
+        if args['data_mtx']:
+            args['data'] = args['data_mtx']
+        else:
+            args['data'] = [args['data']]
         args['data'] = [os.path.abspath(p) for p in args['data']]
         if len(args['data']) == 2:
             args['data'].append(None)
