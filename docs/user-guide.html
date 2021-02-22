@@ -196,8 +196,8 @@
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>compass --data expression.tsv --num-processes <span class="m">10</span>
 </pre></div>
 </div>
-<p>If your gene expression matrix is in a sparse matrix market format (.mtx file), you’ll also need to provide a tab-delimited file with labels for what genes are in each row</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>compass --data expression.mtx genes.tsv sample_names.tsv --num-processes <span class="m">10</span>
+<p>If your gene expression matrix is in a matrix market format (.mtx file) you can use the <code class="docutils literal notranslate"><span class="pre">--data-mtx</span></code> option. You’ll also need to provide a tab-delimited file with labels for what genes are in each row and optionally add in a sample names file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>compass --data-mtx expression.mtx genes.tsv sample_names.tsv --num-processes <span class="m">10</span>
 </pre></div>
 </div>
 <p>Once Compass has finished running, it will output a matrix <code class="docutils literal notranslate"><span class="pre">reactions.tsv</span></code> with reaction penalties where higher scores correspond to a reaction being less likely.</p>
