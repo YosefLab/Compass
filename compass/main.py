@@ -172,10 +172,14 @@ def parseArgs():
                         "File must a tsv with one row per sample and one column per dimension of the latent space.",
                         default=None, metavar="FILE")
 
+    parser.add_argument("--only-penalties", help="Flag for Compass to only compute the penalties for the dataset.",
+                        action="store_true", default=None)
+
     #Hidden argument which tracks more detailed information on runtimes
     parser.add_argument("--detailed-perf", action="store_true",
                         help=argparse.SUPPRESS)
 
+    #Hidden argument for testing purposes.
     parser.add_argument("--penalties-file",
                         help=argparse.SUPPRESS,
                         default='')
@@ -310,20 +314,6 @@ def entry():
     #    logger.info("Compass computed knn succesfully")
     #    return 
 
-    #Check if the cache for (model, media) exists already:
-    size_of_cache = len(cache.load(init_model(model=args['model'], species=args['species'],
-                    exchange_limit=globals.EXCHANGE_LIMIT,
-                    media=args['media']), args['media']))
-    if size_of_cache == 0 or args['precache']:
-        logger.info("Building up model cache")
-        precacheCompass(args=args)
-        end_time = datetime.datetime.now()
-        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
-        if not args['data']:
-            return
-    else:
-        logger.info("Cache already built")
-
     if args['single_sample'] is not None:
         singleSampleCompass(data=args['data'], model=args['model'],
                             media=args['media'], directory=args['temp_dir'],
@@ -355,6 +345,22 @@ def entry():
             fout.write('Success!')
 
     args['penalties_file'] = penalties_file
+    if args['only_penalties']:
+        return
+
+    #Check if the cache for (model, media) exists already:
+    size_of_cache = len(cache.load(init_model(model=args['model'], species=args['species'],
+                    exchange_limit=globals.EXCHANGE_LIMIT,
+                    media=args['media']), args['media']))
+    if size_of_cache == 0 or args['precache']:
+        logger.info("Building up model cache")
+        precacheCompass(args=args)
+        end_time = datetime.datetime.now()
+        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
+        if not args['data']:
+            return
+    else:
+        logger.info("Cache already built")
 
     # Now run the individual cells through cplex in parallel
     # This is either done by sending to Torque queue, or running on the
