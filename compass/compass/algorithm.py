@@ -204,7 +204,6 @@ def compass_exchange(model, problem, reaction_penalties, select_reactions=None, 
     metabolites = list(model.species.values())
     if TEST_MODE:
         metabolites = metabolites[0:50]
-    shuffle(metabolites)
 
     #populate the list of selected_reaction_ids - do this once outside of the loop
     if select_reactions:

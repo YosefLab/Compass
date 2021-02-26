@@ -19,13 +19,13 @@ Tab-delimited files need row and column labels corresponding to genes and sample
 Example input
 ^^^^^^^^^^^^^
 
-You can find an example input in tab-delimited format (tsv) and market matrix format (mtx) on this github repo under `compass/Resources/Test-Data <https://github.com/YosefLab/Compass/tree/master/compass/Resources/Test-Data>`__. 
+You can find example inputs in tab-delimited format (tsv) and market matrix format (mtx) on this github repo under `compass/Resources/Test-Data <https://github.com/YosefLab/Compass/tree/master/compass/Resources/Test-Data>`__. 
 
-The file will exist locally as well under the Compass install directory which will generally be stored in Python's ``site-packages`` folder (this might vary depending on your python setup). The site-packages directory will be listed by running this command:
+These files will exist locally as well under the Compass install directory which can be found by running:
 
 .. code:: bash
 
-   python -c 'import site; print(site.getsitepackages())'
+   compass --example-inputs
 
 Running Compass
 ---------------

@@ -178,6 +178,9 @@ def parseArgs():
     parser.add_argument("--only-penalties", help="Flag for Compass to only compute the reaction penalties for the dataset.",
                         action="store_true", default=None)
 
+    parser.add_argument("--example-inputs", help="Flag for Compass to list the directory where example inputs can be found.",
+                        action="store_true", default=None)
+
     #Hidden argument which tracks more detailed information on runtimes
     parser.add_argument("--detailed-perf", action="store_true",
                         help=argparse.SUPPRESS)
@@ -218,8 +221,8 @@ def parseArgs():
     if args['data'] and args['data_mtx']:
         parser.error("--data and --data-mtx cannot be used at the same time. Select only one input per run.")
     if not args['data'] and not args['data_mtx']:
-        if not args['precache'] and not args['list_genes']:
-            parser.error("--data or --data-mtx required unless --precache or --list-genes option selected")
+        if not args['precache'] and not args['list_genes'] and not args['example_inputs']:
+            parser.error("--data or --data-mtx required unless --precache, --list-genes, or --example-inputs option selected")
     else:
         if args['data_mtx']:
             args['data'] = args['data_mtx']
@@ -317,6 +320,9 @@ def entry():
             fout.close()
         return
             
+    if args['example_inputs']:
+        print(os.path.join(globals.RESOURCE_DIR, "Test-Data"))
+        return 
 
     #if args['output_knn']:
     #    compute_knn(args)

@@ -17,8 +17,7 @@ Compass allows users to customize various features:
                [--penalty-diffusion MODE] [--no-reactions]
                [--calc-metabolites] [--precache] [--input-knn FILE]
                [--output-knn FILE] [--latent-space FILE] [--only-penalties]
-               [--list-genes FILE]
-
+               [--example-inputs] [--list-genes FILE]
 
 
 Below we describe the features in more detail:
@@ -44,12 +43,15 @@ Input and Output settings
 
    If the column names file is omitted the samples will be labelled by index.
 
-**\-\-output-dir** [DIR]
+**\-\-output\-dir** [DIR]
    Final directory to output concatenated reactions.txt file
 
-**\-\-temp-dir** [DIR]
+**\-\-temp\-dir** [DIR]
    Directory to store partial results for completed
    samples in a dataset
+
+**\-\-example\-inputs**
+   Flag for Compass to list the directory where example inputs can be found.
 
 Metabolic Model Settings
 ------------------------
