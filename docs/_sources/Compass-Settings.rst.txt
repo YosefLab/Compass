@@ -8,7 +8,7 @@ Compass allows users to customize various features:
 
 .. code:: bash
 
-   usage: Compass [-h] [--data FILES [FILES ...]] [--model MODEL]
+   usage: Compass [-h] [--data FILE] [--data-mtx FILE [FILE ...]] [--model MODEL]
                [--species SPECIES] [--media MEDIA] [--output-dir DIR]
                [--temp-dir DIR] [--torque-queue QUEUE] [--num-processes N]
                [--lambda F] [--num-threads N] [--and-function FXN]
@@ -16,7 +16,9 @@ Compass allows users to customize various features:
                [--symmetric-kernel] [--input-weights FILE]
                [--penalty-diffusion MODE] [--no-reactions]
                [--calc-metabolites] [--precache] [--input-knn FILE]
-               [--output-knn FILE] [--latent-space FILE] [--list-genes FILE]
+               [--output-knn FILE] [--latent-space FILE] [--only-penalties]
+               [--list-genes FILE]
+
 
 
 Below we describe the features in more detail:
@@ -24,21 +26,23 @@ Below we describe the features in more detail:
 Input and Output settings
 -------------------------
 
-**\-\-data** [FILES]
-   File to input gene expression data with rows as genes and columns as sample names. 
-   The input can a single tab-delimited file with row and column labels:
+**\-\-data** [FILE]
+   File with input gene expression data with rows as genes and columns as samples. 
+   The input should be a single tab-delimited file with row and column labels:
 
    .. code:: bash
 
       --data expression.tsv
 
-   Or the input can be in the matrix market format followed by two tab separted files, with the first file being row labels corresponding to genes and the second file being column labels corresponding to sample names:
+**\-\-data\-mtx** [--data-mtx FILE [FILE ...]]
+   File with input gene expression data with rows as genes and columns as samples in market matrix format (mtx).
+   The input must be followed by a tab separated file with rownames corresponding to genes. Optionally that can be followed by column names corresponding to samples.
 
    .. code:: bash
 
       --data expression.mtx genes.tsv sample_names.tsv
 
-   The sample names file can be omitted in which case the samples will be labelled by index, but the genes file must be included.
+   If the column names file is omitted the samples will be labelled by index.
 
 **\-\-output-dir** [DIR]
    Final directory to output concatenated reactions.txt file
@@ -129,6 +133,9 @@ Penalty Settings
 **\-\-latent-space** [FILE]
    File with latent space representation of the samples on which to do the kNN clustering.
    Should be a tsv with one row per sample and one column per dimension of the latent space.
+
+**\-\-only\-penalties**
+   Flag for Compass to only compute the reaction penalties for the dataset.
 
 Computing Settings
 ------------------

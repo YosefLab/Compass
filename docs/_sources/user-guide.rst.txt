@@ -22,11 +22,11 @@ Once Compass has been installed you can run it the algorithm on an input gene ex
 
    compass --data expression.tsv --num-processes 10
 
-If your gene expression matrix is in a sparse matrix market format (.mtx file), you'll also need to provide a tab-delimited file with labels for what genes are in each row
+If your gene expression matrix is in a matrix market format (.mtx file) you can use the ``--data-mtx`` option. You'll also need to provide a tab-delimited file with labels for what genes are in each row and optionally add in a sample names file:
 
 .. code:: bash
 
-   compass --data expression.mtx genes.tsv sample_names.tsv --num-processes 10
+   compass --data-mtx expression.mtx genes.tsv sample_names.tsv --num-processes 10
 
 Once Compass has finished running, it will output a matrix ``reactions.tsv`` with reaction penalties where higher scores correspond to a reaction being less likely.
 

@@ -40,7 +40,7 @@ And to run compass on mtx formatted data use the following:
 
 .. code:: bash
 
-   compass --data expression.mtx genes.tsv sample_names.tsv --num-processes 10
+   compass --data-mtx expression.mtx genes.tsv sample_names.tsv --num-processes 10
 
 Though the sample names file can be omitted, in which case the samples will be labelled by index.
 
@@ -70,7 +70,7 @@ Compass also allows users to customize a variaty of settings seen below:
 
 .. code:: bash
 
-   usage: Compass [-h] [--data FILES [FILES ...]] [--model MODEL]
+   usage: Compass [-h] [--data FILE] [--data-mtx FILE [FILE ...]] [--model MODEL]
                [--species SPECIES] [--media MEDIA] [--output-dir DIR]
                [--temp-dir DIR] [--torque-queue QUEUE] [--num-processes N]
                [--lambda F] [--num-threads N] [--and-function FXN]
@@ -78,7 +78,8 @@ Compass also allows users to customize a variaty of settings seen below:
                [--symmetric-kernel] [--input-weights FILE]
                [--penalty-diffusion MODE] [--no-reactions]
                [--calc-metabolites] [--precache] [--input-knn FILE]
-               [--output-knn FILE] [--latent-space FILE] [--list-genes FILE]
+               [--output-knn FILE] [--latent-space FILE] [--only-penalties]
+               [--list-genes FILE]
 
 
 See our instructions
