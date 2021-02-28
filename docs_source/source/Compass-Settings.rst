@@ -97,6 +97,12 @@ Metabolic Model Settings
    (undirected, namely adding the suffix \"_pos\" or \"_neg\" to a line will create a valid directed reaction id). 
    Unrecognized reactions in FILE are ignored.
 
+**\-\-select-subsystems** [FILE]
+   Compute compass scores only for the subsystems listed in the given file. 
+   FILE is expected to be textual, with one line per subsystem.
+   Unrecognized subsystem in FILE are ignored.
+
+
 Penalty Settings
 ----------------
 

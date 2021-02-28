@@ -123,7 +123,7 @@ def parseArgs():
 
     parser.add_argument(
         "--select-subsystems",
-        help="Compute compass scores only for the subsystems listed in the given file. FILE is expected to be textual, with one line per subsystem. Unrecognized reactions in FILE are ignored. For a full list of reactions and their associated subsystems, tbd.",
+        help="Compute compass scores only for the subsystems listed in the given file. FILE is expected to be textual, with one line per subsystem. Unrecognized subsystems in FILE are ignored.",
         required=False,
         metavar="FILE")
 

@@ -67,6 +67,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
                               media=media)
 
     if args['glucose']:
+        model.reactions['EX_glc(e)_neg'].upper_bound = args['glucose']
         model.reactions['GLCt1r_pos'].upper_bound = args['glucose']
 
     logger.info("Running COMPASS on model: %s", model.name)
