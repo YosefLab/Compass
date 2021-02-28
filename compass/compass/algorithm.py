@@ -57,9 +57,17 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
         logger.info('COMPASS Completed Successfully')
         return
 
+    if args['save_argmaxes']:
+        args['save_argmaxes_dir'] = directory
+    else:
+        args['save_argmaxes_dir'] = None
+
     model = models.init_model(model, species=args['species'],
                               exchange_limit=EXCHANGE_LIMIT,
                               media=media)
+
+    if args['glucose']:
+        model.reactions['GLCt1r_pos'].upper_bound = args['glucose']
 
     logger.info("Running COMPASS on model: %s", model.name)
 
@@ -101,10 +109,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
         logger.info("Evaluating Reaction Scores...")
         reaction_scores = compass_reactions(
             model, problem, reaction_penalties,
-            select_reactions=args['select_reactions'],
-            TEST_MODE=args['test_mode'], perf_log=perf_log, 
-            save_argmaxes=args['save_argmaxes'], 
-            save_directory=directory)
+            perf_log=perf_log, args=args)
     react_elapsed = timeit.default_timer() - react_start
     
 
@@ -114,9 +119,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     uptake_scores, secretion_scores, exchange_rxns = compass_exchange(
         model, problem, reaction_penalties,
         only_exchange=(not args['no_reactions']) and not args['calc_metabolites'],
-        select_reactions=args['select_reactions'],
-        TEST_MODE=args['test_mode'], 
-        perf_log=perf_log)
+        perf_log=perf_log, args=args)
     exchange_elapsed = timeit.default_timer() - exchange_start 
 
     # Copy valid uptake/secretion reaction fluxes from uptake/secretion
@@ -170,9 +173,27 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     
     logger.info('COMPASS Completed Successfully')
     
+def read_selected_reactions(select_reactions, select_subsystems, model):
+    selected_reaction_ids = []
+    if select_reactions:
+        if not os.path.exists(select_reactions):
+            raise Exception("cannot find selected reactions subset file %s" % select_reactions)
+        with open(select_reactions) as f:
+            selected_reaction_ids += [line.strip() for line in f]
+    if select_subsystems:
+        if not os.path.exists(select_subsystems):
+            raise Exception("cannot find selected reactions subset file %s" % select_subsystems)
+        with open(select_subsystems) as f:
+            selected_subsystems_ids = [line.strip() for line in f]
+        subsys = {}
+        for rxn in model.reactions.values():
+            if rxn.subsystem in selected_subsystems_ids:
+                selected_reaction_ids += [rxn.id]
+    return [str(s) for s in selected_reaction_ids]
 
 
-def compass_exchange(model, problem, reaction_penalties, select_reactions=None, only_exchange=False, TEST_MODE=False, perf_log=None):
+
+def compass_exchange(model, problem, reaction_penalties, only_exchange=False, perf_log=None, args = None):
     """
     Iterates through metabolites, finding each's max
     uptake and secretion potentials. If only_exchange=True, does so only for exchange reactions.
@@ -202,17 +223,12 @@ def compass_exchange(model, problem, reaction_penalties, select_reactions=None, 
     uptake_scores = {}
     exchange_rxns = {}
     metabolites = list(model.species.values())
-    if TEST_MODE:
+    if args['test_mode']:
         metabolites = metabolites[0:50]
 
     #populate the list of selected_reaction_ids - do this once outside of the loop
-    if select_reactions:
-        #assume this is a filename with one reaction per row, ignores unrecognized reactions
-        if not os.path.exists(select_reactions):
-            raise Exception("cannot find selected reactions subset file %s" % select_reactions)
-
-        with open(select_reactions) as f:
-            selected_reaction_ids = [line.strip() for line in f]
+    if args['select_reactions'] or args['select_subsystems']:
+        selected_reaction_ids = read_selected_reactions(args['select_reactions'], args['select_subsystems'], model)
 
 
     all_names = set(problem.linear_constraints.get_names())
@@ -251,9 +267,9 @@ def compass_exchange(model, problem, reaction_penalties, select_reactions=None, 
         if only_exchange:
             reactions = [x for x in reactions if x.is_exchange]
 
-        if select_reactions:
+        if args['select_reactions'] or args['select_subsystems']:
             #r.id is a unidirectional identifier (ending with _pos or _neg suffix --> we remove it and compare to the undirected reaction id)
-            reactions = [r for r in reactions if ((r.id)[:-4] in selected_reaction_ids)]
+            reactions = [r for r in reactions if ((r.id)[:-4] in selected_reaction_ids or str(r.id) in selected_reaction_ids)]
 
 
         for reaction in reactions:
@@ -270,7 +286,7 @@ def compass_exchange(model, problem, reaction_penalties, select_reactions=None, 
                     extra_secretion_rxns.append(reaction.id)
 
         #if the selected_rxns or only_exchange options are used --> then we don't want to add reactions unless one of the pair already exists
-        if(only_exchange or select_reactions) and (uptake_rxn is None) and (secretion_rxn is None):
+        if(only_exchange or args['select_reactions']) and (uptake_rxn is None) and (secretion_rxn is None):
             continue
 
         if (secretion_rxn is None):
@@ -331,7 +347,7 @@ def compass_exchange(model, problem, reaction_penalties, select_reactions=None, 
             problem.variables.set_upper_bounds(rxn_id, 0.0)
 
         # Get max of secretion reaction
-        secretion_max = maximize_reaction(model, problem, secretion_rxn, perf_log=perf_log)
+        secretion_max = maximize_reaction(model, problem, secretion_rxn, use_cache=(args['glucose'] is None) , perf_log=perf_log)
 
         # Set contraint of max secretion to BETA*max
         problem.linear_constraints.add(
@@ -440,8 +456,7 @@ def compass_exchange(model, problem, reaction_penalties, select_reactions=None, 
     return uptake_scores, secretion_scores, exchange_rxns
 
 
-def compass_reactions(model, problem, reaction_penalties, select_reactions=None, TEST_MODE=False, 
-    perf_log=None, save_argmaxes=False, save_directory=None):
+def compass_reactions(model, problem, reaction_penalties, perf_log=None, args = None):
     """
     Iterates through reactions, holding each near
     its max value while minimizing penalty.
@@ -461,22 +476,16 @@ def compass_reactions(model, problem, reaction_penalties, select_reactions=None,
     reactions = list(model.reactions.values())
     model_cache = cache.load(model)
 
-    if TEST_MODE:
+    if args['test_mode']:
         reactions = reactions[0:100]
 
-    if select_reactions:
-        #assume this is a filename with one reaction per row, ignores unrecognized reactions
-        if not os.path.exists(select_reactions):
-            raise Exception("cannot find selected reactions subset file %s" % select_reactions)
-
-        with open(select_reactions) as f:
-            selected_reaction_ids = [line.strip() for line in f]
-
+    if args['select_reactions'] or args['select_subsystems']:
+        selected_reaction_ids = read_selected_reactions(args['select_reactions'], args['select_subsystems'], model)
         #r.id is a unidirectional identifier (ending with _pos or _neg suffix --> we remove it and compare to the undirected reaction id)
-        reactions = [r for r in reactions if ((r.id)[:-4] in selected_reaction_ids)]
+        reactions = [r for r in reactions if (str(r.id)[:-4] in selected_reaction_ids or str(r.id) in selected_reaction_ids)]
 
     
-    if save_argmaxes:
+    if args['save_argmaxes']:
         argmaxes_order = []
         argmaxes = []
 
@@ -495,7 +504,7 @@ def compass_reactions(model, problem, reaction_penalties, select_reactions=None,
             problem.variables.set_upper_bounds(partner_id, 0.0)
 
         
-        r_max = maximize_reaction(model, problem, reaction.id, perf_log=perf_log)
+        r_max = maximize_reaction(model, problem, reaction.id, use_cache =(args['glucose'] is None), perf_log=perf_log)
         
 
         # If Reaction can't carry flux anyways, just continue
@@ -533,7 +542,7 @@ def compass_reactions(model, problem, reaction_penalties, select_reactions=None,
                 if hasattr(problem.solution.get_quality_metrics(),'kappa'):
                    perf_log['kappa'][reaction.id] = problem.solution.get_quality_metrics().kappa
             
-            if save_argmaxes:
+            if args['save_argmaxes']:
                 argmaxes.append(np.array(problem.solution.get_values()))
                 argmaxes_order.append(reaction.id)
 
@@ -548,12 +557,11 @@ def compass_reactions(model, problem, reaction_penalties, select_reactions=None,
             partner_id = partner_reaction.id
             problem.variables.set_upper_bounds(partner_id, old_partner_ub)
 
-    #ARGMAXES
-    if save_argmaxes:
+    if args['save_argmaxes']:
         argmaxes = np.vstack(argmaxes)
-        np.save(os.path.join(save_directory,'argmaxes.npy'), argmaxes)
+        np.save(os.path.join(args['save_argmaxes_dir'],'argmaxes.npy'), argmaxes)
         argmaxes_order = np.array(argmaxes_order)
-        np.save(os.path.join(save_directory,'argmaxes_order.npy'), argmaxes_order)
+        np.save(os.path.join(args['save_argmaxes_dir'],'argmaxes_order.npy'), argmaxes_order)
 
     return reaction_scores
 

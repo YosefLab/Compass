@@ -12,7 +12,7 @@ Compass allows users to customize various features:
                [--species SPECIES] [--media MEDIA] [--output-dir DIR]
                [--temp-dir DIR] [--torque-queue QUEUE] [--num-processes N]
                [--lambda F] [--num-threads N] [--and-function FXN]
-               [--select_reactions FILE] [--num-neighbors N]
+               [--select-reactions FILE] [--num-neighbors N]
                [--symmetric-kernel] [--input-weights FILE]
                [--penalty-diffusion MODE] [--no-reactions]
                [--calc-metabolites] [--precache] [--input-knn FILE]
@@ -33,7 +33,7 @@ Input and Output settings
 
       --data expression.tsv
 
-**\-\-data\-mtx** [--data-mtx FILE [FILE ...]]
+**\-\-data-mtx** [--data-mtx FILE [FILE ...]]
    File with input gene expression data with rows as genes and columns as samples in market matrix format (mtx).
    The input must be followed by a tab separated file with rownames corresponding to genes. Optionally that can be followed by column names corresponding to samples.
 
@@ -43,14 +43,14 @@ Input and Output settings
 
    If the column names file is omitted the samples will be labelled by index.
 
-**\-\-output\-dir** [DIR]
+**\-\-output-dir** [DIR]
    Final directory to output concatenated reactions.txt file
 
-**\-\-temp\-dir** [DIR]
+**\-\-temp-dir** [DIR]
    Directory to store partial results for completed
    samples in a dataset
 
-**\-\-example\-inputs**
+**\-\-example-inputs**
    Flag for Compass to list the directory where example inputs can be found.
 
 Metabolic Model Settings
@@ -136,7 +136,7 @@ Penalty Settings
    File with latent space representation of the samples on which to do the kNN clustering.
    Should be a tsv with one row per sample and one column per dimension of the latent space.
 
-**\-\-only\-penalties**
+**\-\-only-penalties**
    Flag for Compass to only compute the reaction penalties for the dataset.
 
 Computing Settings

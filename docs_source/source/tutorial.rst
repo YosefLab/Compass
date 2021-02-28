@@ -74,7 +74,7 @@ Compass also allows users to customize a variaty of settings seen below:
                [--species SPECIES] [--media MEDIA] [--output-dir DIR]
                [--temp-dir DIR] [--torque-queue QUEUE] [--num-processes N]
                [--lambda F] [--num-threads N] [--and-function FXN]
-               [--select_reactions FILE] [--num-neighbors N]
+               [--select-reactions FILE] [--num-neighbors N]
                [--symmetric-kernel] [--input-weights FILE]
                [--penalty-diffusion MODE] [--no-reactions]
                [--calc-metabolites] [--precache] [--input-knn FILE]

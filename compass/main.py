@@ -116,10 +116,19 @@ def parseArgs():
         default="mean")
 
     parser.add_argument(
-        "--select_reactions",
+        "--select-reactions",
         help="Compute compass scores only for the reactions listed in the given file. FILE is expected to be textual, with one line per reaction (undirected, namely adding the suffix \"_pos\" or \"_neg\" to a line will create a valid directed reaction id). Unrecognized reactions in FILE are ignored.",
         required=False,
         metavar="FILE")
+
+    parser.add_argument(
+        "--select-subsystems",
+        help="Compute compass scores only for the subsystems listed in the given file. FILE is expected to be textual, with one line per subsystem. Unrecognized reactions in FILE are ignored. For a full list of reactions and their associated subsystems, tbd.",
+        required=False,
+        metavar="FILE")
+
+    parser.add_argument("--glucose", type=float,
+                        required=False, help=argparse.SUPPRESS)
 
     # Hidden argument.  Used for batch jobs
     parser.add_argument("--collect", action="store_true",
@@ -237,6 +246,9 @@ def parseArgs():
 
     if args['select_reactions']:
         args['select_reactions'] = os.path.abspath(args['select_reactions'])
+
+    if args['select_subsystems']:
+        args['select_subsystems'] = os.path.abspath(args['select_subsystems'])
 
     if args['temp_dir'] == "<output-dir>/_tmp":
         args['temp_dir'] = os.path.join(args['output_dir'], '_tmp')
