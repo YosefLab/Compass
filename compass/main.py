@@ -42,10 +42,13 @@ def parseArgs():
                         "For more details on usage refer to the documentation: https://yoseflab.github.io/Compass/")
 
     parser.add_argument("--data", help="Gene expression matrix." 
-                        " For .mtx inputs, it must be followed by a tsv with gene names"
-                        " and optionally a list of cell barcodes",
+                        " Should be a tsv file with one row per gene and one column per sample", 
+                        metavar="FILE")
+
+    parser.add_argument("--data-mtx", help="Gene expression matrix." 
+                        " Should be a matrix market (mtx) formatted gene file. Must be followed by a tsv file with row names corresponding to genes and optionally that can be followed by a tsv file with sample names. ",
                         nargs="+", 
-                        metavar="FILES")
+                        metavar="FILE")
 
     parser.add_argument("--model", help="Metabolic Model to Use."
                         " Currently supporting: RECON1_mat, RECON2_mat, or RECON2.2",
@@ -113,10 +116,19 @@ def parseArgs():
         default="mean")
 
     parser.add_argument(
-        "--select_reactions",
+        "--select-reactions",
         help="Compute compass scores only for the reactions listed in the given file. FILE is expected to be textual, with one line per reaction (undirected, namely adding the suffix \"_pos\" or \"_neg\" to a line will create a valid directed reaction id). Unrecognized reactions in FILE are ignored.",
         required=False,
         metavar="FILE")
+
+    parser.add_argument(
+        "--select-subsystems",
+        help="Compute compass scores only for the subsystems listed in the given file. FILE is expected to be textual, with one line per subsystem. Unrecognized subsystems in FILE are ignored.",
+        required=False,
+        metavar="FILE")
+
+    parser.add_argument("--glucose", type=float,
+                        required=False, help=argparse.SUPPRESS)
 
     # Hidden argument.  Used for batch jobs
     parser.add_argument("--collect", action="store_true",
@@ -172,10 +184,17 @@ def parseArgs():
                         "File must a tsv with one row per sample and one column per dimension of the latent space.",
                         default=None, metavar="FILE")
 
+    parser.add_argument("--only-penalties", help="Flag for Compass to only compute the reaction penalties for the dataset.",
+                        action="store_true", default=None)
+
+    parser.add_argument("--example-inputs", help="Flag for Compass to list the directory where example inputs can be found.",
+                        action="store_true", default=None)
+
     #Hidden argument which tracks more detailed information on runtimes
     parser.add_argument("--detailed-perf", action="store_true",
                         help=argparse.SUPPRESS)
 
+    #Hidden argument for testing purposes.
     parser.add_argument("--penalties-file",
                         help=argparse.SUPPRESS,
                         default='')
@@ -208,10 +227,16 @@ def parseArgs():
 
     load_config(args)
 
-    if not args['data']:
-        if not args['precache'] and not args['list_genes']:
-            parser.error("--data [file] required unless --precache or --list-genes option selected")
+    if args['data'] and args['data_mtx']:
+        parser.error("--data and --data-mtx cannot be used at the same time. Select only one input per run.")
+    if not args['data'] and not args['data_mtx']:
+        if not args['precache'] and not args['list_genes'] and not args['example_inputs']:
+            parser.error("--data or --data-mtx required unless --precache, --list-genes, or --example-inputs option selected")
     else:
+        if args['data_mtx']:
+            args['data'] = args['data_mtx']
+        else:
+            args['data'] = [args['data']]
         args['data'] = [os.path.abspath(p) for p in args['data']]
         if len(args['data']) == 2:
             args['data'].append(None)
@@ -221,6 +246,9 @@ def parseArgs():
 
     if args['select_reactions']:
         args['select_reactions'] = os.path.abspath(args['select_reactions'])
+
+    if args['select_subsystems']:
+        args['select_subsystems'] = os.path.abspath(args['select_subsystems'])
 
     if args['temp_dir'] == "<output-dir>/_tmp":
         args['temp_dir'] = os.path.join(args['output_dir'], '_tmp')
@@ -304,25 +332,14 @@ def entry():
             fout.close()
         return
             
+    if args['example_inputs']:
+        print(os.path.join(globals.RESOURCE_DIR, "Test-Data"))
+        return 
 
     #if args['output_knn']:
     #    compute_knn(args)
     #    logger.info("Compass computed knn succesfully")
     #    return 
-
-    #Check if the cache for (model, media) exists already:
-    size_of_cache = len(cache.load(init_model(model=args['model'], species=args['species'],
-                    exchange_limit=globals.EXCHANGE_LIMIT,
-                    media=args['media']), args['media']))
-    if size_of_cache == 0 or args['precache']:
-        logger.info("Building up model cache")
-        precacheCompass(args=args)
-        end_time = datetime.datetime.now()
-        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
-        if not args['data']:
-            return
-    else:
-        logger.info("Cache already built")
 
     if args['single_sample'] is not None:
         singleSampleCompass(data=args['data'], model=args['model'],
@@ -355,6 +372,22 @@ def entry():
             fout.write('Success!')
 
     args['penalties_file'] = penalties_file
+    if args['only_penalties']:
+        return
+
+    #Check if the cache for (model, media) exists already:
+    size_of_cache = len(cache.load(init_model(model=args['model'], species=args['species'],
+                    exchange_limit=globals.EXCHANGE_LIMIT,
+                    media=args['media']), args['media']))
+    if size_of_cache == 0 or args['precache']:
+        logger.info("Building up model cache")
+        precacheCompass(args=args)
+        end_time = datetime.datetime.now()
+        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
+        if not args['data']:
+            return
+    else:
+        logger.info("Cache already built")
 
     # Now run the individual cells through cplex in parallel
     # This is either done by sending to Torque queue, or running on the

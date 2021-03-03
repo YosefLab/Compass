@@ -3,6 +3,7 @@ import pandas as pd
 import subprocess as sp
 import json
 import logging
+from .. import utils
 
 from ..globals import RESOURCE_DIR
 
@@ -34,7 +35,7 @@ def submitCompassTorque(args, temp_dir, output_dir, queue):
 
     # Get the number of samples for array indices
     data = args['data']
-    expression = pd.read_csv(data, sep='\t', index_col=0)
+    expression = utils.read_data(data)
     n_samples = len(expression.columns)
 
     config_file = os.path.join(temp_dir, 'config.json')

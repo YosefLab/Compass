@@ -208,7 +208,7 @@
 </ul>
 </div>
 <p>Compass allows users to customize various features:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: Compass <span class="o">[</span>-h<span class="o">]</span> <span class="o">[</span>--data FILES <span class="o">[</span>FILES ...<span class="o">]]</span> <span class="o">[</span>--model MODEL<span class="o">]</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: Compass <span class="o">[</span>-h<span class="o">]</span> <span class="o">[</span>--data FILE<span class="o">]</span> <span class="o">[</span>--data-mtx FILE <span class="o">[</span>FILE ...<span class="o">]]</span> <span class="o">[</span>--model MODEL<span class="o">]</span>
             <span class="o">[</span>--species SPECIES<span class="o">]</span> <span class="o">[</span>--media MEDIA<span class="o">]</span> <span class="o">[</span>--output-dir DIR<span class="o">]</span>
             <span class="o">[</span>--temp-dir DIR<span class="o">]</span> <span class="o">[</span>--torque-queue QUEUE<span class="o">]</span> <span class="o">[</span>--num-processes N<span class="o">]</span>
             <span class="o">[</span>--lambda F<span class="o">]</span> <span class="o">[</span>--num-threads N<span class="o">]</span> <span class="o">[</span>--and-function FXN<span class="o">]</span>
@@ -216,23 +216,26 @@
             <span class="o">[</span>--symmetric-kernel<span class="o">]</span> <span class="o">[</span>--input-weights FILE<span class="o">]</span>
             <span class="o">[</span>--penalty-diffusion MODE<span class="o">]</span> <span class="o">[</span>--no-reactions<span class="o">]</span>
             <span class="o">[</span>--calc-metabolites<span class="o">]</span> <span class="o">[</span>--precache<span class="o">]</span> <span class="o">[</span>--input-knn FILE<span class="o">]</span>
-            <span class="o">[</span>--output-knn FILE<span class="o">]</span> <span class="o">[</span>--latent-space FILE<span class="o">]</span> <span class="o">[</span>--list-genes FILE<span class="o">]</span>
+            <span class="o">[</span>--output-knn FILE<span class="o">]</span> <span class="o">[</span>--latent-space FILE<span class="o">]</span> <span class="o">[</span>--only-penalties<span class="o">]</span>
+            <span class="o">[</span>--list-genes FILE<span class="o">]</span>
 </pre></div>
 </div>
 <p>Below we describe the features in more detail:</p>
 <div class="section" id="input-and-output-settings">
 <h2><a class="toc-backref" href="#id1">Input and Output settings</a><a class="headerlink" href="#input-and-output-settings" title="Permalink to this headline">¶</a></h2>
 <dl>
-<dt><strong>--data</strong> [FILES]</dt><dd><p>File to input gene expression data with rows as genes and columns as sample names.
-The input can a single tab-delimited file with row and column labels:</p>
+<dt><strong>--data</strong> [FILE]</dt><dd><p>File with input gene expression data with rows as genes and columns as samples.
+The input should be a single tab-delimited file with row and column labels:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>--data expression.tsv
 </pre></div>
 </div>
-<p>Or the input can be in the matrix market format followed by two tab separted files, with the first file being row labels corresponding to genes and the second file being column labels corresponding to sample names:</p>
+</dd>
+<dt><strong>--data-mtx</strong> [–data-mtx FILE [FILE …]]</dt><dd><p>File with input gene expression data with rows as genes and columns as samples in market matrix format (mtx).
+The input must be followed by a tab separated file with rownames corresponding to genes. Optionally that can be followed by column names corresponding to samples.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>--data expression.mtx genes.tsv sample_names.tsv
 </pre></div>
 </div>
-<p>The sample names file can be omitted in which case the samples will be labelled by index, but the genes file must be included.</p>
+<p>If the column names file is omitted the samples will be labelled by index.</p>
 </dd>
 <dt><strong>--output-dir</strong> [DIR]</dt><dd><p>Final directory to output concatenated reactions.txt file</p>
 </dd>
@@ -313,6 +316,8 @@ The first column will be sample names, and the next k columns will be indices of
 </dd>
 <dt><strong>--latent-space</strong> [FILE]</dt><dd><p>File with latent space representation of the samples on which to do the kNN clustering.
 Should be a tsv with one row per sample and one column per dimension of the latent space.</p>
+</dd>
+<dt><strong>--only-penalties</strong></dt><dd><p>Flag for Compass to only compute the reaction penalties for the dataset.</p>
 </dd>
 </dl>
 </div>

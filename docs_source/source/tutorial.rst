@@ -19,13 +19,13 @@ Tab-delimited files need row and column labels corresponding to genes and sample
 Example input
 ^^^^^^^^^^^^^
 
-You can find an example input in tab-delimited format (tsv) and market matrix format (mtx) on this github repo under `compass/Resources/Test-Data <https://github.com/YosefLab/Compass/tree/master/compass/Resources/Test-Data>`__. 
+You can find example inputs in tab-delimited format (tsv) and market matrix format (mtx) on this github repo under `compass/Resources/Test-Data <https://github.com/YosefLab/Compass/tree/master/compass/Resources/Test-Data>`__. 
 
-The file will exist locally as well under the Compass install directory which will generally be stored in Python's ``site-packages`` folder (this might vary depending on your python setup). The site-packages directory will be listed by running this command:
+These files will exist locally as well under the Compass install directory which can be found by running:
 
 .. code:: bash
 
-   python -c 'import site; print(site.getsitepackages())'
+   compass --example-inputs
 
 Running Compass
 ---------------
@@ -40,7 +40,7 @@ And to run compass on mtx formatted data use the following:
 
 .. code:: bash
 
-   compass --data expression.mtx genes.tsv sample_names.tsv --num-processes 10
+   compass --data-mtx expression.mtx genes.tsv sample_names.tsv --num-processes 10
 
 Though the sample names file can be omitted, in which case the samples will be labelled by index.
 
@@ -70,15 +70,16 @@ Compass also allows users to customize a variaty of settings seen below:
 
 .. code:: bash
 
-   usage: Compass [-h] [--data FILES [FILES ...]] [--model MODEL]
+   usage: Compass [-h] [--data FILE] [--data-mtx FILE [FILE ...]] [--model MODEL]
                [--species SPECIES] [--media MEDIA] [--output-dir DIR]
                [--temp-dir DIR] [--torque-queue QUEUE] [--num-processes N]
                [--lambda F] [--num-threads N] [--and-function FXN]
-               [--select_reactions FILE] [--num-neighbors N]
+               [--select-reactions FILE] [--num-neighbors N]
                [--symmetric-kernel] [--input-weights FILE]
                [--penalty-diffusion MODE] [--no-reactions]
                [--calc-metabolites] [--precache] [--input-knn FILE]
-               [--output-knn FILE] [--latent-space FILE] [--list-genes FILE]
+               [--output-knn FILE] [--latent-space FILE] [--only-penalties]
+               [--list-genes FILE]
 
 
 See our instructions
