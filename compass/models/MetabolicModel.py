@@ -290,7 +290,7 @@ class MetabolicModel(object):
             else:
                 raise Exception("Need to specify subset.json if using non-default subset.")
         subsystemsRemove = self.subsets[subset]["subsystemsRemove"]
-        new_reactions = []
+        new_reactions = {}
         for r_id, r in self.reactions.items():
             if r.subsystem not in subsystemsRemove:
                 new_reactions[r_id] = r
