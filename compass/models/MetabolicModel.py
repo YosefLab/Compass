@@ -71,6 +71,7 @@ class MetabolicModel(object):
         self.objectives = {}
         self._maximum_flux = None
         self.media = 'NoMedia'
+        self.subsets = {}
 
     def getReactions(self):
         """
@@ -278,6 +279,22 @@ class MetabolicModel(object):
             self.reactions[rid].upper_bound = ub
 
         self.media = media_name
+
+    def filter(self, subset):
+        """
+        Removes subsystems specified to be unnecessary.
+        """
+        if not self.subsets:
+            if subset == "default":
+                return
+            else:
+                raise Exception("Need to specify subset.json if using non-default subset.")
+        subsystemsRemove = self.subsets[subset]["subsystemsRemove"]
+        new_reactions = []
+        for r_id, r in self.reactions.items():
+            if r.subsystem not in subsystemsRemove:
+                new_reactions[r_id] = r
+        self.reactions = new_reactions
 
     def _calc_max_flux(self):
         """

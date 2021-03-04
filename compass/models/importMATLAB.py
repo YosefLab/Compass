@@ -16,7 +16,7 @@ def load(model_name, species):
     species: str
         Species name.  either 'homo_sapiens' or 'mus_musculus'
     """
-
+    
     # First load Genes
     top_dir = os.path.join(MODEL_DIR, model_name)
     model_dir = os.path.join(top_dir, 'model')
@@ -97,6 +97,13 @@ def load(model_name, species):
             reaction.meta = _fix_dtypes(
                 rxnMeta.loc[reaction.id].to_dict()
             )
+        
+    # Subsets
+    subsets = None
+    fname = os.path.join(top_dir, 'subsets.json')
+    if os.path.exists(fname):
+        with open(fname) as fin:
+            subsets = json.load(fin)
 
     # Then metabolites
     with open(os.path.join(model_dir, 'model.mets.json')) as fin:
@@ -154,6 +161,7 @@ def load(model_name, species):
     model = MetabolicModel(name)
     model.reactions = reactions
     model.species = species
+    model.subsets = subsets
 
     return model
 

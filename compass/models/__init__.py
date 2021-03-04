@@ -59,9 +59,12 @@ def load_metabolic_model(model_name, species='homo_sapiens'):
     return model
 
 
-def init_model(model, species, exchange_limit, media=None):
+def init_model(model, species, exchange_limit, media=None, subset = "default"):
 
     model = load_metabolic_model(model, species)
+
+    # Filter model
+    model.filter(subset)
 
     # Limit exchange reactions
     model.limitExchangeReactions(limit=exchange_limit)
