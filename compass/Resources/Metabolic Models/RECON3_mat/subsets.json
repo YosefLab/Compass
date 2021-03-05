@@ -1,7 +1,7 @@
 {
     "default": {
         "subsystemsRemove": [
-            "Transport of Xenobiotic",
+            "Xenobiotics metabolism",
             "Drug metabolism"
         ]
     }
