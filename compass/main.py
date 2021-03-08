@@ -21,7 +21,7 @@ from math import ceil
 from .compass import cache
 from ._version import __version__
 from .compass.torque import submitCompassTorque
-from .compass.algorithm import singleSampleCompass, maximize_reaction_range, maximize_metab_range, initialize_cplex_problem
+from .compass.algorithm import singleSampleCompass, maximize_reaction_range, maximize_metab_range, initialize_cplex_problem#, compass_transposed
 from .models import init_model
 from .compass.penalties import eval_reaction_penalties, compute_knn
 from . import globals
@@ -236,7 +236,8 @@ def parseArgs():
         if args['data_mtx']:
             args['data'] = args['data_mtx']
         else:
-            args['data'] = [args['data']]
+            if type(args['data']) != list:
+                args['data'] = [args['data']]
         args['data'] = [os.path.abspath(p) for p in args['data']]
         if len(args['data']) == 2:
             args['data'].append(None)
@@ -404,6 +405,7 @@ def entry():
         return
     else:
         runCompassParallel(args)
+        #compass_transposed(args['data'], args['model'], args['media'], args['temp_dir'], args)
         end_time = datetime.datetime.now()
         logger.debug("\nElapsed Time: {}".format(end_time-start_time))
         return

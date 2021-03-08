@@ -22,7 +22,6 @@ logger = logging.getLogger("compass")
 
 __all__ = ['singleSampleCompass']
 
-
 def singleSampleCompass(data, model, media, directory, sample_index, args):
     """
     Run Compass on a single column of data
@@ -68,7 +67,6 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
 
     if args['glucose']:
         model.reactions['EX_glc(e)_neg'].upper_bound = args['glucose']
-        model.reactions['GLCt1r_pos'].upper_bound = args['glucose']
 
     logger.info("Running COMPASS on model: %s", model.name)
 
@@ -83,6 +81,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
 
     # Build model into cplex problem
     problem = initialize_cplex_problem(model, args['num_threads'], args['lpmethod'], args['advance'])
+
 
     # Only read this to get the number of samples and the sample name
     # Use nrows=1 so this is fast
