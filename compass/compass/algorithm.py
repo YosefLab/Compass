@@ -22,6 +22,98 @@ logger = logging.getLogger("compass")
 
 __all__ = ['singleSampleCompass']
 
+<<<<<<< Updated upstream
+=======
+def compass_transposed(data, model, media, directory, args):
+    if not os.path.isdir(directory) and directory != '/dev/null':
+        os.makedirs(directory)
+
+    if os.path.exists(os.path.join(directory, 'success_token')):
+        logger.info('success_token detected, results already calculated.')
+        logger.info('COMPASS Completed Successfully')
+        return
+
+    model = models.init_model(model, species=args['species'],
+                              exchange_limit=EXCHANGE_LIMIT,
+                              media=media)
+
+    problem = initialize_cplex_problem(model, args['num_threads'], args['lpmethod'], args['advance'])
+
+    expression = utils.read_data(data)
+    #sample_name = str(expression.columns[sample_index])
+
+    reaction_scores = {sample_name:{} for sample_name in expression.columns}
+    reaction_penalties = {}
+    for sample_name in expression.columns:
+        reaction_penalties[sample_name] = pd.read_csv(
+            args['penalties_file'], sep="\t", header=0,
+            usecols=["Reaction", sample_name])
+        reaction_penalties[sample_name] = reaction_penalties[sample_name].set_index("Reaction").iloc[:, 0]
+    
+    reactions = list(model.reactions.values())
+    model_cache = cache.load(model)
+
+    for reaction in tqdm(reactions, file=sys.stderr):
+
+        if reaction.is_exchange:
+            continue
+
+        partner_reaction = reaction.reverse_reaction
+
+        # Set partner reaction upper-limit to 0 in problem
+        # Store old limit for later to restore
+        if partner_reaction is not None:
+            partner_id = partner_reaction.id
+            old_partner_ub = problem.variables.get_upper_bounds(partner_id)
+            problem.variables.set_upper_bounds(partner_id, 0.0)
+        
+        r_max = maximize_reaction(model, problem, reaction.id, use_cache = True)
+
+        if r_max == 0:
+            for sample_name in expression.columns:
+                reaction_scores[sample_name][reaction.id] = 0
+            # If Reaction can't carry flux anyways, just continue
+            
+        else:
+            problem.linear_constraints.add(
+                    lin_expr=[cplex.SparsePair(ind=[reaction.id], val=[1.0])],
+                    senses=['R'],
+                    rhs=[BETA * r_max],
+                    names=['REACTION_OPT'])
+
+            for sample_name in expression.columns:
+                # Minimize Penalty
+                utils.reset_objective(problem)
+                problem.objective.set_linear(
+                    list(reaction_penalties[sample_name].iteritems())
+                )
+                problem.objective.set_sense(problem.objective.sense.minimize)
+                
+                problem.solve()
+
+                value = problem.solution.get_objective_value()
+                reaction_scores[sample_name][reaction.id] = value
+
+            # Remove Constraint
+            problem.linear_constraints.delete('REACTION_OPT')
+
+        if partner_reaction is not None:
+            partner_id = partner_reaction.id
+            problem.variables.set_upper_bounds(partner_id, old_partner_ub)
+
+    # Output results to file
+    logger.info("Writing output files...")
+    if not args['no_reactions']:
+        reaction_scores = pd.Series(reaction_scores, name=sample_name).sort_index()
+        reaction_scores.to_csv(os.path.join(directory, 'reactions.txt'),
+                               sep="\t", header=True)
+
+    # write success token
+    with open(os.path.join(directory, 'success_token'), 'w') as fout:
+        fout.write('Success!')
+    
+    logger.info('COMPASS Completed Successfully')
+>>>>>>> Stashed changes
 
 def singleSampleCompass(data, model, media, directory, sample_index, args):
     """
