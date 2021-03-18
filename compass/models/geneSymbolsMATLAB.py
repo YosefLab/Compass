@@ -112,7 +112,7 @@ def resolve_genes(gene_list):
     
     return (non2uniqueEntrez, uniqueHumanGeneSymbol)
 
-model_name = "RECON3_mat"
+model_name = "RECON3_MODEL_mat"
 model_dir = os.path.join(MODEL_DIR, model_name)
 geneFilePath = os.path.join(model_dir, "model", "model.genes.json")
 
