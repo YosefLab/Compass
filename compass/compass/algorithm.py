@@ -536,7 +536,6 @@ def compass_reactions(model, problem, reaction_penalties, perf_log=None, args = 
                 #perf_log['blocked'][reaction.id] = False
                 start_time = timeit.default_timer() #time.perf_counter() #Not in python2.7
 
-            #problem.write("./compass_lp.sav")
             problem.solve()
 
             if perf_log is not None:
