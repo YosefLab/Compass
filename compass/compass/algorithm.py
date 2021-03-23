@@ -403,7 +403,7 @@ def compass_exchange(model, problem, reaction_penalties, only_exchange=False, pe
             problem.variables.set_upper_bounds(rxn_id, 0.0)
 
         # Get max of uptake reaction
-        uptake_max = maximize_reaction(model, problem, uptake_rxn, perf_log=perf_log)
+        uptake_max = maximize_reaction(model, problem, uptake_rxn, use_cache=(args['glucose'] is None), perf_log=perf_log)
 
         # Set contraint of max uptake with BETA*max
         problem.linear_constraints.add(
@@ -530,18 +530,22 @@ def compass_reactions(model, problem, reaction_penalties, perf_log=None, args = 
                 problem.objective.set_name('reaction_penalties')
                 problem.objective.set_sense(problem.objective.sense.minimize)
             
+            
+
             if perf_log is not None:
                 #perf_log['blocked'][reaction.id] = False
                 start_time = timeit.default_timer() #time.perf_counter() #Not in python2.7
-            
+
+            #problem.write("./compass_lp.sav")
             problem.solve()
+
             if perf_log is not None:
                 perf_log['min penalty time'][reaction.id] = timeit.default_timer() - start_time #time.perf_counter() - start_time #Not in python2.7
                 perf_log['min penalty method'][reaction.id] = problem.solution.get_method()
                 perf_log['min penalty sensitvivity'][reaction.id] = problem.solution.sensitivity.objective(reaction.id)
                 if hasattr(problem.solution.get_quality_metrics(),'kappa'):
                    perf_log['kappa'][reaction.id] = problem.solution.get_quality_metrics().kappa
-            
+
             if args['save_argmaxes']:
                 argmaxes.append(np.array(problem.solution.get_values()))
                 argmaxes_order.append(reaction.id)
