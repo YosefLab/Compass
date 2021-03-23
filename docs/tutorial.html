@@ -225,9 +225,9 @@ containing gene expression estimates (TPM or CPM) with one row per gene, one col
 <p>Tab-delimited files need row and column labels corresponding to genes and sample names. Market matrix formats need a separate tab delimited file of of gene names and optionally a tab delimited file of cell names.</p>
 <div class="section" id="example-input">
 <h3><a class="toc-backref" href="#id2">Example input</a><a class="headerlink" href="#example-input" title="Permalink to this headline">¶</a></h3>
-<p>You can find an example input in tab-delimited format (tsv) and market matrix format (mtx) on this github repo under <a class="reference external" href="https://github.com/YosefLab/Compass/tree/master/compass/Resources/Test-Data">compass/Resources/Test-Data</a>.</p>
-<p>The file will exist locally as well under the Compass install directory which will generally be stored in Python’s <code class="docutils literal notranslate"><span class="pre">site-packages</span></code> folder (this might vary depending on your python setup). The site-packages directory will be listed by running this command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -c <span class="s1">&#39;import site; print(site.getsitepackages())&#39;</span>
+<p>You can find example inputs in tab-delimited format (tsv) and market matrix format (mtx) on this github repo under <a class="reference external" href="https://github.com/YosefLab/Compass/tree/master/compass/Resources/Test-Data">compass/Resources/Test-Data</a>.</p>
+<p>These files will exist locally as well under the Compass install directory which can be found by running:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>compass --example-inputs
 </pre></div>
 </div>
 </div>
@@ -267,7 +267,7 @@ processing a subset of samples so long as the _tmp directory is still there.</p>
             <span class="o">[</span>--species SPECIES<span class="o">]</span> <span class="o">[</span>--media MEDIA<span class="o">]</span> <span class="o">[</span>--output-dir DIR<span class="o">]</span>
             <span class="o">[</span>--temp-dir DIR<span class="o">]</span> <span class="o">[</span>--torque-queue QUEUE<span class="o">]</span> <span class="o">[</span>--num-processes N<span class="o">]</span>
             <span class="o">[</span>--lambda F<span class="o">]</span> <span class="o">[</span>--num-threads N<span class="o">]</span> <span class="o">[</span>--and-function FXN<span class="o">]</span>
-            <span class="o">[</span>--select_reactions FILE<span class="o">]</span> <span class="o">[</span>--num-neighbors N<span class="o">]</span>
+            <span class="o">[</span>--select-reactions FILE<span class="o">]</span> <span class="o">[</span>--num-neighbors N<span class="o">]</span>
             <span class="o">[</span>--symmetric-kernel<span class="o">]</span> <span class="o">[</span>--input-weights FILE<span class="o">]</span>
             <span class="o">[</span>--penalty-diffusion MODE<span class="o">]</span> <span class="o">[</span>--no-reactions<span class="o">]</span>
             <span class="o">[</span>--calc-metabolites<span class="o">]</span> <span class="o">[</span>--precache<span class="o">]</span> <span class="o">[</span>--input-knn FILE<span class="o">]</span>
