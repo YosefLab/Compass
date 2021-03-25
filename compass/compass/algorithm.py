@@ -85,7 +85,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
 
     # Only read this to get the number of samples and the sample name
     # Use nrows=1 so this is fast
-    expression = utils.read_data(data)#pd.read_csv(data, sep='\t', index_col=0, nrows=1) #TBD add similar function for counting mtx stuff
+    expression = utils.read_data(data)
     sample_name = str(expression.columns[sample_index])
 
     logger.info("Processing Sample %i/%i: %s", sample_index,

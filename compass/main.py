@@ -21,7 +21,8 @@ from math import ceil
 from .compass import cache
 from ._version import __version__
 from .compass.torque import submitCompassTorque
-from .compass.algorithm import singleSampleCompass, maximize_reaction_range, maximize_metab_range, initialize_cplex_problem#, compass_transposed
+from .compass.algorithm import singleSampleCompass, maximize_reaction_range, maximize_metab_range, initialize_cplex_problem
+from .compass.algorithm_t import runCompassParallelTransposed
 from .models import init_model
 from .compass.penalties import eval_reaction_penalties, compute_knn
 from . import globals
@@ -38,7 +39,8 @@ def parseArgs():
     """
     parser = argparse.ArgumentParser(
                         prog="Compass",
-                        description="Metabolic Modeling for Single Cells"
+                        description="Compass version "+str(__version__)+
+                        ". Metabolic Modeling for Single Cells. "
                         "For more details on usage refer to the documentation: https://yoseflab.github.io/Compass/")
 
     parser.add_argument("--data", help="Gene expression matrix." 
@@ -94,6 +96,23 @@ def parseArgs():
                         help=argparse.SUPPRESS,
                         type=int,
                         metavar="N")
+
+    #Arguments to help with schedueler scripts
+    parser.add_argument("--transposed",
+                        help=argparse.SUPPRESS,
+                        action="store_true")
+
+    parser.add_argument("--sample-range",
+                        help=argparse.SUPPRESS,
+                        nargs=2)
+
+    parser.add_argument("--reaction-range",
+                        help=argparse.SUPPRESS,
+                        nargs=2)
+
+    parser.add_argument("--metabolite-range",
+                        help=argparse.SUPPRESS,
+                        nargs=2)
 
     parser.add_argument("--generate-cache",
                         help=argparse.SUPPRESS,
@@ -276,6 +295,13 @@ def parseArgs():
             "--generate-cache cannot be run with --no-reactions or "
             "without --calc-metabolites" #Not sure about why this needs metabolites to calculated
         )
+
+    if args['reaction_range']:
+        args['reaction_range'] = [int(x) for x in args['reaction_range']]
+    if args['metabolite_range']:
+        args['metabolite_range'] = [int(x) for x in args['metabolite_range']]
+    if args['sample_range']:
+        args['sample_range'] = [int(x) for x in args['sample_range']]
     return args
 
 
@@ -404,8 +430,10 @@ def entry():
                             queue=args['torque_queue'])
         return
     else:
-        runCompassParallel(args)
-        #compass_transposed(args['data'], args['model'], args['media'], args['temp_dir'], args)
+        if args['transposed']:
+            runCompassParallelTransposed(args)
+        else:
+            runCompassParallel(args)
         end_time = datetime.datetime.now()
         logger.debug("\nElapsed Time: {}".format(end_time-start_time))
         return
