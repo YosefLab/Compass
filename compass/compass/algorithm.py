@@ -65,9 +65,6 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
                               exchange_limit=EXCHANGE_LIMIT,
                               media=media)
 
-    if args['glucose']:
-        model.reactions['EX_glc(e)_neg'].upper_bound = args['glucose']
-
     logger.info("Running COMPASS on model: %s", model.name)
 
     perf_log = None
@@ -347,7 +344,7 @@ def compass_exchange(model, problem, reaction_penalties, only_exchange=False, pe
             problem.variables.set_upper_bounds(rxn_id, 0.0)
 
         # Get max of secretion reaction
-        secretion_max = maximize_reaction(model, problem, secretion_rxn, use_cache=(args['glucose'] is None) , perf_log=perf_log)
+        secretion_max = maximize_reaction(model, problem, secretion_rxn, perf_log=perf_log)
 
         # Set contraint of max secretion to BETA*max
         problem.linear_constraints.add(
@@ -403,7 +400,7 @@ def compass_exchange(model, problem, reaction_penalties, only_exchange=False, pe
             problem.variables.set_upper_bounds(rxn_id, 0.0)
 
         # Get max of uptake reaction
-        uptake_max = maximize_reaction(model, problem, uptake_rxn, use_cache=(args['glucose'] is None), perf_log=perf_log)
+        uptake_max = maximize_reaction(model, problem, uptake_rxn, perf_log=perf_log)
 
         # Set contraint of max uptake with BETA*max
         problem.linear_constraints.add(
@@ -504,7 +501,7 @@ def compass_reactions(model, problem, reaction_penalties, perf_log=None, args = 
             problem.variables.set_upper_bounds(partner_id, 0.0)
 
         
-        r_max = maximize_reaction(model, problem, reaction.id, use_cache =(args['glucose'] is None), perf_log=perf_log)
+        r_max = maximize_reaction(model, problem, reaction.id, perf_log=perf_log)
         
 
         # If Reaction can't carry flux anyways, just continue

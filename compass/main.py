@@ -23,6 +23,7 @@ from ._version import __version__
 from .compass.torque import submitCompassTorque
 from .compass.algorithm import singleSampleCompass, maximize_reaction_range, maximize_metab_range, initialize_cplex_problem
 from .compass.algorithm_t import runCompassParallelTransposed
+from .compass.microclustering import microcluster, pool_matrix_cols
 from .models import init_model
 from .compass.penalties import eval_reaction_penalties, compute_knn
 from . import globals
@@ -234,6 +235,9 @@ def parseArgs():
     #Hidden argument to save argmaxes in the temp directory
     parser.add_argument("--save-argmaxes", action="store_true",
                         help=argparse.SUPPRESS)
+
+    parser.add_argument("--microcluster", default=None,
+                        help=argparse.SUPPRESS)
                         
 
     #Argument to output the list of needed genes to a file
@@ -313,6 +317,12 @@ def entry():
 
     args = parseArgs()
 
+    if args['microcluster'] is not None and args['data']:
+        data = utils.read_data(args['data'])
+        pools = microcluster(data)
+        pooled_data = pool_matrix_cols(data, pools)
+        pd.to_csv(args['microcluster'], sep="\t")
+
     if args['data']:
         if not os.path.isdir(args['output_dir']):
             os.makedirs(args['output_dir'])
@@ -322,6 +332,29 @@ def entry():
 
         globals.init_logger(args['output_dir'])
         
+    if args['glucose']:
+        if not args['media']:
+            fname = "_glucose_"+str(args['glucose'])
+            glucose_media_file = os.path.join(globals.MODEL_DIR, args['model'], 'media', fname+".json")
+            if not os.path.exists(glucose_media_file):
+                fout = open(glucose_media_file, 'w')
+                json.dump({'EX_glc(e)_neg':float(args['glucose'])}, fout)
+                fout.close()
+            args['media'] = fname
+        else:
+            media_file = args['media'] + '.json'
+            media_file = os.path.join(globals.MODEL_DIR, args['model'], 'media', media_file)
+            with open(media_file) as fin:
+                media = json.load(fin)
+            media.update({'EX_glc(e)_neg':float(args['glucose'])})
+
+            fname = args['media']+"_glucose_"+str(args['glucose'])
+            glucose_media_file = os.path.join(globals.MODEL_DIR, args['model'], 'media', fname+".json")
+            if not os.path.exists(glucose_media_file):
+                fout = open(glucose_media_file, 'w')
+                json.dump(media, fout)
+                fout.close()
+            args['media'] = fname
 
     # Log some things for debugging/record
     logger = logging.getLogger('compass')
