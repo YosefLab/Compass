@@ -149,14 +149,15 @@ Computing Settings
 ------------------
 
 **\-\-num-processes** [N]
-   Number of processes for Compass to use. Must be a positive integer and defaults to the number of processors on machine (using Python's :code:`multiprocessing.cpu_count()`). Ignored
+   Number of processes for Compass to use, each of which handles a single sample. Must be a positive integer and defaults to the number of processors on machine (using Python's :code:`multiprocessing.cpu_count()`). Ignored
    when submitting job onto a queue
 
 **\-\-num-threads** [N]
-   Number of threads to use per sample. Default is 1. 
+   Number of threads to use per sample for solving the flux balance optimization problems. Default is 1. 
 
 .. note::
-   It is generally better to increase the number of processes than the number of threads for better performance, unless the number of processes is greater than the number of samples.
+   It is generally better to increase the number of processes than the number of threads for better performance, unless the number of processes is greater than the number of samples. 
+   This is because it is generally better to have multiple optimization problems being solved at once rather than solving a single optimization problem with multiple threads.
 
 **\-\-torque-queue** [QUEUE]
    Name of the torque queue to submit to
@@ -164,9 +165,15 @@ Computing Settings
 **\-\-precache**
    A flag to force compass to build up the cache for the input selected model and media. This will rebuild the cache even if one already exists.
 
+**\-\-microcluster-size** [C]
+   A target number of cells per microcluster. Compass will aggregate similar cells into clusters and compute reaction penalties for the clusters (using the mean of the cluster).
+
 Testing and Hidden Settings
 ---------------------------
 There are several Compass arguments which are not listed by the parser because they are primarily for testing or for batch jobs.
+
+**\-\-glucose** [G]
+   Experimental feature to tweak glucose concentrations in media, default is 1. Higher levels increase glucose availability.
 
 **\-\-test-mode**
    Flag which limits computing scores to the first 100 reactions and first 50 metabolites
