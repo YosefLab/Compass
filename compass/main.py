@@ -211,7 +211,7 @@ def parseArgs():
                         action="store_true", default=None)
 
     parser.add_argument("--microcluster-size", 
-                        type=int, metavar="C", default=None
+                        type=int, metavar="C", default=None,
                         help="Target number of cells per microcluster")
 
     #Hidden argument which tracks more detailed information on runtimes
