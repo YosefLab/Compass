@@ -133,7 +133,7 @@ def readjust_clusters(clusters, data, cellsPerPartition=100):
                     clusterList[n] = [sample_n]
 
             # Now add to cluster offset for next re-clustering
-            cluster_offset = cluster_offset + max(newClust)
+            cluster_offset = cluster_offset + max(newClust) + 1
 
         currPart = len(clusterList)
         clusters = clusterList
