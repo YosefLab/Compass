@@ -4,7 +4,7 @@ import logging
 from .extensions import tsne_utils
 from .. import utils
 from .. import models
-from ..globals import EXCHANGE_LIMIT
+from ..globals import EXCHANGE_LIMIT, PCA_SEED
 from sklearn.neighbors import NearestNeighbors
 from sklearn.decomposition import PCA
 
@@ -175,9 +175,8 @@ def eval_reaction_penalties_shared(model, expression,
         # log scale and PCA expresion
         else:
             log_expression = np.log2(expression+1)
-            model = PCA(n_components=min(
-                log_expression.shape[0], log_expression.shape[1], 20)
-            )
+            model = PCA(n_components=min(log_expression_filtered.shape[0], log_expression_filtered.shape[1], 20),
+                    random_state = PCA_SEED)
             pca_expression = model.fit_transform(log_expression.T).T
             pca_expression = pd.DataFrame(pca_expression,
                                         columns=expression.columns)

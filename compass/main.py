@@ -23,7 +23,7 @@ from ._version import __version__
 from .compass.torque import submitCompassTorque
 from .compass.algorithm import singleSampleCompass, maximize_reaction_range, maximize_metab_range, initialize_cplex_problem
 from .compass.algorithm_t import runCompassParallelTransposed
-from .compass.microclustering import microcluster, pool_matrix_cols
+from .compass.microclustering import microcluster, pool_matrix_cols, unpool_columns
 from .models import init_model
 from .compass.penalties import eval_reaction_penalties, compute_knn
 from . import globals
@@ -210,6 +210,10 @@ def parseArgs():
     parser.add_argument("--example-inputs", help="Flag for Compass to list the directory where example inputs can be found.",
                         action="store_true", default=None)
 
+    parser.add_argument("--microcluster-size", 
+                        type=int, metavar="C", default=None
+                        help="Target number of cells per microcluster")
+
     #Hidden argument which tracks more detailed information on runtimes
     parser.add_argument("--detailed-perf", action="store_true",
                         help=argparse.SUPPRESS)
@@ -235,11 +239,7 @@ def parseArgs():
     #Hidden argument to save argmaxes in the temp directory
     parser.add_argument("--save-argmaxes", action="store_true",
                         help=argparse.SUPPRESS)
-
-    parser.add_argument("--microcluster", default=None,
-                        help=argparse.SUPPRESS)
                         
-
     #Argument to output the list of needed genes to a file
     parser.add_argument("--list-genes", default=None, metavar="FILE",
                         help="File to output a list of metabolic genes needed for selected metabolic model.")
@@ -317,13 +317,6 @@ def entry():
 
     args = parseArgs()
 
-    if args['microcluster'] is not None and args['data']:
-        data = utils.read_data(args['data'])
-        pools = microcluster(data)
-        pooled_data = pool_matrix_cols(data, pools)
-        pooled_data.to_csv(args['microcluster'], sep="\t")
-        return 
-
     if args['data']:
         if not os.path.isdir(args['output_dir']):
             os.makedirs(args['output_dir'])
@@ -332,30 +325,6 @@ def entry():
             os.makedirs(args['temp_dir'])
 
         globals.init_logger(args['output_dir'])
-        
-    if args['glucose']:
-        if not args['media']:
-            fname = "_glucose_"+str(args['glucose'])
-            glucose_media_file = os.path.join(globals.MODEL_DIR, args['model'], 'media', fname+".json")
-            if not os.path.exists(glucose_media_file):
-                fout = open(glucose_media_file, 'w')
-                json.dump({'EX_glc(e)_neg':float(args['glucose'])}, fout)
-                fout.close()
-            args['media'] = fname
-        else:
-            media_file = args['media'] + '.json'
-            media_file = os.path.join(globals.MODEL_DIR, args['model'], 'media', media_file)
-            with open(media_file) as fin:
-                media = json.load(fin)
-            media.update({'EX_glc(e)_neg':float(args['glucose'])})
-
-            fname = args['media']+"_glucose_"+str(args['glucose'])
-            glucose_media_file = os.path.join(globals.MODEL_DIR, args['model'], 'media', fname+".json")
-            if not os.path.exists(glucose_media_file):
-                fout = open(glucose_media_file, 'w')
-                json.dump(media, fout)
-                fout.close()
-            args['media'] = fname
 
     # Log some things for debugging/record
     logger = logging.getLogger('compass')
@@ -382,6 +351,49 @@ def entry():
 
     logger.debug("\nCOMPASS Started: {}".format(start_time))
     # Parse arguments and decide what course of action to take
+
+    if args['microcluster_size'] and args['data']:
+        logger.info("Partitioning dataset into "+str(args['microcluster_size'])+" microclusters")
+        data = utils.read_data(args['data'])
+        pools = microcluster(data, cellsPerPartition = args['microcluster_size'], 
+                            n_jobs = args['num_processes'])
+        pooled_data = pool_matrix_cols(data, pools)
+
+        pooled_data_file = os.path.join(args['temp_dir'], "pooled_data.tsv")
+        pooled_data.to_csv(pooled_data_file, sep="\t")
+
+        pools_file = os.path.join(args['temp_dir'], "pools.json")
+        with fout as open(pools_file):
+            json.dump(pools, fout)
+            fout.close()
+
+        args['orig_data'] = args['data']
+        args['data'] = [pooled_data_file]
+        args['pools_file'] = pools_file
+        
+    if args['glucose']:
+        if not args['media']:
+            fname = "_glucose_"+str(args['glucose'])
+            glucose_media_file = os.path.join(globals.MODEL_DIR, args['model'], 'media', fname+".json")
+            if not os.path.exists(glucose_media_file):
+                fout = open(glucose_media_file, 'w')
+                json.dump({'EX_glc(e)_neg':float(args['glucose'])}, fout)
+                fout.close()
+            args['media'] = fname
+        else:
+            media_file = args['media'] + '.json'
+            media_file = os.path.join(globals.MODEL_DIR, args['model'], 'media', media_file)
+            with open(media_file) as fin:
+                media = json.load(fin)
+            media.update({'EX_glc(e)_neg':float(args['glucose'])})
+
+            fname = args['media']+"_glucose_"+str(args['glucose'])
+            glucose_media_file = os.path.join(globals.MODEL_DIR, args['model'], 'media', fname+".json")
+            if not os.path.exists(glucose_media_file):
+                fout = open(glucose_media_file, 'w')
+                json.dump(media, fout)
+                fout.close()
+            args['media'] = fname
 
     if args['list_genes'] is not None:
         model = init_model(model=args['model'], species=args['species'],
@@ -634,18 +646,31 @@ def collectCompassResults(data, temp_dir, out_dir, args):
         except:
             uptake_all.append(pd.DataFrame(columns=[sample_name]))
 
+    if args['microcluster_size']:
+        with fin as open(args['pools_file']):
+            pools = json.load(fin)
+            fin.close()
+        pools = {int(x):pools[x] for x in pools}  #Json saves dict keys as strings
+        orig_data = utils.read_data(args['orig_data'])
+
     # Join and output
     if not args['no_reactions']:
         reactions_all = pd.concat(reactions_all, axis=1, sort=True)
+        if args['microcluster_size']:
+            reactions_all = unpool_columns(reactions_all, pools, orig_data)
         reactions_all.to_csv(
             os.path.join(out_dir, 'reactions.tsv'), sep="\t")
 
     if args['calc_metabolites']:
         secretions_all = pd.concat(secretions_all, axis=1, sort=True)
+        if args['microcluster_size']:
+            secretions_all = unpool_columns(secretions_all, pools, orig_data)
         secretions_all.to_csv(
             os.path.join(out_dir, 'secretions.tsv'), sep="\t")
 
         uptake_all = pd.concat(uptake_all, axis=1, sort=True)
+        if args['microcluster_size']:
+            uptake_all = unpool_columns(uptake_all, pools, orig_data)
         uptake_all.to_csv(
             os.path.join(out_dir, 'uptake.tsv'), sep="\t")
 

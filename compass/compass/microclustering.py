@@ -1,3 +1,7 @@
+"""
+    Reimplementation of VISION algorithm
+    For more details see https://www.nature.com/articles/s41467-019-12235-0
+"""
 import numpy as np
 import pandas as pd
 from sklearn.neighbors import NearestNeighbors
@@ -5,12 +9,14 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 import igraph
 import leidenalg
+from ..globals import PCA_SEED
 
 def microcluster(exprData, cellsPerPartition=10,
                          filterInput = "fano",
                          filterThreshold = None,
                          filterNumMad = 2,
-                         latentSpace = None, K = None):
+                         latentSpace = None, K = None, 
+                         n_jobs = 1):
     
     if filterThreshold is None:
         filterThreshold = int(exprData.shape[1] * 0.05)
@@ -27,9 +33,8 @@ def microcluster(exprData, cellsPerPartition=10,
         if len(log_expression_filtered) == 0:
             raise Exception("0 genes were selected with current threshold, set a lower one and rerun")
 
-        model = PCA(n_components=min(
-        log_expression_filtered.shape[0], log_expression_filtered.shape[1], 20)
-            )
+        model = PCA(n_components=min(log_expression_filtered.shape[0], log_expression_filtered.shape[1], 20),
+                    random_state = PCA_SEED)
         pca_expression = model.fit_transform(log_expression_filtered.T).T
         pca_expression = pd.DataFrame(pca_expression,
                                     columns=exprData.columns)
@@ -39,7 +44,7 @@ def microcluster(exprData, cellsPerPartition=10,
 
 
     #Compute knn on PCA with K = min(30, K)
-    nn = NearestNeighbors(n_neighbors=min(K, 30), n_jobs=1)  #n_jobs to be changed after .ipynb
+    nn = NearestNeighbors(n_neighbors=min(K, 30), n_jobs=n_jobs)  #n_jobs to be changed after .ipynb
     nn.fit(res.T)
     dist, ind = nn.kneighbors()
     
@@ -48,9 +53,13 @@ def microcluster(exprData, cellsPerPartition=10,
     d = np.where(adj > 0, np.exp(-1 * np.square(adj) / np.square(sigma)), np.zeros(1))
     
     cl = leidenalg.find_partition(igraph.Graph.Weighted_Adjacency(d), leidenalg.ModularityVertexPartition)
-    
+    clusters = {d:[] for d in np.unique(cl.membership)}
+    for i in range(len(cl.membership)):
+        clusters[cl.membership[i]].append(i)
 
-    pools = readjust_clusters(cl, res, cellsPerPartition = cellsPerPartition)
+    pools = readjust_clusters(clusters, res, cellsPerPartition = cellsPerPartition)
+    #Conversion here fixes downstream type errors with numpy integers
+    pools = {int(x):pools[x] for x in pools}  
     return pools
 
 def filterGenesNovar(data):
@@ -117,7 +126,7 @@ def readjust_clusters(clusters, data, cellsPerPartition=100):
             
             for j in range(len(newClust)):
                 n = newClust[j] + cluster_offset
-                sample_n = data.columns.get_loc(subData.index[j])
+                sample_n = currCl[j]
                 if n in clusterList:
                     clusterList[n].append(sample_n)
                 else:
@@ -139,3 +148,12 @@ def pool_matrix_cols(data, pools):
             groups[data.columns[i]] = g
     groups = pd.DataFrame.from_dict(groups, orient='index', columns=['_compass_microcluster']).T
     return data.append(groups).T.groupby("_compass_microcluster").mean().T
+
+def unpool_columns(pooled_data, pools, data):
+    unpooled_cols = []
+    for cluster in pools:
+        for sample in pools[cluster]:
+            unpooled_cols.append(pooled_data.iloc[:,cluster].rename(data.columns[sample]))
+    df = pd.concat(unpooled_cols, axis=1)
+    df = df[data.columns]
+    return df
