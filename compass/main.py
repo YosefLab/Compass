@@ -363,7 +363,7 @@ def entry():
         pooled_data.to_csv(pooled_data_file, sep="\t")
 
         pools_file = os.path.join(args['temp_dir'], "pools.json")
-        with fout as open(pools_file):
+        with open(pools_file) as fout:
             json.dump(pools, fout)
             fout.close()
 
@@ -647,7 +647,7 @@ def collectCompassResults(data, temp_dir, out_dir, args):
             uptake_all.append(pd.DataFrame(columns=[sample_name]))
 
     if args['microcluster_size']:
-        with fin as open(args['pools_file']):
+        with open(args['pools_file']) as fin:
             pools = json.load(fin)
             fin.close()
         pools = {int(x):pools[x] for x in pools}  #Json saves dict keys as strings
