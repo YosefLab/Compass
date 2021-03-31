@@ -321,7 +321,8 @@ def entry():
         data = utils.read_data(args['data'])
         pools = microcluster(data)
         pooled_data = pool_matrix_cols(data, pools)
-        pd.to_csv(args['microcluster'], sep="\t")
+        pooled_data.to_csv(args['microcluster'], sep="\t")
+        return 
 
     if args['data']:
         if not os.path.isdir(args['output_dir']):
