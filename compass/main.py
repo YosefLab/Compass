@@ -363,7 +363,7 @@ def entry():
         pooled_data.to_csv(pooled_data_file, sep="\t")
 
         pools_file = os.path.join(args['temp_dir'], "pools.json")
-        with open(pools_file) as fout:
+        with open(pools_file, 'w') as fout:
             json.dump(pools, fout)
             fout.close()
 
