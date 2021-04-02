@@ -49,7 +49,9 @@ setup(
         'python-libsbml>=5.13',
         'six>=1.10',
         'scikit-learn>=0.19',
-        'scipy>=1.0'],
+        'scipy>=1.0',
+        'python-igraph>=0.8',
+        'leidenalg'],
 
         # 'cplex>=12.7.0.0' also required, but installed separately
 

@@ -22,7 +22,6 @@ logger = logging.getLogger("compass")
 
 __all__ = ['singleSampleCompass']
 
-
 def singleSampleCompass(data, model, media, directory, sample_index, args):
     """
     Run Compass on a single column of data
@@ -66,10 +65,6 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
                               exchange_limit=EXCHANGE_LIMIT,
                               media=media)
 
-    if args['glucose']:
-        model.reactions['EX_glc(e)_neg'].upper_bound = args['glucose']
-        model.reactions['GLCt1r_pos'].upper_bound = args['glucose']
-
     logger.info("Running COMPASS on model: %s", model.name)
 
     perf_log = None
@@ -84,9 +79,10 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     # Build model into cplex problem
     problem = initialize_cplex_problem(model, args['num_threads'], args['lpmethod'], args['advance'])
 
+
     # Only read this to get the number of samples and the sample name
     # Use nrows=1 so this is fast
-    expression = utils.read_data(data)#pd.read_csv(data, sep='\t', index_col=0, nrows=1) #TBD add similar function for counting mtx stuff
+    expression = utils.read_data(data)
     sample_name = str(expression.columns[sample_index])
 
     logger.info("Processing Sample %i/%i: %s", sample_index,
@@ -348,7 +344,7 @@ def compass_exchange(model, problem, reaction_penalties, only_exchange=False, pe
             problem.variables.set_upper_bounds(rxn_id, 0.0)
 
         # Get max of secretion reaction
-        secretion_max = maximize_reaction(model, problem, secretion_rxn, use_cache=(args['glucose'] is None) , perf_log=perf_log)
+        secretion_max = maximize_reaction(model, problem, secretion_rxn, perf_log=perf_log)
 
         # Set contraint of max secretion to BETA*max
         problem.linear_constraints.add(
@@ -505,7 +501,7 @@ def compass_reactions(model, problem, reaction_penalties, perf_log=None, args = 
             problem.variables.set_upper_bounds(partner_id, 0.0)
 
         
-        r_max = maximize_reaction(model, problem, reaction.id, use_cache =(args['glucose'] is None), perf_log=perf_log)
+        r_max = maximize_reaction(model, problem, reaction.id, perf_log=perf_log)
         
 
         # If Reaction can't carry flux anyways, just continue
@@ -531,18 +527,21 @@ def compass_reactions(model, problem, reaction_penalties, perf_log=None, args = 
                 problem.objective.set_name('reaction_penalties')
                 problem.objective.set_sense(problem.objective.sense.minimize)
             
+            
+
             if perf_log is not None:
                 #perf_log['blocked'][reaction.id] = False
                 start_time = timeit.default_timer() #time.perf_counter() #Not in python2.7
-            
+
             problem.solve()
+
             if perf_log is not None:
                 perf_log['min penalty time'][reaction.id] = timeit.default_timer() - start_time #time.perf_counter() - start_time #Not in python2.7
                 perf_log['min penalty method'][reaction.id] = problem.solution.get_method()
                 perf_log['min penalty sensitvivity'][reaction.id] = problem.solution.sensitivity.objective(reaction.id)
                 if hasattr(problem.solution.get_quality_metrics(),'kappa'):
                    perf_log['kappa'][reaction.id] = problem.solution.get_quality_metrics().kappa
-            
+
             if args['save_argmaxes']:
                 argmaxes.append(np.array(problem.solution.get_values()))
                 argmaxes_order.append(reaction.id)
