@@ -153,16 +153,15 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     # write success token
     with open(os.path.join(directory, 'success_token'), 'w') as fout:
         fout.write('Success!')
-    logger.info("Compass Penalty Time: ", penalty_elapsed)
-    if not args['no_reactions']:
-        logger.info("Compass Reaction Time:", react_elapsed,
-        "Average time:", react_elapsed/len(reaction_scores))
-        logger.info("Processed", len(reaction_scores), "reactions")
-    logger.info("Compass Exchange Time:", exchange_elapsed, 
-        "Average time:", exchange_elapsed/(len(secretion_scores)+len(uptake_scores)))
-    logger.info("Processed ", len(uptake_scores), " uptake reactions")
-    logger.info("Processed ", len(secretion_scores), " secretion reactions")
 
+    logger.info("Compass Penalty Time: "+str(penalty_elapsed))
+    if not args['no_reactions']:
+        logger.info("Compass Reaction Time:"+str(react_elapsed))
+        logger.info("Processed"+str(len(reaction_scores), "reactions"))
+    logger.info("Compass Exchange Time:"+str(exchange_elapsed))
+    logger.info("Processed "+str(len(uptake_scores))+" uptake reactions")
+    logger.info("Processed "+str(len(secretion_scores))+" secretion reactions")
+    
     if perf_log is not None:
         perf_log = pd.DataFrame(perf_log)
         perf_log.to_csv(os.path.join(directory, "compass_performance_log.csv"))
