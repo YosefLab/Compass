@@ -157,7 +157,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     logger.info("Compass Penalty Time: "+str(penalty_elapsed))
     if not args['no_reactions']:
         logger.info("Compass Reaction Time:"+str(react_elapsed))
-        logger.info("Processed"+str(len(reaction_scores))+"reactions"))
+        logger.info("Processed"+str(len(reaction_scores))+"reactions")
     logger.info("Compass Exchange Time:"+str(exchange_elapsed))
     logger.info("Processed "+str(len(uptake_scores))+" uptake reactions")
     logger.info("Processed "+str(len(secretion_scores))+" secretion reactions")
