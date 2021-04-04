@@ -380,6 +380,9 @@ def entry():
 
     if args['microcluster_size'] and args['data']:
         microcluster_dir = os.path.join(args['temp_dir'], "microclusters")
+        if not os.path.isdir(microcluster_dir):
+            os.makedirs(microcluster_dir)
+            
         microcluster_success_token = os.path.join(microcluster_dir, "success_token")
         pooled_data_file = os.path.join(microcluster_dir, "pooled_data.tsv")
         pools_file = os.path.join(microcluster_dir, "pools.json")
