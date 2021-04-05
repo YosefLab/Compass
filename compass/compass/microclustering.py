@@ -9,7 +9,7 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 import igraph
 import leidenalg
-from ..globals import PCA_SEED
+from ..globals import PCA_SEED, LEIDEN_SEED
 
 def microcluster(exprData, cellsPerPartition=10,
                          filterInput = "fano",
@@ -52,7 +52,7 @@ def microcluster(exprData, cellsPerPartition=10,
     adj = nn.kneighbors_graph().toarray()
     d = np.where(adj > 0, np.exp(-1 * np.square(adj) / np.square(sigma)), np.zeros(1))
     
-    cl = leidenalg.find_partition(igraph.Graph.Weighted_Adjacency(d), leidenalg.ModularityVertexPartition)
+    cl = leidenalg.find_partition(igraph.Graph.Weighted_Adjacency(d), leidenalg.ModularityVertexPartition, seed=LEIDEN_SEED)
     clusters = {d:[] for d in np.unique(cl.membership)}
     for i in range(len(cl.membership)):
         clusters[cl.membership[i]].append(i)
@@ -78,7 +78,10 @@ def filterGenesFano(data, num_mad=2):
     fano_sort = fano[mu_argsort]
     
     N_QUANTS = 30
-    Q = np.linspace(0, len(mu), N_QUANTS+1, dtype=int)
+    #Q = np.linspace(0, len(mu), N_QUANTS+1, dtype=int)
+    #This is just so that it exactly matches VISION code.
+    m = int(len(mu) / N_QUANTS)
+    Q = [i*m for i in range(N_QUANTS)] + [len(mu)]
     genePassList = []
     for i in range(N_QUANTS):
         mu_quant = mu_sort[Q[i]:Q[i+1]]

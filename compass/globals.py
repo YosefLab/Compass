@@ -17,7 +17,8 @@ MODEL_DIR = os.path.join(RESOURCE_DIR, 'Metabolic Models')
 # Parameters for COMPASS
 BETA = 0.95  # Used to constrain model near optimal point
 EXCHANGE_LIMIT = 1.0  # Limit for exchange reactions
-PCA_SEED = 1337 # Used for replicatable PCA
+PCA_SEED = 1337 # Used for replicable PCA
+LEIDEN_SEED = 1337 #Used for replicable clustering
 
 # Logging
 # Different Logging levels

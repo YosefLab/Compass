@@ -321,8 +321,34 @@ def entry():
         if not os.path.isdir(args['output_dir']):
             os.makedirs(args['output_dir'])
 
+        #Check if the arguments passed in will be the same as the previous run
+        temp_args_file = os.path.join(args['temp_dir'], "_temp_args.json")
+
         if not os.path.isdir(args['temp_dir']) and args['temp_dir'] != '/dev/null':
             os.makedirs(args['temp_dir'])
+            with open(temp_args_file, 'w') as fout:
+                json.dump(args, fout)
+                fout.close()
+        elif os.path.exists(temp_args_file):
+            #Handle ths before making logger because the logger redirected outputs
+            with open(temp_args_file, 'r') as fin:
+                temp_args =  json.load(fin)
+                fin.close()
+            if temp_args != args:
+                diffs = [x for x in args.keys() if args[x] != temp_args[x]]
+                print("Warning: The arguments used in the temporary directory, ", args['temp_dir'],
+                        ", are different from current arguments. Cached results may not be compatible with current settings")
+                print("Differing arguments: ", diffs)
+                print("Enter y or yes if you want to continue Compass and used cached results.\n", 
+                        "Otherwise rerun Compass after removing/renaming the temporary directory or changing the --temp-dir argument")
+                if sys.version_info.major >= 3:
+                    ans = input()
+                else:
+                    ans = raw_input()
+                if ans != 'y' and ans != 'yes':
+                    return 
+        else:
+            print("Warning: Temporary directory found without saved arguments. Cached results may not be compatible with current settings")
 
         globals.init_logger(args['output_dir'])
 
@@ -353,19 +379,32 @@ def entry():
     # Parse arguments and decide what course of action to take
 
     if args['microcluster_size'] and args['data']:
-        logger.info("Partitioning dataset into "+str(args['microcluster_size'])+" microclusters")
-        data = utils.read_data(args['data'])
-        pools = microcluster(data, cellsPerPartition = args['microcluster_size'], 
-                            n_jobs = args['num_processes'])
-        pooled_data = pool_matrix_cols(data, pools)
+        microcluster_dir = os.path.join(args['temp_dir'], "microclusters")
+        if not os.path.isdir(microcluster_dir):
+            os.makedirs(microcluster_dir)
+            
+        microcluster_success_token = os.path.join(microcluster_dir, "success_token")
+        pooled_data_file = os.path.join(microcluster_dir, "pooled_data.tsv")
+        pools_file = os.path.join(microcluster_dir, "pools.json")
 
-        pooled_data_file = os.path.join(args['temp_dir'], "pooled_data.tsv")
-        pooled_data.to_csv(pooled_data_file, sep="\t")
+        if os.path.exists(microcluster_success_token):
+            logger.info("Microclusters found from previous compass run")
 
-        pools_file = os.path.join(args['temp_dir'], "pools.json")
-        with open(pools_file, 'w') as fout:
-            json.dump(pools, fout)
-            fout.close()
+        else:
+            logger.info("Partitioning dataset into microclusters of size "+str(args['microcluster_size']))
+            data = utils.read_data(args['data'])
+            pools = microcluster(data, cellsPerPartition = args['microcluster_size'], 
+                                n_jobs = args['num_processes'])
+            pooled_data = pool_matrix_cols(data, pools)
+            pooled_data.to_csv(pooled_data_file, sep="\t")
+
+            with open(pools_file, 'w') as fout:
+                json.dump(pools, fout)
+                fout.close()
+
+            with open(microcluster_success_token, 'w') as fout:
+                fout.write('Success!')
+                fout.close()
 
         args['orig_data'] = args['data']
         args['data'] = [pooled_data_file]
