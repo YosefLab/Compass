@@ -109,5 +109,7 @@ Below is an example of the output matrix:
 
 .. image:: images/output_ex.png
 
+To get more context on what the reaction identifiers are, you can visit `virtual metabolic human <https://www.vmh.life/#home>`__ or `the resources directory of compass <https://github.com/YosefLab/Compass/tree/master/compass/Resources/Recon2_export>`__ where there are several csv's which include information on the reactions in Recon2.
+
 \ *Note: While compass is running, it will store partial results for
 each sample in the _tmp directory/ (or the directory following \-\-temp\-dir)*\ 

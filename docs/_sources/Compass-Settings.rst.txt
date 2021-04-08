@@ -8,16 +8,11 @@ Compass allows users to customize various features:
 
 .. code:: bash
 
-   usage: Compass [-h] [--data FILE] [--data-mtx FILE [FILE ...]] [--model MODEL]
-               [--species SPECIES] [--media MEDIA] [--output-dir DIR]
-               [--temp-dir DIR] [--torque-queue QUEUE] [--num-processes N]
-               [--lambda F] [--num-threads N] [--and-function FXN]
-               [--select-reactions FILE] [--num-neighbors N]
-               [--symmetric-kernel] [--input-weights FILE]
-               [--penalty-diffusion MODE] [--no-reactions]
-               [--calc-metabolites] [--precache] [--input-knn FILE]
-               [--output-knn FILE] [--latent-space FILE] [--only-penalties]
-               [--example-inputs] [--list-genes FILE]
+   usage: Compass [-h] [--data FILE] [--data-mtx FILE [FILE ...]] [--model MODEL] [--species SPECIES] [--media MEDIA] [--output-dir DIR]
+               [--temp-dir DIR] [--torque-queue QUEUE] [--num-processes N] [--lambda F] [--num-threads N] [--and-function FXN]
+               [--select-reactions FILE] [--select-subsystems FILE] [--num-neighbors N] [--symmetric-kernel] [--input-weights FILE]
+               [--penalty-diffusion MODE] [--no-reactions] [--calc-metabolites] [--precache] [--input-knn FILE] [--output-knn FILE]
+               [--latent-space FILE] [--only-penalties] [--example-inputs] [--microcluster-size C] [--list-genes FILE] [--list-reactions FILE]
 
 
 Below we describe the features in more detail:
@@ -90,6 +85,9 @@ Metabolic Model Settings
 
 **\-\-list-genes** [FILE]
    File to output a list of metabolic genes needed for selected metabolic model.
+   
+**\-\-list-reactions** [FILE]
+   File to output a list of reaction id's and their associated subsystem for selected metabolic model as a json file.
 
 **\-\-select-reactions** [FILE]
    Compute compass scores only for the reactions listed in the given file. 
