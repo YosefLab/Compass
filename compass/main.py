@@ -200,7 +200,7 @@ def parseArgs():
                         "and the next k columns will be indices of the k nearest neighbors (by their order in column 1)",
                         default=None, metavar="FILE")
 
-    parser.add_argument("--latent-space", help="File with latent space reprsentation of samples for knn clustering. "
+    parser.add_argument("--latent-space", help="File with latent space reprsentation of samples for knn clustering or microclustering. "
                         "File must a tsv with one row per sample and one column per dimension of the latent space.",
                         default=None, metavar="FILE")
 
@@ -244,6 +244,9 @@ def parseArgs():
     parser.add_argument("--list-genes", default=None, metavar="FILE",
                         help="File to output a list of metabolic genes needed for selected metabolic model.")
 
+    parser.add_argument("--list-reactions", default=None, metavar="FILE",
+                        help="File to output a list of reaction id's and their associated subsystem for selected metabolic model.")
+
     args = parser.parse_args()
 
     args = vars(args)  # Convert to a Dictionary
@@ -253,8 +256,8 @@ def parseArgs():
     if args['data'] and args['data_mtx']:
         parser.error("--data and --data-mtx cannot be used at the same time. Select only one input per run.")
     if not args['data'] and not args['data_mtx']:
-        if not args['precache'] and not args['list_genes'] and not args['example_inputs']:
-            parser.error("--data or --data-mtx required unless --precache, --list-genes, or --example-inputs option selected")
+        if not args['precache'] and not args['list_genes'] and not args['example_inputs'] and not args['list_reactions']:
+            parser.error("--data or --data-mtx required unless --precache, --list-genes, --list-reactions, or --example-inputs option selected")
     else:
         if args['data_mtx']:
             args['data'] = args['data_mtx']
@@ -394,13 +397,20 @@ def entry():
             logger.info("Partitioning dataset into microclusters of size "+str(args['microcluster_size']))
             data = utils.read_data(args['data'])
             pools = microcluster(data, cellsPerPartition = args['microcluster_size'], 
-                                n_jobs = args['num_processes'])
+                                latentSpace = args['latent_space'], n_jobs = args['num_processes'])
             pooled_data = pool_matrix_cols(data, pools)
             pooled_data.to_csv(pooled_data_file, sep="\t")
 
             with open(pools_file, 'w') as fout:
                 json.dump(pools, fout)
                 fout.close()
+
+            if args['latent_space']:
+                pooled_latent_file = os.path.join(microcluster_dir, "pooled_latent.tsv")
+                latent = pd.read_csv(args['latent_space'], sep='\t', index_col=0).T
+                pooled_latent = pool_matrix_cols(latent, pools).T
+                pooled_latent.to_csv(pooled_latent_file, sep='\t')
+                args['latent_space'] = pooled_latent_file
 
             with open(microcluster_success_token, 'w') as fout:
                 fout.write('Success!')
@@ -441,6 +451,15 @@ def entry():
         genes = "\n".join(genes)
         with open(args['list_genes'], 'w') as fout:
             fout.write(genes.encode('utf8'))
+            fout.close()
+        return
+
+    if args['list_reactions'] is not None:
+        model = init_model(model=args['model'], species=args['species'],
+                exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'])
+        reactions = {r.id:r.subsystem for r in model.reactions.values()}
+        with open(args['list_reactions'], 'w') as fout:
+            json.dump(reactions, fout)
             fout.close()
         return
             
@@ -499,7 +518,7 @@ def entry():
         if not args['data']:
             return
     else:
-        logger.info("Cache already built")
+        logger.info("Cache for model and media already built")
 
     # Now run the individual cells through cplex in parallel
     # This is either done by sending to Torque queue, or running on the

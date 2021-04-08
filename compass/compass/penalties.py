@@ -171,7 +171,7 @@ def eval_reaction_penalties_shared(model, expression,
         )
     else:
         if latent_input is not None:
-            expression_data = pd.read_csv(latent_input, sep='\t', index_col=0).T
+            data = pd.read_csv(latent_input, sep='\t', index_col=0).T
         # log scale and PCA expresion
         else:
             log_expression = np.log2(expression+1)
@@ -180,12 +180,12 @@ def eval_reaction_penalties_shared(model, expression,
             pca_expression = model.fit_transform(log_expression.T).T
             pca_expression = pd.DataFrame(pca_expression,
                                         columns=expression.columns)
-            expression_data = pca_expression
+            data = pca_expression
         if penalty_diffusion_mode == 'gaussian':
             weights = sample_weights_tsne_symmetric(
-                expression_data, num_neighbors, symmetric_kernel)
+                data, num_neighbors, symmetric_kernel)
         elif penalty_diffusion_mode == 'knn':
-            weights = sample_weights_knn(expression_data, num_neighbors, input_knn, output_knn)
+            weights = sample_weights_knn(data, num_neighbors, input_knn, output_knn)
         else:
             raise ValueError(
                 'Invalid value for penalty_diffusion_mode: {}'
@@ -193,6 +193,7 @@ def eval_reaction_penalties_shared(model, expression,
             )
 
     # Compute weights between samples
+    weights.columns = weights.columns.astype(str) #This fixes potential mismatches in rows
     neighborhood_reaction_expression = reaction_expression.dot(weights.T)
     neighborhood_reaction_expression.columns = reaction_expression.columns
 

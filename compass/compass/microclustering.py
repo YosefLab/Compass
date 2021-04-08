@@ -40,7 +40,7 @@ def microcluster(exprData, cellsPerPartition=10,
                                     columns=exprData.columns)
         res = pca_expression
     else:
-        res = pd.read_csv(latent_input, sep='\t', index_col=0).T
+        res = pd.read_csv(latentSpace, sep='\t', index_col=0).T
 
 
     #Compute knn on PCA with K = min(30, K)
