@@ -8,7 +8,6 @@ from ..globals import EXCHANGE_LIMIT, PCA_SEED
 from sklearn.neighbors import NearestNeighbors
 from sklearn.decomposition import PCA
 
-
 def eval_reaction_penalties(expression_file, model, media,
                             species, args):
     """
@@ -177,7 +176,10 @@ def eval_reaction_penalties_shared(model, expression,
             log_expression = np.log2(expression+1)
             model = PCA(n_components=min(log_expression.shape[0], log_expression.shape[1], 20),
                     random_state = PCA_SEED)
-            pca_expression = model.fit_transform(log_expression.T).T
+            if pd.__version__ >= '0.24':
+                pca_expression = model.fit_transform(log_expression.to_numpy().T).T
+            else:
+                pca_expression = model.fit_transform(log_expression.values.T).T
             pca_expression = pd.DataFrame(pca_expression,
                                         columns=expression.columns)
             data = pca_expression
@@ -193,7 +195,13 @@ def eval_reaction_penalties_shared(model, expression,
             )
 
     # Compute weights between samples
-    weights.columns = weights.columns.astype(str) #This fixes potential mismatches in rows
+    #This fixes potential mismatches in rows
+    if isinstance(weights, pd.DataFrame):
+        if pd.__version__ >= '0.24':
+            weights = weights.to_numpy()
+        else:
+            pca_expression = weights.values
+        
     neighborhood_reaction_expression = reaction_expression.dot(weights.T)
     neighborhood_reaction_expression.columns = reaction_expression.columns
 
@@ -335,7 +343,10 @@ def compute_knn(args):
     model = PCA(n_components=min(
         log_expression.shape[0], log_expression.shape[1], 20)
     )
-    pca_expression = model.fit_transform(log_expression.T).T
+    if pd.__version__ >= '0.24':
+        pca_expression = model.fit_transform(log_expression.to_numpy().T).T
+    else:
+        pca_expression = model.fit_transform(log_expression.values.T).T
     pca_expression = pd.DataFrame(pca_expression,columns=expression.columns)
 
     nn = NearestNeighbors(n_neighbors=args['num_neighbors'])

@@ -35,7 +35,10 @@ def microcluster(exprData, cellsPerPartition=10,
 
         model = PCA(n_components=min(log_expression_filtered.shape[0], log_expression_filtered.shape[1], 20),
                     random_state = PCA_SEED)
-        pca_expression = model.fit_transform(log_expression_filtered.T).T
+        if pd.__version__ >= '0.24':
+            pca_expression = model.fit_transform(log_expression.to_numpy().T).T
+        else:
+            pca_expression = model.fit_transform(log_expression.values.T).T
         pca_expression = pd.DataFrame(pca_expression,
                                     columns=exprData.columns)
         res = pca_expression
@@ -53,6 +56,7 @@ def microcluster(exprData, cellsPerPartition=10,
     d = np.where(adj > 0, np.exp(-1 * np.square(adj) / np.square(sigma)), np.zeros(1))
     
     cl = leidenalg.find_partition(igraph.Graph.Weighted_Adjacency(d), leidenalg.ModularityVertexPartition, seed=LEIDEN_SEED)
+
     clusters = {d:[] for d in np.unique(cl.membership)}
     for i in range(len(cl.membership)):
         clusters[cl.membership[i]].append(i)
