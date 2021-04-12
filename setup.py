@@ -1,7 +1,6 @@
 import os
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
-import numpy.distutils
 
 # Parse the version string
 __version__ = ""
@@ -9,9 +8,12 @@ this_directory = os.path.dirname(os.path.abspath(__file__))
 version_file = os.path.join(this_directory, "compass", "_version.py")
 exec(open(version_file).read())  # Loads version into __version__
 
+# Note that the Cythonization will ONLY effect the Gaussian smoothing which uses the TSNE extension. 
+# Also note that numpy and Cython could be added to setup_requires (deprecated) or through build-system requires for this to always work. But then installation may only work for certain setuptools versions.
 # Extensions
 try:
     from Cython.Build import cythonize
+    import numpy.distutils
     use_cython = True
 except ImportError:
     use_cython = False

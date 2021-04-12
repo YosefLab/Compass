@@ -108,8 +108,8 @@ Penalty Settings
    Mode to use to share reaction penalty values
    between single cells. Options:
 
-   - gaussian (default)
-   - knn
+   - gaussian 
+   - knn (default)
 
 **\-\-lambda** [F]
    Smoothing factor for single-cell data. Should be set between 0 and 1

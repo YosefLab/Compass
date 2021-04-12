@@ -177,7 +177,7 @@ def parseArgs():
                         "values between single cells",
                         choices=["gaussian", "knn"],
                         metavar="MODE",
-                        default="gaussian")
+                        default="knn")
 
     parser.add_argument("--no-reactions", action="store_true",
                         help="Skip computing scores for reactions")
