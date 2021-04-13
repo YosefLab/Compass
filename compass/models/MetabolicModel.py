@@ -285,19 +285,22 @@ class MetabolicModel(object):
         Removes subsystems specified to be unnecessary.
         """
         if not self.subsets:
-            if subset == "default":
+            if subset == "default" and not self.subsets[subset]:
                 return
             else:
                 raise Exception("Need to specify subset.json if using non-default subset.")
 
         subsystemsRemove = self.subsets[subset]["subsystemsRemove"]
         reactionsRemove = self.subsets[subset]["reactionsRemove"]
+        reactionsRemove = (r_id.lower() for r_id in reactionsRemove)
 
         new_reactions = {}
         for r_id, r in self.reactions.items():
+            r_id = r_id.lower()
             if r.subsystem not in subsystemsRemove and r_id not in reactionsRemove:
                 new_reactions[r_id] = r
         self.reactions = new_reactions
+        print(len(self.reactions))
 
     def _calc_max_flux(self):
         """
