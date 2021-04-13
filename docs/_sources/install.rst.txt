@@ -8,19 +8,29 @@ Requirements
 ************
  - Python (2.7+ recommended)
  - IBM CPLEX Optimization Studio (12.9+ recommended)
+ - Numpy (1.12+ recommended)
 
 For more details on installing Cplex and what version to use see this section on :ref:`Installing Cplex<cplex-install>`.
 
 Older Python or Cplex versions may work but have not been tested.
 
-Installing Compass with Pip
-***************************
+Installing Compass
+*******************
+If Numpy is not installed, you can install it with
 
-The simplest way to install Compass is using pip to install from the github repository. This can be done with the following command in the terminal:
+.. code:: bash
+
+   pip install numpy
+   
+This needs to be installed before the other requirements because a C extension needs the location of numpy headers to compile.
+
+Then simplest way to install Compass is using pip to install from the github repository. This can be done with the following command in the terminal:
 
 .. code:: bash
 
    pip install git+https://github.com/yoseflab/Compass.git
+
+Alternatively, you can clone the Compass repository and run setup.py.
 
 Now to test if everything is installed, simply run:
 

@@ -1,11 +1,6 @@
 import os
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
-
-#Simple workaround for numpy dependence of later install steps
-from setuptools import dist
-dist.Distribution().fetch_build_eggs(['numpy>=1.12'])
-
 import numpy.distutils
 
 # Parse the version string
