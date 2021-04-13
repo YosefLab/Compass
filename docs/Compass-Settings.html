@@ -346,6 +346,10 @@ This is because it is generally better to have multiple optimization problems be
 <dt><strong>--microcluster-size</strong> [C]</dt><dd><p>A target number of cells per microcluster. Compass will aggregate similar cells into clusters and compute reaction penalties for the clusters (using the mean of the cluster).</p>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When using microclusters, information sharing with lambda &gt; 0 is generally unneccesary because the microclusters already serve the same purpose. If both are enabled, then information will be shared between microclusters as well.</p>
+</div>
 </div>
 <div class="section" id="testing-and-hidden-settings">
 <h2><a class="toc-backref" href="#id5">Testing and Hidden Settings</a><a class="headerlink" href="#testing-and-hidden-settings" title="Permalink to this headline">¶</a></h2>

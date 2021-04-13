@@ -166,6 +166,9 @@ Computing Settings
 **\-\-microcluster-size** [C]
    A target number of cells per microcluster. Compass will aggregate similar cells into clusters and compute reaction penalties for the clusters (using the mean of the cluster).
 
+.. note::
+    When using microclusters, information sharing with lambda > 0 is generally unneccesary because the microclusters already serve the same purpose. If both are enabled, then information will be shared between microclusters as well.
+
 Testing and Hidden Settings
 ---------------------------
 There are several Compass arguments which are not listed by the parser because they are primarily for testing or for batch jobs.
