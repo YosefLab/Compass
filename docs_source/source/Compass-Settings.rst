@@ -112,7 +112,10 @@ Penalty Settings
    - knn (default)
 
 **\-\-lambda** [F]
-   Smoothing factor for single-cell data. Should be set between 0 and 1
+   Smoothing factor for single-cell data. Default is 0, should be set between 0 and 1. For datasets where information sharing is appropriate, we often use 0.25.
+   
+.. note::
+    If lambda is 0, then the cells are processed independently of each other so you can divide up samples to run them separately and get the same results.
 
 **\-\-num-neighbors** [K]
    Either effective number of neighbors for gaussian

@@ -298,8 +298,14 @@ between single cells. Options:</p>
 <li><p>knn (default)</p></li>
 </ul>
 </dd>
-<dt><strong>--lambda</strong> [F]</dt><dd><p>Smoothing factor for single-cell data. Should be set between 0 and 1</p>
+<dt><strong>--lambda</strong> [F]</dt><dd><p>Smoothing factor for single-cell data. Default is 0, should be set between 0 and 1. For datasets where information sharing is appropriate, we often use 0.25.</p>
 </dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If lambda is 0, then the cells are processed independently of each other so you can divide up samples to run them separately and get the same results.</p>
+</div>
+<dl class="simple">
 <dt><strong>--num-neighbors</strong> [K]</dt><dd><p>Either effective number of neighbors for gaussian
 penalty diffusion or exact number of neighbors for KNN penalty
 diffusion. Default is 30</p>

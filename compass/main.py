@@ -87,8 +87,8 @@ def parseArgs():
                         metavar="N")
 
     parser.add_argument("--lambda",
-                        help="Smoothing factor for single-cell data. Should be"
-                        " set between 0 and 1",
+                        help="Smoothing factor for single-cell data. Default is 0, should be"
+                        " set between 0 and 1. For datasets where information sharing is appropriate, we often use 0.25.",
                         type=float,
                         default=0,
                         metavar="F")
