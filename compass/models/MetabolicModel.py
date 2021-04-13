@@ -284,23 +284,33 @@ class MetabolicModel(object):
         """
         Removes subsystems specified to be unnecessary.
         """
+        def fix_r_id(r_id):
+            r_id = r_id.replace("(", "[")
+            r_id = r_id.replace(")", "]")
+            r_id = r_id.replace("-", "_")
+            r_id = r_id.lower()
+            return r_id
         if not self.subsets:
-            if subset == "default" and not self.subsets[subset]:
+            if subset == "default":
                 return
             else:
                 raise Exception("Need to specify subset.json if using non-default subset.")
 
-        subsystemsRemove = self.subsets[subset]["subsystemsRemove"]
-        reactionsRemove = self.subsets[subset]["reactionsRemove"]
-        reactionsRemove = (r_id.lower() for r_id in reactionsRemove)
+        subsystemsRemove = self.subsets.get(subset, {}).get("subsystemsRemove", [])
+        reactionsRemove = self.subsets.get(subset, {}).get("reactionsRemove", [])
+        reactionsRemove = tuple(fix_r_id(r_id) for r_id in reactionsRemove)
 
         new_reactions = {}
         for r_id, r in self.reactions.items():
-            r_id = r_id.lower()
+            r_id = fix_r_id(r_id)
             if r.subsystem not in subsystemsRemove and r_id not in reactionsRemove:
                 new_reactions[r_id] = r
+
+        print("Initial number of reactions:", len(self.reactions))
+        print("Filtered number of reactions:", len(new_reactions))
+        print("Number of removed reactions:", len(self.reactions) - len(new_reactions))
+        
         self.reactions = new_reactions
-        print(len(self.reactions))
 
     def _calc_max_flux(self):
         """
