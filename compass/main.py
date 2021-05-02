@@ -30,6 +30,7 @@ from . import globals
 from . import utils
 
 
+
 def parseArgs():
     """Defines the command-line arguments and parses the Compass call
 
@@ -64,7 +65,8 @@ def parseArgs():
                         " Currently supporting: homo_sapiens or mus_musculus",
                         choices=["homo_sapiens", "mus_musculus"],
                         metavar="SPECIES",
-                        default="homo_sapiens")
+                        #originally default, now required so users will not accidentally overlook it
+                        required=True)
 
     parser.add_argument("--media", help="Which media to simulate",
                         metavar="MEDIA")
@@ -310,6 +312,8 @@ def parseArgs():
     if args['sample_range']:
         args['sample_range'] = [int(x) for x in args['sample_range']]
     return args
+
+
 
 
 def entry():
@@ -813,3 +817,9 @@ def precacheCompass(args):
     #model_cache['dfs_reaction_order'] = lst
     cache.save(model) 
     
+
+
+
+
+if __name__ == '__main__':
+    entry()
