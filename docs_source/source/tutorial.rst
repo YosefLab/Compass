@@ -44,7 +44,7 @@ And to run compass on mtx formatted data use the following:
 
 Though the sample names file can be omitted, in which case the samples will be labelled by index.
 
-Below is an example of the formatting for gene expression (We only showa small portion of the matrix):
+Below is an example of the formatting for gene expression (We only show a small portion of the matrix):
 
 .. image:: images/input_ex.png
 
