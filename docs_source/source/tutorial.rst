@@ -63,7 +63,7 @@ Compass will automatically build up the cache if it is empty, but you can also m
    Therefore, Compass can also be stopped and restarted after it is done
    processing a subset of samples so long as the _tmp directory is still there. 
 
-Compass Setttings
+Compass Settings
 -----------------
 
 Compass also allows users to customize a variety of settings seen below:
@@ -94,8 +94,7 @@ postprocessing to the data. Mainly, the postprocessing converts reaction penalti
 high values correspond to low likelihood reactions) to reaction scores
 (where high values correspond to likely reactions).
 
-..
-   Our `compassR package <https://github.com/YosefLab/compassR>`__
+.. Our `compassR package <https://github.com/YosefLab/compassR>`__
    appropriately post-processes the data and provides an easy, expressive
    framework for conducting subsequent analyses. See :doc:`compass postprocessing tutorial<Compass-Postprocessing-Tutorial>` for more on how to use it.
 
