@@ -47,12 +47,12 @@ def microcluster(exprData, cellsPerPartition=10,
 
 
     #Compute knn on PCA with K = min(30, K)
-    nn = NearestNeighbors(n_neighbors=min(K, 30), n_jobs=n_jobs)  #n_jobs to be changed after .ipynb
+    nn = NearestNeighbors(n_neighbors=min(K, 30), n_jobs=n_jobs)
     nn.fit(res.T)
     dist, ind = nn.kneighbors()
     
     sigma = np.square(np.median(dist, axis=1)) #sigma <- apply(d, 1, function(x) quantile(x, c(.5))[[1]])
-    adj = nn.kneighbors_graph() #Should sparse graph of csr_format
+    adj = nn.kneighbors_graph(mode='distance') #Should sparse graph of csr_format
     adj.data = np.square(adj.data)
     for i in range(adj.shape[0]):
         adj[i] /= sigma[i]
