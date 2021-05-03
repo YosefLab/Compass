@@ -69,6 +69,7 @@ def parseArgs():
                         required=True)
 
     parser.add_argument("--media", help="Which media to simulate",
+                        #default="media1", #TODO:Brandon, where is media1 set?
                         metavar="MEDIA")
 
     parser.add_argument("--output-dir", help="Where to store outputs",
