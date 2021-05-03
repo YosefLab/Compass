@@ -51,11 +51,14 @@ def microcluster(exprData, cellsPerPartition=10,
     nn.fit(res.T)
     dist, ind = nn.kneighbors()
     
-    sigma = np.median(dist, axis=1) #sigma <- apply(d, 1, function(x) quantile(x, c(.5))[[1]])
-    adj = nn.kneighbors_graph().toarray()
-    d = np.where(adj > 0, np.exp(-1 * np.square(adj) / np.square(sigma)), np.zeros(1))
-    
-    cl = leidenalg.find_partition(igraph.Graph.Weighted_Adjacency(d), leidenalg.ModularityVertexPartition, seed=LEIDEN_SEED)
+    sigma = np.square(np.median(dist, axis=1)) #sigma <- apply(d, 1, function(x) quantile(x, c(.5))[[1]])
+    adj = nn.kneighbors_graph() #Should sparse graph of csr_format
+    adj.data = np.square(adj.data)
+    for i in range(adj.shape[0]):
+        adj[i] /= sigma[i]
+    adj.data = np.exp(-adj.data)
+
+    cl = leidenalg.find_partition(igraph.Graph.Weighted_Adjacency(adj), leidenalg.ModularityVertexPartition, seed=LEIDEN_SEED)
 
     clusters = {d:[] for d in np.unique(cl.membership)}
     for i in range(len(cl.membership)):

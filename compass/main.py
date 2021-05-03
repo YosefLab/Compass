@@ -453,9 +453,9 @@ def entry():
         model = init_model(model=args['model'], species=args['species'],
                 exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'])
         genes = list(set.union(*[set(reaction.list_genes()) for reaction in model.reactions.values()]))
-        genes = "\n".join(genes)
+        genes = str("\n".join(genes))
         with open(args['list_genes'], 'w') as fout:
-            fout.write(genes.encode('utf8'))
+            fout.write(genes)
             fout.close()
         return
 
