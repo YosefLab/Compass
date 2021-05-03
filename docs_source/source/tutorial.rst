@@ -4,15 +4,15 @@ Tutorial
 .. contents:: Contents
    :local:
 
-Broadly speaking, Compass takes in a gene expression matrix scaled by
-transcripts per million, and outputs a penalty reaction matrix, whereby
+Broadly speaking, Compass takes in a gene expression matrix scaled for library depth 
+(e.g., CPM), and outputs a penalty reaction matrix, whereby
 higher scores correspond to a reaction being **less** likely.
 
 Running Compass (Simple)
 ------------------------
 
 The input gene expression matrix can be either a tab-delimited text file (tsv) or a matrix market format (mtx)
-containing gene expression estimates (TPM or CPM) with one row per gene, one column per sample. 
+containing gene expression estimates (CPM, TPM, or similar scaled units) with one row per gene, one column per sample. 
 
 Tab-delimited files need row and column labels corresponding to genes and sample names. Market matrix formats need a separate tab delimited file of of gene names and optionally a tab delimited file of cell names.
 
@@ -63,10 +63,10 @@ Compass will automatically build up the cache if it is empty, but you can also m
    Therefore, Compass can also be stopped and restarted after it is done
    processing a subset of samples so long as the _tmp directory is still there. 
 
-Compass Setttings
+Compass Settings
 -----------------
 
-Compass also allows users to customize a variaty of settings seen below:
+Compass also allows users to customize a variety of settings seen below:
 
 .. code:: bash
 
@@ -82,21 +82,21 @@ Compass also allows users to customize a variaty of settings seen below:
                [--list-genes FILE]
 
 
-See our instructions
+See the instructions
 :doc:`here </Compass-Settings>`
 for an in depth tutorial on using Compass’s settings
 
 Postprocessing
 --------------
 
-Once Compass has finished running, it is important to apply
-postprocessing to the data in order to convert reaction penalties (where
+Once Compass has finished running, we apply several steps of
+postprocessing to the data. Mainly, the postprocessing converts reaction penalties (where
 high values correspond to low likelihood reactions) to reaction scores
 (where high values correspond to likely reactions).
 
-Our `compassR package <https://github.com/YosefLab/compassR>`__
-appropriately postprocesses the data and provides an easy, expressive
-framework for conducting subsequent analyses. See :doc:`compass postprocessing tutorial<Compass-Postprocessing-Tutorial>` for more on how to use it.
+.. Our `compassR package <https://github.com/YosefLab/compassR>`__
+   appropriately post-processes the data and provides an easy, expressive
+   framework for conducting subsequent analyses. See :doc:`compass postprocessing tutorial<Compass-Postprocessing-Tutorial>` for more on how to use it.
 
 Outputs
 -------
