@@ -432,7 +432,7 @@ def entry():
             for cluster in pools:
                 for sample in pools[cluster]:
                     pools_table.iloc[0, sample] = cluster
-            pools_table.to_csv(args['microcluster_file'])
+            pools_table.to_csv(args['microcluster_file'], sep="\t")
 
             with open(microcluster_success_token, 'w') as fout:
                 fout.write('Success!')

@@ -1,6 +1,9 @@
 Compass Postprocessing
 ======================
 
+.. note::
+   We are deprecating the compassR code as it does not follow the manuscript as closely as we'd like.
+
 Our `compassR package <https://github.com/YosefLab/compassR>`__
 appropriately postprocesses the data and provides an easy, expressive
 framework for conducting subsequent analyses based on the
