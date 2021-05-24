@@ -217,6 +217,10 @@ def parseArgs():
                         type=int, metavar="C", default=None,
                         help="Target number of cells per microcluster")
 
+    parser.add_argument("--microcluster-file", 
+                        type=int, metavar="FILE", default=None,
+                        help="File where a tsv of microclusters will be output. Defaults to microclusters.tsv in the output directory.")
+
     #Hidden argument which tracks more detailed information on runtimes
     parser.add_argument("--detailed-perf", action="store_true",
                         help=argparse.SUPPRESS)
@@ -286,6 +290,9 @@ def parseArgs():
     args['output_dir'] = os.path.abspath(args['output_dir'])
     args['temp_dir'] = os.path.abspath(args['temp_dir'])
 
+    if args['microcluster_size'] and not args['microcluster_file']:
+        args['microcluster_file'] = os.path.join(args['output_dir'], 'micropools.tsv')
+
     if args['input_knn']:
         args['input_knn'] = os.path.abspath(args['input_knn'])
     if args['output_knn']:
@@ -342,12 +349,15 @@ def entry():
             with open(temp_args_file, 'r') as fin:
                 temp_args =  json.load(fin)
                 fin.close()
-            if temp_args != args:
-                diffs = [x for x in args.keys() if args[x] != temp_args[x]]
-                print("Warning: The arguments used in the temporary directory, ", args['temp_dir'],
-                        ", are different from current arguments. Cached results may not be compatible with current settings")
-                print("Differing arguments: ", diffs)
-                print("Enter y or yes if you want to continue Compass and used cached results.\n", 
+            ignored_diffs = ['num_processes', 'only_penalties', 'num_threads']
+            diffs = [x for x in args.keys() if args[x] != temp_args[x] and x not in ignored_diffs]
+            if len(diffs) > 0:
+                table = pd.DataFrame({'temp_dir':{x:temp_args[x] for x in diffs}, 
+                                      'current':{x:args[x] for x in diffs}})
+                print("Warning: The arguments used in the temporary directory (", args['temp_dir'],
+                        ") are different from current arguments. Cached results may not be compatible with current settings")
+                print("Differing arguments: \n", table)
+                print("Enter 'y' or 'yes' if you want to continue Compass and used cached results.\n", 
                         "Otherwise rerun Compass after removing/renaming the temporary directory or changing the --temp-dir argument")
                 if sys.version_info.major >= 3:
                     ans = input()
@@ -416,6 +426,13 @@ def entry():
                 pooled_latent = pool_matrix_cols(latent, pools).T
                 pooled_latent.to_csv(pooled_latent_file, sep='\t')
                 args['latent_space'] = pooled_latent_file
+
+            #outputting table of micropools
+            pools_table = pd.DataFrame(columns = data.columns, index=['microcluster'])
+            for cluster in pools:
+                for sample in pools[cluster]:
+                    pools_table.iloc[0, sample] = cluster
+            
 
             with open(microcluster_success_token, 'w') as fout:
                 fout.write('Success!')

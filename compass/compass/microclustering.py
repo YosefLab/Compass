@@ -156,8 +156,8 @@ def pool_matrix_cols(data, pools):
     for g in pools:
         for i in pools[g]:
             groups[data.columns[i]] = g
-    groups = pd.DataFrame.from_dict(groups, orient='index', columns=['_compass_microcluster']).T
-    return data.append(groups).T.groupby("_compass_microcluster").mean().T
+    groups = pd.DataFrame.from_dict(groups, orient='index', columns=['compass_microcluster']).T
+    return data.append(groups).T.groupby("compass_microcluster").mean().T.rename(mapper=lambda x: 'cluster_'+str(int(x)), axis=1)
 
 def unpool_columns(pooled_data, pools, data):
     unpooled_cols = []
