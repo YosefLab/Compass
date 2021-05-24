@@ -205,7 +205,6 @@ def eval_reaction_penalties_shared(model, expression,
     #Pandas unsuccesfully tries to cast the sparse weights with np.asarry()
     neighborhood_reaction_expression = weights.dot(reaction_expression.T).T 
     neighborhood_reaction_expression = pd.DataFrame(neighborhood_reaction_expression, index=reaction_expression.index, columns=reaction_expression.columns)
-    #neighborhood_reaction_expression.columns = reaction_expression.columns
 
     result = (1-lambda_)/(1+reaction_expression) + lambda_/(1+neighborhood_reaction_expression)
 
