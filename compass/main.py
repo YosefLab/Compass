@@ -432,7 +432,7 @@ def entry():
             for cluster in pools:
                 for sample in pools[cluster]:
                     pools_table.iloc[0, sample] = cluster
-            
+            pools_table.to_csv(args['microcluster_file'])
 
             with open(microcluster_success_token, 'w') as fout:
                 fout.write('Success!')
@@ -736,21 +736,24 @@ def collectCompassResults(data, temp_dir, out_dir, args):
     # Join and output
     if not args['no_reactions']:
         reactions_all = pd.concat(reactions_all, axis=1, sort=True)
-        if args['microcluster_size']:
-            reactions_all = unpool_columns(reactions_all, pools, orig_data)
+        #This would expand the microclustered results out
+        #if args['microcluster_size']:
+        #    reactions_all = unpool_columns(reactions_all, pools, orig_data)
         reactions_all.to_csv(
             os.path.join(out_dir, 'reactions.tsv'), sep="\t")
 
     if args['calc_metabolites']:
         secretions_all = pd.concat(secretions_all, axis=1, sort=True)
-        if args['microcluster_size']:
-            secretions_all = unpool_columns(secretions_all, pools, orig_data)
+        #This would expand the microclustered results out
+        #if args['microcluster_size']:
+        #    secretions_all = unpool_columns(secretions_all, pools, orig_data)
         secretions_all.to_csv(
             os.path.join(out_dir, 'secretions.tsv'), sep="\t")
 
         uptake_all = pd.concat(uptake_all, axis=1, sort=True)
-        if args['microcluster_size']:
-            uptake_all = unpool_columns(uptake_all, pools, orig_data)
+        #This would expand the microclustered results out
+        #if args['microcluster_size']:
+        #    uptake_all = unpool_columns(uptake_all, pools, orig_data)
         uptake_all.to_csv(
             os.path.join(out_dir, 'uptake.tsv'), sep="\t")
 
