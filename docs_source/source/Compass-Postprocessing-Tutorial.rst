@@ -2,7 +2,7 @@ Compass Postprocessing
 ======================
 
 .. note::
-   We are deprecating the compassR code as it does not follow the manuscript as closely as we'd like.
+   We are deprecating the compassR code as it does not follow the manuscript as closely as we'd like. There is now a python version `here <https://github.com/YosefLab/Compass/blob/master/analysis/Demo.ipynb>`__, though it may undergo some revisions.
 
 Our `compassR package <https://github.com/YosefLab/compassR>`__
 appropriately postprocesses the data and provides an easy, expressive
