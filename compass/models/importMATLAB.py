@@ -44,7 +44,7 @@ def load(model_name, species):
 
     else:
         raise Exception(
-            'Unsupported species.  Supported: `homo_sapines`, `mus_musculus`')
+            'Unsupported species.  Supported: `homo_sapiens`, `mus_musculus`')
 
     genes = []
     for i, gid in enumerate(gene_ids):

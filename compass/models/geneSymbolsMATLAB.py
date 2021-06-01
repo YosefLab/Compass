@@ -13,7 +13,9 @@ import gzip
 import json
 import re
 import os
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
+from typing import List
+import pandas as pd
 
 RESOURCE_DIR = os.path.join("..", "Resources")
 MODEL_DIR = os.path.join(RESOURCE_DIR, "Metabolic Models")
@@ -112,6 +114,62 @@ def resolve_genes(gene_list):
     
     return (non2uniqueEntrez, uniqueHumanGeneSymbol)
 
+def load_mgi():
+    """
+    Loads the ortho2human, ortho2mouse dictionaries
+    from the MGI exported file
+    """
+
+    ortho2mouse = defaultdict(set)
+    ortho2human = defaultdict(set)
+
+    mgi_file = os.path.join(
+        RESOURCE_DIR, "Genes", "HOM_MouseHumanSequence.rpt.gz")
+
+    data = pd.read_csv(mgi_file, sep="\t")
+
+    hgs = data.loc[data['Common Organism Name'] == 'human']
+    mgs = data.loc[data['Common Organism Name'] == 'mouse, laboratory']
+
+    for ortho_id, hg in zip(hgs['HomoloGene ID'], hgs['Symbol']):
+        ortho2human[ortho_id].add(hg.upper())
+
+    for ortho_id, mg in zip(mgs['HomoloGene ID'], mgs['Symbol']):
+        ortho2mouse[ortho_id].add(mg.upper())
+
+    return ortho2human, ortho2mouse
+
+def convert_species():
+    ortho2human, ortho2mouse = load_mgi()
+
+    # Invert the human dictionary
+    human2ortho = defaultdict(set)
+    for ortho_id in ortho2human:
+        for hg in ortho2human[ortho_id]:
+            human2ortho[hg].add(ortho_id)
+    
+    uniqueMouseGeneSymbol_all = list()
+
+    # Now, recursively crawl the gene association structure
+    #   and update all gene entries
+    
+    for name in uniqueHumanGeneSymbol:
+        if name in human2ortho:
+            ortho_id = human2ortho[name]
+
+            mouse_genes = set()
+
+            for oid in ortho_id:
+                if oid in ortho2mouse:
+                    mouse_genes |= ortho2mouse[oid]
+
+            uniqueMouseGeneSymbol_all.append(list(mouse_genes))
+        
+    uniqueMouseGeneSymbol = [x[0] if x else "" for x in uniqueMouseGeneSymbol_all]
+    
+    return (uniqueMouseGeneSymbol_all, uniqueMouseGeneSymbol)
+
+
 model_name = "RECON3_MODEL_mat"
 model_dir = os.path.join(MODEL_DIR, model_name)
 geneFilePath = os.path.join(model_dir, "model", "model.genes.json")
@@ -123,9 +181,16 @@ with open(geneFilePath) as geneFile:
 gene_list = [gene[:-2] for gene in gene_list]
 
 non2uniqueEntrez, uniqueHumanGeneSymbol = resolve_genes(gene_list)
+uniqueMouseGeneSymbol_all, uniqueMouseGeneSymbol = convert_species()
 
 with open(os.path.join(model_dir, "non2uniqueEntrez.json"), "w") as f:
     json.dump(non2uniqueEntrez, f, indent=2)
 
 with open(os.path.join(model_dir, "uniqueHumanGeneSymbol.json"), "w") as f:
     json.dump(uniqueHumanGeneSymbol, f, indent=2)
+
+with open(os.path.join(model_dir, "uniqueMouseGeneSymbol_all.json"), "w") as f:
+    json.dump(uniqueMouseGeneSymbol_all, f, indent=2)
+
+with open(os.path.join(model_dir, "uniqueMouseGeneSymbol.json"), "w") as f:
+    json.dump(uniqueMouseGeneSymbol, f, indent=2)
