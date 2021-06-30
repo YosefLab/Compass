@@ -219,7 +219,11 @@ def parseArgs():
 
     parser.add_argument("--microcluster-file", 
                         type=int, metavar="FILE", default=None,
-                        help="File where a tsv of microclusters will be output. Defaults to microclusters.tsv in the output directory.")
+                        help="File where a tsv of microclusters will be output. Defaults to micropools.tsv in the output directory.")
+
+    parser.add_argument("--microcluster-data-file", 
+                        type=int, metavar="FILE", default=None,
+                        help="File where a tsv of average gene expression per microcluster will be output. Defaults to micropooled_data.tsv in the output directory.")
 
     #Hidden argument which tracks more detailed information on runtimes
     parser.add_argument("--detailed-perf", action="store_true",
@@ -290,8 +294,11 @@ def parseArgs():
     args['output_dir'] = os.path.abspath(args['output_dir'])
     args['temp_dir'] = os.path.abspath(args['temp_dir'])
 
-    if args['microcluster_size'] and not args['microcluster_file']:
-        args['microcluster_file'] = os.path.join(args['output_dir'], 'micropools.tsv')
+    if args['microcluster_size']:
+        if not args['microcluster_file']:
+            args['microcluster_file'] = os.path.join(args['output_dir'], 'micropools.tsv')
+        if not args['microcluster_data_file']:
+            args['microcluster_data_file'] = os.path.join(args['output_dir'], 'micropooled_data.tsv')
 
     if args['input_knn']:
         args['input_knn'] = os.path.abspath(args['input_knn'])
@@ -402,7 +409,7 @@ def entry():
             os.makedirs(microcluster_dir)
             
         microcluster_success_token = os.path.join(microcluster_dir, "success_token")
-        pooled_data_file = os.path.join(microcluster_dir, "pooled_data.tsv")
+        pooled_data_file = args['microcluster_data_file'] #os.path.join(microcluster_dir, "micropooled_data.tsv")
         pools_file = os.path.join(microcluster_dir, "pools.json")
 
         if os.path.exists(microcluster_success_token):

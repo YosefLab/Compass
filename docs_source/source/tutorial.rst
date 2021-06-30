@@ -30,7 +30,7 @@ These files will exist locally as well under the Compass install directory which
 Running Compass
 ---------------
 
-Then you can run compass on the data with the following command, which will limit the number of processes to 10:
+Then after opening a command line in a directory with an input file "expression.tsv", you can run compass on the data with the following command, which will limit the number of processes to 10:
 
 .. code:: bash
 
@@ -86,20 +86,19 @@ See the instructions
 :doc:`here </Compass-Settings>`
 for an in depth tutorial on using Compass’s settings
 
-Microclustering
+Micropooling
 ---------------
 
-The Compass algorithm can be very computationally intensive, especially for large datasets, but with microclustering techniques you can reduce the computing time by an order of magnitude. 
-Compass comes with a microclustering algorithm built in with the based on a reimplementation of microclustering from `VISION <https://github.com/yoseflab/vision>`__. To enable microclustering you can specify a microcluster size as below:
+The Compass algorithm can be very computationally intensive, especially for large datasets, but with micropooling/clustering techniques you can reduce the computing time by an order of magnitude. 
+Compass comes with a micropooling algorithm built in, based on a reimplementation of microclustering from `VISION <https://github.com/yoseflab/vision>`__. To enable microclustering you can specify a microcluster size as below:
 
 .. code:: bash
 
    Compass --microcluster-size 10 [other options]
 
-In general cluster size presents a tradeoff between runtime and granularity as larger clusters can make analysis more sensitive but will take longer to process the samples, so a microcluster size as small as computationally feasible is recommended. 
-The microclustering algorithm works by an initial coarse clustering using the Leiden algorithm on the k-nearest neighbors graph and then succesively applying k-means clustering to the coarse clusterings until the average cluster size is sufficiently close to the target cluster size.
+In general cluster size presents a tradeoff between runtime and granularity as larger clusters can make analysis more sensitive but will take longer to process the samples, so a microcluster size as small as computationally feasible is recommended. There are more details on micropooling with Compass :doc:`here </Compass-Settings>`.
 
-Instead of using compass's built in microclustering approaches, you can also perform seperate microclustering with something like `metacell <https://github.com/tanaylab/metacell>`__.
+Alternatively, any other method of aggregating cells into fewer representatives can be used such as `metacell <https://github.com/tanaylab/metacell>`__.
 
 Postprocessing
 --------------
