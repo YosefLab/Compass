@@ -61,9 +61,7 @@ Output settings
 **\-\-list-genes** [FILE]
    File to output a list of metabolic genes needed for selected metabolic model.
    This is useful if you'd like to subset the input matrix to include only the metabolic genes used by the algorithm
-   (gene not included in the list are ignored). THis list depends on the ``--species`` argument.
-
-.. TODO: make sure with Brandon the list depends on the species
+   (gene not included in the list are ignored). This list depends on the ``--species`` argument.
    
 **\-\-list-reactions** [FILE]
    File to output a list of reaction id's and their associated subsystem. This is useful if you'd like to compute Compass scores
