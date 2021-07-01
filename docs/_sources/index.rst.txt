@@ -23,8 +23,8 @@ These pages have guides on how to install and use Compass, including a walkthrou
    /install
    /user-guide
    /Compass-Settings
-
-
-
-.. removed from toctree until updated with Brandon's tutorial:
    /Compass-Postprocessing-Tutorial
+   /micropooling
+
+
+

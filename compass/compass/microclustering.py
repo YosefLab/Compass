@@ -9,7 +9,7 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 import igraph
 import leidenalg
-from ..globals import PCA_SEED, LEIDEN_SEED
+from ..globals import PCA_SEED, LEIDEN_SEED, KMEANS_SEED
 
 def microcluster(exprData, cellsPerPartition=10,
                          filterInput = "fano",
@@ -128,9 +128,9 @@ def readjust_clusters(clusters, data, cellsPerPartition=100):
             currCl = clusters[i]
             subData = data.iloc[:,currCl].T
             if len(currCl) > cellsPerPartition:
-                nCl = KMeans(n_clusters=round(subData.shape[0] / cellsPerPartition)).fit(subData)
+                nCl = KMeans(n_clusters=round(subData.shape[0] / cellsPerPartition), random_state=KMEANS_SEED).fit(subData)
             else:
-                nCl = KMeans(n_clusters=1).fit(subData)
+                nCl = KMeans(n_clusters=1, random_state=KMEANS_SEED).fit(subData)
             newClust = nCl.predict(subData)
             # Gather cluster vector to list of clusters
             

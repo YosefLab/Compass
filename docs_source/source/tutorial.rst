@@ -96,7 +96,7 @@ Compass comes with a micropooling algorithm built in, based on a reimplementatio
 
    Compass --microcluster-size 10 [other options]
 
-In general cluster size presents a tradeoff between runtime and granularity as larger clusters can make analysis more sensitive but will take longer to process the samples, so a microcluster size as small as computationally feasible is recommended. There are more details on micropooling with Compass :doc:`here </Compass-Settings>`.
+In general cluster size presents a tradeoff between runtime and granularity as larger clusters can make analysis more sensitive but will take longer to process the samples, so a microcluster size as small as computationally feasible is recommended. There are more details on micropooling with Compass :doc:`here </micropooling>`.
 
 Alternatively, any other method of aggregating cells into fewer representatives can be used such as `metacell <https://github.com/tanaylab/metacell>`__.
 

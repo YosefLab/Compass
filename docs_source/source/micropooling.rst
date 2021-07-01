@@ -1,5 +1,5 @@
-Microcpooling
-=============
+Micropooling
+============
 
 .. contents:: Contents
    :local:

@@ -15,7 +15,7 @@ Compass allows users to customize various features:
                [--latent-space FILE] [--only-penalties] [--example-inputs] [--microcluster-size C] [--list-genes FILE] [--list-reactions FILE]
 
 
-Below we describe the features in more detail:
+Below we describe the features in more detail. For details on micropooling/microclustering specifically, see :doc:`here </micropooling>`
 
 Input settings
 ----------------
@@ -183,8 +183,17 @@ Computing Settings
 **\-\-precache**
    A flag to force compass to build up the cache for the input selected model and media. This will rebuild the cache even if one already exists.
 
+
 **\-\-microcluster-size** [C]
    A target number of cells per microcluster. Compass will aggregate similar cells into clusters and compute reaction penalties for the clusters (using the mean of the cluster).
+
+**\-\-microcluster-file** [FILE]
+   File where a tsv of microclusters will be output. There will be one column where each entry has the label for what micropool/microcluster the sample is in. Defaults to micropools.tsv in the output directory.
+
+**\-\-microcluster-data-file** [FILE]
+   File where a tsv of average gene expression per
+   microcluster will be output. Defaults to
+   micropooled_data.tsv in the output directory.
 
 .. note::
     When using microclusters, information sharing with lambda > 0 is generally unnecessary because the microclusters already serve the same purpose. If both are enabled, then information will be shared between microclusters as well.
