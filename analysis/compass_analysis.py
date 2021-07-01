@@ -31,15 +31,21 @@ def wilcoxon_test(consistencies_matrix, group_A_cells, group_B_cells):
 
 def get_reaction_consistencies(compass_reaction_scores, min_range=1e-3):
     df = -np.log(compass_reaction_scores + 1)
-    df = df[df.max(axis=1) - df.min(axis=1) >= 1e-3]
+    df = df[df.max(axis=1) - df.min(axis=1) >= min_range]
     df = df - df.min().min()
     return df
 
-def get_metareactions(reaction_consistencies):
+def get_metareactions(reactions, height=0.02):
     """
-        This can be slow to compute every pairwise correlation
-        This is not fully implemented, but this is how you would analyse the metareactions as specified in the paper
+        Returns an array of metareaction labels for each reaction
+        Index k in the returned array has the metareaction label for reaction k.
     """
-    pairwise_reaction_correlations = reaction_consistencies.corr(method='spearman')
+    #pairwise_reaction_correlations = reactions.T.corr(method='spearman') #Pandas method here is orders of magnitude slower
+    pairwise_reaction_correlations = np.corrcoef(reactions.rank(axis=1))
+    #Unfortunately due to floating point issues, these matrices are not always perfectly symmetric and the diagonal may be slightly off from 1
+    pairwise_reaction_correlations[np.arange(reactions.shape[0]), np.arange(reactions.shape[0])] = 1.0
+    pairwise_reaction_correlations = (pairwise_reaction_correlations + pairwise_reaction_correlations.T)/2
+    assert(np.all(pairwise_reaction_correlations == pairwise_reaction_correlations.T))
+
     Z = hcluster.complete(squareform(1 - pairwise_reaction_correlations))
-    return hcluster.fcluster(Z, 0.02)
+    return hcluster.fcluster(Z, height, criterion='distance')
