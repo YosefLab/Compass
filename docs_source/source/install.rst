@@ -46,10 +46,10 @@ You should see the help text print out if installation was succesful :) For more
 Installing Cplex
 ****************
 
-CPLEX is an optimization engine that COMPASS uses and it must be
-installed from IBM. In particular Compass uses its Python API (distinct from Docplex). 
+Compass relies on CPLEX, an optimization engine developed by IBM and free for academic use.
+In particular Compass uses its Python API (distinct from Docplex). 
 
-We note that it may be simpler to download the
+CPLEX needs to be installed directly from IBM. We note that it may be simpler to download the
 installation files locally and SCP/File Transfer them over to the
 corresponding server.
 
