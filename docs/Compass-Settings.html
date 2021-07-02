@@ -36,7 +36,7 @@
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Compass Postprocessing" href="Compass-Postprocessing-Tutorial.html" />
+    <link rel="next" title="Micropooling" href="micropooling.html" />
     <link rel="prev" title="Tutorial" href="tutorial.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
@@ -65,18 +65,6 @@
         
         <li class="nav-item active">
             <a class="nav-link" href="user-guide.html">Compass User Guide</a>
-        </li>
-        
-        <li class="nav-item active">
-            <a class="nav-link" href="">Compass Settings</a>
-        </li>
-        
-        <li class="nav-item ">
-            <a class="nav-link" href="Compass-Postprocessing-Tutorial.html">Compass Postprocessing</a>
-        </li>
-        
-        <li class="nav-item ">
-            <a class="nav-link" href="micropooling.html">Micropooling</a>
         </li>
         
         
@@ -114,12 +102,6 @@
           
             
                 <li class="">
-                    <a href="install.html">Installing Compass</a>
-                </li>
-            
-          
-            
-                <li class="">
                     <a href="tutorial.html">Tutorial</a>
                 </li>
             
@@ -127,6 +109,12 @@
             
                 <li class="active">
                     <a href="">Compass Settings</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="micropooling.html">Micropooling</a>
                 </li>
             
           
@@ -142,14 +130,6 @@
                 </li>
             
           
-        
-        
-        
-          
-        
-        
-        
-        
         
         
       </ul>
@@ -254,10 +234,11 @@ The input must be followed by a tab separated file with rownames corresponding t
 <div class="section" id="output-settings">
 <h2><a class="toc-backref" href="#id2">Output settings</a><a class="headerlink" href="#output-settings" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
-<dt><strong>--output-dir</strong> [DIR]</dt><dd><p>Final directory for final output files (e.g., reactions.txt).</p>
+<dt><strong>--output-dir</strong> [DIR]</dt><dd><p>Final directory for final output files (e.g., reactions.tsv). Defaults to ./ (the same directory the command was run from).</p>
 </dd>
 <dt><strong>--temp-dir</strong> [DIR]</dt><dd><p>Directory to store partial results for completed
-samples in a dataset (used to resume interrupted runs).</p>
+samples in a dataset (used to resume interrupted runs).
+Defaults to ./_tmp.</p>
 </dd>
 <dt><strong>--list-genes</strong> [FILE]</dt><dd><p>File to output a list of metabolic genes needed for selected metabolic model.
 This is useful if you’d like to subset the input matrix to include only the metabolic genes used by the algorithm
@@ -280,6 +261,12 @@ Unrecognized subsystems in FILE are ignored.</p>
 <div class="section" id="metabolic-model-settings">
 <h2><a class="toc-backref" href="#id3">Metabolic Model Settings</a><a class="headerlink" href="#metabolic-model-settings" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
+<dt><strong>--species</strong> [SPECIES]</dt><dd><p>Species to use to match genes to model. Required parameter. Options:</p>
+<ul class="simple">
+<li><p>homo_sapiens</p></li>
+<li><p>mus_musculus</p></li>
+</ul>
+</dd>
 <dt><strong>--model</strong> [MODEL]</dt><dd><p>Metabolic model to use. Options:</p>
 <ul class="simple">
 <li><p>RECON1_mat</p></li>
@@ -288,12 +275,6 @@ Unrecognized subsystems in FILE are ignored.</p>
 </ul>
 </dd>
 <dt><strong>--media</strong> [MEDIA]</dt><dd><p>The media to simulate the model with. This is a placeholder for future algorithmic extensions.</p>
-</dd>
-<dt><strong>--species</strong> [SPECIES]</dt><dd><p>Species to use to match genes to model. Options:</p>
-<ul class="simple">
-<li><p>homo_sapiens (default)</p></li>
-<li><p>mus_musculus</p></li>
-</ul>
 </dd>
 <dt><strong>--and-function</strong> [FXN]</dt><dd><p>Which function used to aggregate and
 associations. Options:</p>
@@ -346,7 +327,7 @@ The first column should be sample names, and the next k columns should be indice
 File will be a tsv with one row per sample and (k+1) columns.
 The first column will be sample names, and the next k columns will be indices of the k nearest neighbors (by their order in column 1).</p>
 </dd>
-<dt><strong>--latent-space</strong> [FILE]</dt><dd><p>File with latent space representation of the samples on which to do the kNN clustering.
+<dt><strong>--latent-space</strong> [FILE]</dt><dd><p>File with latent space representation of the samples on which to do the kNN clustering for information sharing and/or micropooling.
 Should be a tsv with one row per sample and one column per dimension of the latent space.</p>
 </dd>
 <dt><strong>--only-penalties</strong></dt><dd><p>Flag for Compass to only compute the reaction penalties for the dataset.</p>
@@ -423,7 +404,7 @@ Defaults to 2 as best runtime was found using that for tests.</p>
               <div class='prev-next-bottom'>
                 
     <a class='left-prev' id="prev-link" href="tutorial.html" title="previous page">Tutorial</a>
-    <a class='right-next' id="next-link" href="Compass-Postprocessing-Tutorial.html" title="next page">Compass Postprocessing</a>
+    <a class='right-next' id="next-link" href="micropooling.html" title="next page">Micropooling</a>
 
               </div>
               

@@ -264,6 +264,9 @@ def parseArgs():
 
     load_config(args)
 
+    if not args['species'] and not args['example_inputs']:
+        parser.error("The --species argument is required except for when --example-inputs is selected")
+
     if args['data'] and args['data_mtx']:
         parser.error("--data and --data-mtx cannot be used at the same time. Select only one input per run.")
     if not args['data'] and not args['data_mtx']:
@@ -339,6 +342,29 @@ def entry():
 
     args = parseArgs()
 
+    if args['example_inputs']:
+        print(os.path.join(globals.RESOURCE_DIR, "Test-Data"))
+        return 
+        
+    if args['list_genes'] is not None:
+        model = init_model(model=args['model'], species=args['species'],
+                exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'])
+        genes = list(set.union(*[set(reaction.list_genes()) for reaction in model.reactions.values()]))
+        genes = str("\n".join(genes))
+        with open(args['list_genes'], 'w') as fout:
+            fout.write(genes)
+            fout.close()
+        return
+
+    if args['list_reactions'] is not None:
+        model = init_model(model=args['model'], species=args['species'],
+                exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'])
+        reactions = {r.id:r.subsystem for r in model.reactions.values()}
+        with open(args['list_reactions'], 'w') as fout:
+            json.dump(reactions, fout)
+            fout.close()
+        return
+
     if args['data']:
         if not os.path.isdir(args['output_dir']):
             os.makedirs(args['output_dir'])
@@ -356,7 +382,7 @@ def entry():
             with open(temp_args_file, 'r') as fin:
                 temp_args =  json.load(fin)
                 fin.close()
-            ignored_diffs = ['num_processes', 'only_penalties', 'num_threads']
+            ignored_diffs = ['num_processes', 'only_penalties', 'num_threads', 'torque_queue', 'single_sample']
             diffs = [x for x in args.keys() if args[x] != temp_args[x] and x not in ignored_diffs]
             if len(diffs) > 0:
                 table = pd.DataFrame({'temp_dir':{x:temp_args[x] for x in diffs}, 
@@ -472,29 +498,6 @@ def entry():
                 json.dump(media, fout)
                 fout.close()
             args['media'] = fname
-
-    if args['list_genes'] is not None:
-        model = init_model(model=args['model'], species=args['species'],
-                exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'])
-        genes = list(set.union(*[set(reaction.list_genes()) for reaction in model.reactions.values()]))
-        genes = str("\n".join(genes))
-        with open(args['list_genes'], 'w') as fout:
-            fout.write(genes)
-            fout.close()
-        return
-
-    if args['list_reactions'] is not None:
-        model = init_model(model=args['model'], species=args['species'],
-                exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'])
-        reactions = {r.id:r.subsystem for r in model.reactions.values()}
-        with open(args['list_reactions'], 'w') as fout:
-            json.dump(reactions, fout)
-            fout.close()
-        return
-            
-    if args['example_inputs']:
-        print(os.path.join(globals.RESOURCE_DIR, "Test-Data"))
-        return 
 
     #if args['output_knn']:
     #    compute_knn(args)

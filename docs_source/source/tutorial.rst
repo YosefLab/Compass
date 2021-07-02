@@ -25,7 +25,9 @@ These files will exist locally as well under the Compass install directory which
 
 .. code:: bash
 
-   compass --example-inputs
+   compass --example-inputs --species homo_sapiens
+
+Human or mouse species makes no difference for this command.
 
 Running Compass
 ---------------
@@ -34,13 +36,13 @@ Then after opening a command line in a directory with an input file "expression.
 
 .. code:: bash
 
-   compass --data expression.tsv --num-processes 10
+   compass --data expression.tsv --num-processes 10 --species homo_sapiens
 
 And to run compass on mtx formatted data use the following:
 
 .. code:: bash
 
-   compass --data-mtx expression.mtx genes.tsv sample_names.tsv --num-processes 10
+   compass --data-mtx expression.mtx genes.tsv sample_names.tsv --num-processes 10 --species homo_sapiens
 
 Though the sample names file can be omitted, in which case the samples will be labelled by index.
 
@@ -53,7 +55,7 @@ Compass will automatically build up the cache if it is empty, but you can also m
 
 .. code:: bash
 
-   compass --precache
+   compass --precache --species homo_sapiens
 
 .. note::
    For every individual sample, Compass takes roughly 30 minutes

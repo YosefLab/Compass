@@ -17,14 +17,10 @@ preprint <https://www.biorxiv.org/content/10.1101/2020.01.23.912717v2>`__.
 These pages have guides on how to install and use Compass, including a walkthrough of an analysis to replicate figures from the preprint.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contents:
 
    /install
    /user-guide
-   /Compass-Settings
-   /Compass-Postprocessing-Tutorial
-   /micropooling
-
 
 

@@ -16,14 +16,10 @@
    These pages have guides on how to install and use Compass, including a walkthrough of an analysis to replicate figures from the manuscript.
    
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contents:
 
    /install
    /user-guide
-   /Compass-Settings
-   /Compass-Postprocessing-Tutorial
-   /micropooling
-
 
 
