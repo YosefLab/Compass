@@ -15,10 +15,12 @@ Compass allows users to customize various features:
                [--latent-space FILE] [--only-penalties] [--example-inputs] [--microcluster-size C] [--list-genes FILE] [--list-reactions FILE]
 
 
-Below we describe the features in more detail:
+Below we describe the features in more detail. For details on micropooling/microclustering specifically, see :doc:`here </micropooling>`
 
-Input and Output settings
--------------------------
+Input settings
+----------------
+
+*Input gene expression matrix is specified in one of two ways:*
 
 **\-\-data** [FILE]
    File with input gene expression data with rows as genes and columns as samples. 
@@ -38,15 +40,44 @@ Input and Output settings
 
    If the column names file is omitted the samples will be labelled by index.
 
-**\-\-output-dir** [DIR]
-   Final directory to output concatenated reactions.txt file
 
-**\-\-temp-dir** [DIR]
-   Directory to store partial results for completed
-   samples in a dataset
+*To view example inputs, use:*
 
 **\-\-example-inputs**
    Flag for Compass to list the directory where example inputs can be found.
+
+
+
+Output settings
+------------------
+   
+**\-\-output-dir** [DIR]
+   Final directory for final output files (e.g., reactions.txt).
+
+**\-\-temp-dir** [DIR]
+   Directory to store partial results for completed
+   samples in a dataset (used to resume interrupted runs).
+
+**\-\-list-genes** [FILE]
+   File to output a list of metabolic genes needed for selected metabolic model.
+   This is useful if you'd like to subset the input matrix to include only the metabolic genes used by the algorithm
+   (gene not included in the list are ignored). This list depends on the ``--species`` argument.
+   
+**\-\-list-reactions** [FILE]
+   File to output a list of reaction id's and their associated subsystem. This is useful if you'd like to compute Compass scores
+   for only a subset of the reactions in order to cut in computation times (see below, ``--select-reactions`` and ``--select-subsystems``)..
+
+**\-\-select-reactions** [FILE]
+   Compute compass scores only for the reactions listed in the given file. 
+   FILE is expected to be textual, with one line per reaction 
+   (undirected, namely adding the suffix \"_pos\" or \"_neg\" to a line will create a valid directed reaction id). 
+   Unrecognized reactions in FILE are ignored.
+
+**\-\-select-subsystems** [FILE]
+   Compute compass scores only for the subsystems listed in the given file. 
+   FILE is expected to be textual, with one line per subsystem.
+   Unrecognized subsystems in FILE are ignored.
+
 
 Metabolic Model Settings
 ------------------------
@@ -59,7 +90,7 @@ Metabolic Model Settings
    - RECON2.2
 
 **\-\-media** [MEDIA]
-   The media to simulate the model with.
+   The media to simulate the model with. This is a placeholder for future algorithmic extensions.
 
 **\-\-species** [SPECIES]
    Species to use to match genes to model. Options:
@@ -83,22 +114,6 @@ Metabolic Model Settings
    Flag to disable calculation and output of reaction
    scores in addition to uptake/secretion scores.
 
-**\-\-list-genes** [FILE]
-   File to output a list of metabolic genes needed for selected metabolic model.
-   
-**\-\-list-reactions** [FILE]
-   File to output a list of reaction id's and their associated subsystem for selected metabolic model as a json file.
-
-**\-\-select-reactions** [FILE]
-   Compute compass scores only for the reactions listed in the given file. 
-   FILE is expected to be textual, with one line per reaction 
-   (undirected, namely adding the suffix \"_pos\" or \"_neg\" to a line will create a valid directed reaction id). 
-   Unrecognized reactions in FILE are ignored.
-
-**\-\-select-subsystems** [FILE]
-   Compute compass scores only for the subsystems listed in the given file. 
-   FILE is expected to be textual, with one line per subsystem.
-   Unrecognized subsystem in FILE are ignored.
 
 
 Penalty Settings
@@ -166,11 +181,20 @@ Computing Settings
 **\-\-precache**
    A flag to force compass to build up the cache for the input selected model and media. This will rebuild the cache even if one already exists.
 
+
 **\-\-microcluster-size** [C]
    A target number of cells per microcluster. Compass will aggregate similar cells into clusters and compute reaction penalties for the clusters (using the mean of the cluster).
 
+**\-\-microcluster-file** [FILE]
+   File where a tsv of microclusters will be output. There will be one column where each entry has the label for what micropool/microcluster the sample is in. Defaults to micropools.tsv in the output directory.
+
+**\-\-microcluster-data-file** [FILE]
+   File where a tsv of average gene expression per
+   microcluster will be output. Defaults to
+   micropooled_data.tsv in the output directory.
+
 .. note::
-    When using microclusters, information sharing with lambda > 0 is generally unneccesary because the microclusters already serve the same purpose. If both are enabled, then information will be shared between microclusters as well.
+    When using microclusters, information sharing with lambda > 0 is generally unnecessary because the microclusters already serve the same purpose. If both are enabled, then information will be shared between microclusters as well.
 
 Testing and Hidden Settings
 ---------------------------

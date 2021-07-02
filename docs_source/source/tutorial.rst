@@ -4,15 +4,15 @@ Tutorial
 .. contents:: Contents
    :local:
 
-Broadly speaking, Compass takes in a gene expression matrix scaled by
-transcripts per million, and outputs a penalty reaction matrix, whereby
+Broadly speaking, Compass takes in a gene expression matrix scaled for library depth 
+(e.g., CPM), and outputs a penalty reaction matrix, whereby
 higher scores correspond to a reaction being **less** likely.
 
 Running Compass (Simple)
 ------------------------
 
 The input gene expression matrix can be either a tab-delimited text file (tsv) or a matrix market format (mtx)
-containing gene expression estimates (TPM or CPM) with one row per gene, one column per sample. 
+containing gene expression estimates (CPM, TPM, or similar scaled units) with one row per gene, one column per sample. 
 
 Tab-delimited files need row and column labels corresponding to genes and sample names. Market matrix formats need a separate tab delimited file of of gene names and optionally a tab delimited file of cell names.
 
@@ -30,7 +30,7 @@ These files will exist locally as well under the Compass install directory which
 Running Compass
 ---------------
 
-Then you can run compass on the data with the following command, which will limit the number of processes to 10:
+Then after opening a command line in a directory with an input file "expression.tsv", you can run compass on the data with the following command, which will limit the number of processes to 10:
 
 .. code:: bash
 
@@ -44,7 +44,7 @@ And to run compass on mtx formatted data use the following:
 
 Though the sample names file can be omitted, in which case the samples will be labelled by index.
 
-Below is an example of the formatting for gene expression (We only showa small portion of the matrix):
+Below is an example of the formatting for gene expression (We only show a small portion of the matrix):
 
 .. image:: images/input_ex.png
 
@@ -63,10 +63,10 @@ Compass will automatically build up the cache if it is empty, but you can also m
    Therefore, Compass can also be stopped and restarted after it is done
    processing a subset of samples so long as the _tmp directory is still there. 
 
-Compass Setttings
+Compass Settings
 -----------------
 
-Compass also allows users to customize a variaty of settings seen below:
+Compass also allows users to customize a variety of settings seen below:
 
 .. code:: bash
 
@@ -82,21 +82,35 @@ Compass also allows users to customize a variaty of settings seen below:
                [--list-genes FILE]
 
 
-See our instructions
+See the instructions
 :doc:`here </Compass-Settings>`
 for an in depth tutorial on using Compass’s settings
+
+Micropooling
+---------------
+
+The Compass algorithm can be very computationally intensive, especially for large datasets, but with micropooling/clustering techniques you can reduce the computing time by an order of magnitude. 
+Compass comes with a micropooling algorithm built in, based on a reimplementation of microclustering from `VISION <https://github.com/yoseflab/vision>`__. To enable microclustering you can specify a microcluster size as below:
+
+.. code:: bash
+
+   Compass --microcluster-size 10 [other options]
+
+In general cluster size presents a tradeoff between runtime and granularity as larger clusters can make analysis more sensitive but will take longer to process the samples, so a microcluster size as small as computationally feasible is recommended. There are more details on micropooling with Compass :doc:`here </micropooling>`.
+
+Alternatively, any other method of aggregating cells into fewer representatives can be used such as `metacell <https://github.com/tanaylab/metacell>`__.
 
 Postprocessing
 --------------
 
-Once Compass has finished running, it is important to apply
-postprocessing to the data in order to convert reaction penalties (where
+Once Compass has finished running, we apply several steps of
+postprocessing to the data. Mainly, the postprocessing converts reaction penalties (where
 high values correspond to low likelihood reactions) to reaction scores
 (where high values correspond to likely reactions).
 
-Our `compassR package <https://github.com/YosefLab/compassR>`__
-appropriately postprocesses the data and provides an easy, expressive
-framework for conducting subsequent analyses. See :doc:`compass postprocessing tutorial<Compass-Postprocessing-Tutorial>` for more on how to use it.
+.. Our `compassR package <https://github.com/YosefLab/compassR>`__
+   appropriately post-processes the data and provides an easy, expressive
+   framework for conducting subsequent analyses. See :doc:`compass postprocessing tutorial<Compass-Postprocessing-Tutorial>` for more on how to use it.
 
 Outputs
 -------

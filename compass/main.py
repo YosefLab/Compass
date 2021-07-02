@@ -30,6 +30,7 @@ from . import globals
 from . import utils
 
 
+
 def parseArgs():
     """Defines the command-line arguments and parses the Compass call
 
@@ -64,9 +65,11 @@ def parseArgs():
                         " Currently supporting: homo_sapiens or mus_musculus",
                         choices=["homo_sapiens", "mus_musculus"],
                         metavar="SPECIES",
-                        default="homo_sapiens")
+                        #originally default, now required so users will not accidentally overlook it
+                        required=True)
 
     parser.add_argument("--media", help="Which media to simulate",
+                        #default="media1", #TODO:Brandon, where is media1 set?
                         metavar="MEDIA")
 
     parser.add_argument("--output-dir", help="Where to store outputs",
@@ -214,6 +217,14 @@ def parseArgs():
                         type=int, metavar="C", default=None,
                         help="Target number of cells per microcluster")
 
+    parser.add_argument("--microcluster-file", 
+                        type=int, metavar="FILE", default=None,
+                        help="File where a tsv of microclusters will be output. Defaults to micropools.tsv in the output directory.")
+
+    parser.add_argument("--microcluster-data-file", 
+                        type=int, metavar="FILE", default=None,
+                        help="File where a tsv of average gene expression per microcluster will be output. Defaults to micropooled_data.tsv in the output directory.")
+
     #Hidden argument which tracks more detailed information on runtimes
     parser.add_argument("--detailed-perf", action="store_true",
                         help=argparse.SUPPRESS)
@@ -283,6 +294,12 @@ def parseArgs():
     args['output_dir'] = os.path.abspath(args['output_dir'])
     args['temp_dir'] = os.path.abspath(args['temp_dir'])
 
+    if args['microcluster_size']:
+        if not args['microcluster_file']:
+            args['microcluster_file'] = os.path.join(args['output_dir'], 'micropools.tsv')
+        if not args['microcluster_data_file']:
+            args['microcluster_data_file'] = os.path.join(args['output_dir'], 'micropooled_data.tsv')
+
     if args['input_knn']:
         args['input_knn'] = os.path.abspath(args['input_knn'])
     if args['output_knn']:
@@ -312,6 +329,8 @@ def parseArgs():
     return args
 
 
+
+
 def entry():
     """Entry point for the compass command-line script
     """
@@ -337,12 +356,15 @@ def entry():
             with open(temp_args_file, 'r') as fin:
                 temp_args =  json.load(fin)
                 fin.close()
-            if temp_args != args:
-                diffs = [x for x in args.keys() if args[x] != temp_args[x]]
-                print("Warning: The arguments used in the temporary directory, ", args['temp_dir'],
-                        ", are different from current arguments. Cached results may not be compatible with current settings")
-                print("Differing arguments: ", diffs)
-                print("Enter y or yes if you want to continue Compass and used cached results.\n", 
+            ignored_diffs = ['num_processes', 'only_penalties', 'num_threads']
+            diffs = [x for x in args.keys() if args[x] != temp_args[x] and x not in ignored_diffs]
+            if len(diffs) > 0:
+                table = pd.DataFrame({'temp_dir':{x:temp_args[x] for x in diffs}, 
+                                      'current':{x:args[x] for x in diffs}})
+                print("Warning: The arguments used in the temporary directory (", args['temp_dir'],
+                        ") are different from current arguments. Cached results may not be compatible with current settings")
+                print("Differing arguments: \n", table)
+                print("Enter 'y' or 'yes' if you want to continue Compass and used cached results.\n", 
                         "Otherwise rerun Compass after removing/renaming the temporary directory or changing the --temp-dir argument")
                 if sys.version_info.major >= 3:
                     ans = input()
@@ -387,7 +409,7 @@ def entry():
             os.makedirs(microcluster_dir)
             
         microcluster_success_token = os.path.join(microcluster_dir, "success_token")
-        pooled_data_file = os.path.join(microcluster_dir, "pooled_data.tsv")
+        pooled_data_file = args['microcluster_data_file'] #os.path.join(microcluster_dir, "micropooled_data.tsv")
         pools_file = os.path.join(microcluster_dir, "pools.json")
 
         if os.path.exists(microcluster_success_token):
@@ -411,6 +433,13 @@ def entry():
                 pooled_latent = pool_matrix_cols(latent, pools).T
                 pooled_latent.to_csv(pooled_latent_file, sep='\t')
                 args['latent_space'] = pooled_latent_file
+
+            #outputting table of micropools
+            pools_table = pd.DataFrame(columns = data.columns, index=['microcluster'])
+            for cluster in pools:
+                for sample in pools[cluster]:
+                    pools_table.iloc[0, sample] = cluster
+            pools_table.T.to_csv(args['microcluster_file'], sep="\t")
 
             with open(microcluster_success_token, 'w') as fout:
                 fout.write('Success!')
@@ -448,9 +477,9 @@ def entry():
         model = init_model(model=args['model'], species=args['species'],
                 exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'])
         genes = list(set.union(*[set(reaction.list_genes()) for reaction in model.reactions.values()]))
-        genes = "\n".join(genes)
+        genes = str("\n".join(genes))
         with open(args['list_genes'], 'w') as fout:
-            fout.write(genes.encode('utf8'))
+            fout.write(genes)
             fout.close()
         return
 
@@ -714,21 +743,24 @@ def collectCompassResults(data, temp_dir, out_dir, args):
     # Join and output
     if not args['no_reactions']:
         reactions_all = pd.concat(reactions_all, axis=1, sort=True)
-        if args['microcluster_size']:
-            reactions_all = unpool_columns(reactions_all, pools, orig_data)
+        #This would expand the microclustered results out
+        #if args['microcluster_size']:
+        #    reactions_all = unpool_columns(reactions_all, pools, orig_data)
         reactions_all.to_csv(
             os.path.join(out_dir, 'reactions.tsv'), sep="\t")
 
     if args['calc_metabolites']:
         secretions_all = pd.concat(secretions_all, axis=1, sort=True)
-        if args['microcluster_size']:
-            secretions_all = unpool_columns(secretions_all, pools, orig_data)
+        #This would expand the microclustered results out
+        #if args['microcluster_size']:
+        #    secretions_all = unpool_columns(secretions_all, pools, orig_data)
         secretions_all.to_csv(
             os.path.join(out_dir, 'secretions.tsv'), sep="\t")
 
         uptake_all = pd.concat(uptake_all, axis=1, sort=True)
-        if args['microcluster_size']:
-            uptake_all = unpool_columns(uptake_all, pools, orig_data)
+        #This would expand the microclustered results out
+        #if args['microcluster_size']:
+        #    uptake_all = unpool_columns(uptake_all, pools, orig_data)
         uptake_all.to_csv(
             os.path.join(out_dir, 'uptake.tsv'), sep="\t")
 
@@ -813,3 +845,9 @@ def precacheCompass(args):
     #model_cache['dfs_reaction_order'] = lst
     cache.save(model) 
     
+
+
+
+
+if __name__ == '__main__':
+    entry()

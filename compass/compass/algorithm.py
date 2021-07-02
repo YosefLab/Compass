@@ -82,11 +82,14 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
 
     # Only read this to get the number of samples and the sample name
     # Use nrows=1 so this is fast
-    expression = utils.read_data(data)
-    sample_name = str(expression.columns[sample_index])
-
-    logger.info("Processing Sample %i/%i: %s", sample_index,
-                len(expression.columns), sample_name)
+    samples = utils.read_sample_names(data)
+    if samples is None:
+        sample_name = 'sample_'+str(sample_index)
+        logger.info("Processing Sample %i: %s", sample_index, sample_name)
+    else:
+        sample_name = str(samples[sample_index])
+        logger.info("Processing Sample %i/%i: %s", sample_index,
+            len(samples), sample_name)
 
     # Run core compass algorithm
 

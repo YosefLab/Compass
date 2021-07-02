@@ -67,12 +67,16 @@
             <a class="nav-link" href="user-guide.html">Compass User Guide</a>
         </li>
         
+        <li class="nav-item active">
+            <a class="nav-link" href="">Compass Settings</a>
+        </li>
+        
         <li class="nav-item ">
             <a class="nav-link" href="Compass-Postprocessing-Tutorial.html">Compass Postprocessing</a>
         </li>
         
-        <li class="nav-item active">
-            <a class="nav-link" href="">Compass Settings</a>
+        <li class="nav-item ">
+            <a class="nav-link" href="micropooling.html">Micropooling</a>
         </li>
         
         
@@ -141,9 +145,11 @@
         
         
         
-        
-        
           
+        
+        
+        
+        
         
         
       </ul>
@@ -163,7 +169,11 @@
     <ul class="nav section-nav flex-column">
     
         <li class="nav-item toc-entry toc-h2">
-            <a href="#input-and-output-settings" class="nav-link">Input and Output settings</a>
+            <a href="#input-settings" class="nav-link">Input settings</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#output-settings" class="nav-link">Output settings</a>
         </li>
     
         <li class="nav-item toc-entry toc-h2">
@@ -200,11 +210,12 @@
 <div class="contents local topic" id="contents">
 <p class="topic-title">Contents</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#input-and-output-settings" id="id1">Input and Output settings</a></p></li>
-<li><p><a class="reference internal" href="#metabolic-model-settings" id="id2">Metabolic Model Settings</a></p></li>
-<li><p><a class="reference internal" href="#penalty-settings" id="id3">Penalty Settings</a></p></li>
-<li><p><a class="reference internal" href="#computing-settings" id="id4">Computing Settings</a></p></li>
-<li><p><a class="reference internal" href="#testing-and-hidden-settings" id="id5">Testing and Hidden Settings</a></p></li>
+<li><p><a class="reference internal" href="#input-settings" id="id1">Input settings</a></p></li>
+<li><p><a class="reference internal" href="#output-settings" id="id2">Output settings</a></p></li>
+<li><p><a class="reference internal" href="#metabolic-model-settings" id="id3">Metabolic Model Settings</a></p></li>
+<li><p><a class="reference internal" href="#penalty-settings" id="id4">Penalty Settings</a></p></li>
+<li><p><a class="reference internal" href="#computing-settings" id="id5">Computing Settings</a></p></li>
+<li><p><a class="reference internal" href="#testing-and-hidden-settings" id="id6">Testing and Hidden Settings</a></p></li>
 </ul>
 </div>
 <p>Compass allows users to customize various features:</p>
@@ -215,9 +226,10 @@
             <span class="o">[</span>--latent-space FILE<span class="o">]</span> <span class="o">[</span>--only-penalties<span class="o">]</span> <span class="o">[</span>--example-inputs<span class="o">]</span> <span class="o">[</span>--microcluster-size C<span class="o">]</span> <span class="o">[</span>--list-genes FILE<span class="o">]</span> <span class="o">[</span>--list-reactions FILE<span class="o">]</span>
 </pre></div>
 </div>
-<p>Below we describe the features in more detail:</p>
-<div class="section" id="input-and-output-settings">
-<h2><a class="toc-backref" href="#id1">Input and Output settings</a><a class="headerlink" href="#input-and-output-settings" title="Permalink to this headline">¶</a></h2>
+<p>Below we describe the features in more detail. For details on micropooling/microclustering specifically, see <a class="reference internal" href="micropooling.html"><span class="doc">here</span></a></p>
+<div class="section" id="input-settings">
+<h2><a class="toc-backref" href="#id1">Input settings</a><a class="headerlink" href="#input-settings" title="Permalink to this headline">¶</a></h2>
+<p><em>Input gene expression matrix is specified in one of two ways:</em></p>
 <dl>
 <dt><strong>--data</strong> [FILE]</dt><dd><p>File with input gene expression data with rows as genes and columns as samples.
 The input should be a single tab-delimited file with row and column labels:</p>
@@ -232,17 +244,41 @@ The input must be followed by a tab separated file with rownames corresponding t
 </div>
 <p>If the column names file is omitted the samples will be labelled by index.</p>
 </dd>
-<dt><strong>--output-dir</strong> [DIR]</dt><dd><p>Final directory to output concatenated reactions.txt file</p>
-</dd>
-<dt><strong>--temp-dir</strong> [DIR]</dt><dd><p>Directory to store partial results for completed
-samples in a dataset</p>
-</dd>
+</dl>
+<p><em>To view example inputs, use:</em></p>
+<dl class="simple">
 <dt><strong>--example-inputs</strong></dt><dd><p>Flag for Compass to list the directory where example inputs can be found.</p>
 </dd>
 </dl>
 </div>
+<div class="section" id="output-settings">
+<h2><a class="toc-backref" href="#id2">Output settings</a><a class="headerlink" href="#output-settings" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt><strong>--output-dir</strong> [DIR]</dt><dd><p>Final directory for final output files (e.g., reactions.txt).</p>
+</dd>
+<dt><strong>--temp-dir</strong> [DIR]</dt><dd><p>Directory to store partial results for completed
+samples in a dataset (used to resume interrupted runs).</p>
+</dd>
+<dt><strong>--list-genes</strong> [FILE]</dt><dd><p>File to output a list of metabolic genes needed for selected metabolic model.
+This is useful if you’d like to subset the input matrix to include only the metabolic genes used by the algorithm
+(gene not included in the list are ignored). This list depends on the <code class="docutils literal notranslate"><span class="pre">--species</span></code> argument.</p>
+</dd>
+<dt><strong>--list-reactions</strong> [FILE]</dt><dd><p>File to output a list of reaction id’s and their associated subsystem. This is useful if you’d like to compute Compass scores
+for only a subset of the reactions in order to cut in computation times (see below, <code class="docutils literal notranslate"><span class="pre">--select-reactions</span></code> and <code class="docutils literal notranslate"><span class="pre">--select-subsystems</span></code>)..</p>
+</dd>
+<dt><strong>--select-reactions</strong> [FILE]</dt><dd><p>Compute compass scores only for the reactions listed in the given file.
+FILE is expected to be textual, with one line per reaction
+(undirected, namely adding the suffix &quot;_pos&quot; or &quot;_neg&quot; to a line will create a valid directed reaction id).
+Unrecognized reactions in FILE are ignored.</p>
+</dd>
+<dt><strong>--select-subsystems</strong> [FILE]</dt><dd><p>Compute compass scores only for the subsystems listed in the given file.
+FILE is expected to be textual, with one line per subsystem.
+Unrecognized subsystems in FILE are ignored.</p>
+</dd>
+</dl>
+</div>
 <div class="section" id="metabolic-model-settings">
-<h2><a class="toc-backref" href="#id2">Metabolic Model Settings</a><a class="headerlink" href="#metabolic-model-settings" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id3">Metabolic Model Settings</a><a class="headerlink" href="#metabolic-model-settings" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt><strong>--model</strong> [MODEL]</dt><dd><p>Metabolic model to use. Options:</p>
 <ul class="simple">
@@ -251,7 +287,7 @@ samples in a dataset</p>
 <li><p>RECON2.2</p></li>
 </ul>
 </dd>
-<dt><strong>--media</strong> [MEDIA]</dt><dd><p>The media to simulate the model with.</p>
+<dt><strong>--media</strong> [MEDIA]</dt><dd><p>The media to simulate the model with. This is a placeholder for future algorithmic extensions.</p>
 </dd>
 <dt><strong>--species</strong> [SPECIES]</dt><dd><p>Species to use to match genes to model. Options:</p>
 <ul class="simple">
@@ -273,23 +309,10 @@ uptake/secretion scores in addition to reaction scores.</p>
 <dt><strong>--no-reactions</strong></dt><dd><p>Flag to disable calculation and output of reaction
 scores in addition to uptake/secretion scores.</p>
 </dd>
-<dt><strong>--list-genes</strong> [FILE]</dt><dd><p>File to output a list of metabolic genes needed for selected metabolic model.</p>
-</dd>
-<dt><strong>--list-reactions</strong> [FILE]</dt><dd><p>File to output a list of reaction id’s and their associated subsystem for selected metabolic model as a json file.</p>
-</dd>
-<dt><strong>--select-reactions</strong> [FILE]</dt><dd><p>Compute compass scores only for the reactions listed in the given file.
-FILE is expected to be textual, with one line per reaction
-(undirected, namely adding the suffix &quot;_pos&quot; or &quot;_neg&quot; to a line will create a valid directed reaction id).
-Unrecognized reactions in FILE are ignored.</p>
-</dd>
-<dt><strong>--select-subsystems</strong> [FILE]</dt><dd><p>Compute compass scores only for the subsystems listed in the given file.
-FILE is expected to be textual, with one line per subsystem.
-Unrecognized subsystem in FILE are ignored.</p>
-</dd>
 </dl>
 </div>
 <div class="section" id="penalty-settings">
-<h2><a class="toc-backref" href="#id3">Penalty Settings</a><a class="headerlink" href="#penalty-settings" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id4">Penalty Settings</a><a class="headerlink" href="#penalty-settings" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt><strong>--penalty-diffusion</strong> [MODE]</dt><dd><p>Mode to use to share reaction penalty values
 between single cells. Options:</p>
@@ -331,7 +354,7 @@ Should be a tsv with one row per sample and one column per dimension of the late
 </dl>
 </div>
 <div class="section" id="computing-settings">
-<h2><a class="toc-backref" href="#id4">Computing Settings</a><a class="headerlink" href="#computing-settings" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id5">Computing Settings</a><a class="headerlink" href="#computing-settings" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt><strong>--num-processes</strong> [N]</dt><dd><p>Number of processes for Compass to use, each of which handles a single sample. Must be a positive integer and defaults to the number of processors on machine (using Python’s <code class="code docutils literal notranslate"><span class="pre">multiprocessing.cpu_count()</span></code>). Ignored
 when submitting job onto a queue</p>
@@ -351,14 +374,20 @@ This is because it is generally better to have multiple optimization problems be
 </dd>
 <dt><strong>--microcluster-size</strong> [C]</dt><dd><p>A target number of cells per microcluster. Compass will aggregate similar cells into clusters and compute reaction penalties for the clusters (using the mean of the cluster).</p>
 </dd>
+<dt><strong>--microcluster-file</strong> [FILE]</dt><dd><p>File where a tsv of microclusters will be output. There will be one column where each entry has the label for what micropool/microcluster the sample is in. Defaults to micropools.tsv in the output directory.</p>
+</dd>
+<dt><strong>--microcluster-data-file</strong> [FILE]</dt><dd><p>File where a tsv of average gene expression per
+microcluster will be output. Defaults to
+micropooled_data.tsv in the output directory.</p>
+</dd>
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>When using microclusters, information sharing with lambda &gt; 0 is generally unneccesary because the microclusters already serve the same purpose. If both are enabled, then information will be shared between microclusters as well.</p>
+<p>When using microclusters, information sharing with lambda &gt; 0 is generally unnecessary because the microclusters already serve the same purpose. If both are enabled, then information will be shared between microclusters as well.</p>
 </div>
 </div>
 <div class="section" id="testing-and-hidden-settings">
-<h2><a class="toc-backref" href="#id5">Testing and Hidden Settings</a><a class="headerlink" href="#testing-and-hidden-settings" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id6">Testing and Hidden Settings</a><a class="headerlink" href="#testing-and-hidden-settings" title="Permalink to this headline">¶</a></h2>
 <p>There are several Compass arguments which are not listed by the parser because they are primarily for testing or for batch jobs.</p>
 <dl class="simple">
 <dt><strong>--glucose</strong> [G]</dt><dd><p>Experimental feature to tweak glucose concentrations in media, default is 1. Higher levels increase glucose availability.</p>

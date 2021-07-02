@@ -53,6 +53,18 @@ def read_data(data):
     else:
         return read_mtx(data[0], data[1], data[2])
 
+def read_sample_names(data):
+    if len(data) == 1:
+        return pd.read_csv(data[0], sep='\t', index_col=0, nrows=1).columns
+    elif len(data) >= 3 and data[2] is not None:
+        return pd.read_csv(data[2], sep='\t', header=None).to_numpy().ravel()
+    else:
+        #Sample names not provided
+        return None
+
+def indexed_sample_names(n):
+    return ['sample_'+str(i) for i in range(n)]
+
 def read_mtx(mtx_file, rows_file, columns_file=None):
     """
         Reads an mtx file into a pandas dataframe for doing Compass stuff with. Primarily for reading gene expression files.
@@ -60,16 +72,13 @@ def read_mtx(mtx_file, rows_file, columns_file=None):
     mtx = scipy.io.mmread(mtx_file)
     rows = pd.read_csv(rows_file, sep='\t', header=None)
     if columns_file is not None:
-        columns = pd.read_csv(columns_file, sep='\t', header=None)
-        if pd.__version__ >= '1':
-            return pd.DataFrame.sparse.from_spmatrix(mtx, index=rows.to_numpy().ravel(), columns = columns.to_numpy().ravel())
-        else:
-            return pd.SparseDataFrame(mtx, index=rows.to_numpy().ravel(), columns = columns.to_numpy().ravel())
+        columns = pd.read_csv(columns_file, sep='\t', header=None).to_numpy().ravel()
     else:
-        if pd.__version__ >= '1':
-            return pd.DataFrame.sparse.from_spmatrix(mtx, index=rows.to_numpy().ravel())
-        else:
-            return pd.SparseDataFrame(mtx, index=rows.to_numpy().ravel())
+        columns = indexed_sample_names(mtx.shape[1])
+    if pd.__version__ >= '1':
+        return pd.DataFrame.sparse.from_spmatrix(mtx, index=rows.to_numpy().ravel(), columns = columns)
+    else:
+        return pd.SparseDataFrame(mtx, index=rows.to_numpy().ravel(), columns = columns)
 
 def read_knn(knn_data):
     """

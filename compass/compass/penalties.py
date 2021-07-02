@@ -8,6 +8,8 @@ from ..globals import EXCHANGE_LIMIT, PCA_SEED
 from sklearn.neighbors import NearestNeighbors
 from sklearn.decomposition import PCA
 
+from scipy import sparse
+
 def eval_reaction_penalties(expression_file, model, media,
                             species, args):
     """
@@ -165,24 +167,21 @@ def eval_reaction_penalties_shared(model, expression,
     if input_weights is not None:
         weights = input_weights.values
     elif lambda_ == 0:
-        weights = np.zeros(
-            (reaction_expression.shape[1], reaction_expression.shape[1])
-        )
+        weights = sparse.csr_matrix((reaction_expression.shape[1], reaction_expression.shape[1]))
     else:
         if latent_input is not None:
             data = pd.read_csv(latent_input, sep='\t', index_col=0).T
         # log scale and PCA expresion
         else:
-            log_expression = np.log2(expression+1)
-            model = PCA(n_components=min(log_expression.shape[0], log_expression.shape[1], 20),
+            data = np.log2(expression+1)
+            model = PCA(n_components=min(data.shape[0], data.shape[1], 20),
                     random_state = PCA_SEED)
             if pd.__version__ >= '0.24':
-                pca_expression = model.fit_transform(log_expression.to_numpy().T).T
+               data = model.fit_transform(data.to_numpy().T).T
             else:
-                pca_expression = model.fit_transform(log_expression.values.T).T
-            pca_expression = pd.DataFrame(pca_expression,
-                                        columns=expression.columns)
-            data = pca_expression
+                data = model.fit_transform(data.values.T).T
+            data = pd.DataFrame(data, columns=expression.columns)
+
         if penalty_diffusion_mode == 'gaussian':
             weights = sample_weights_tsne_symmetric(
                 data, num_neighbors, symmetric_kernel)
@@ -195,21 +194,19 @@ def eval_reaction_penalties_shared(model, expression,
             )
 
     # Compute weights between samples
-    #This fixes potential mismatches in rows
+    #This fixes potential error messages caused by labels being strings vs byte strings
     if isinstance(weights, pd.DataFrame):
         if pd.__version__ >= '0.24':
             weights = weights.to_numpy()
         else:
-            pca_expression = weights.values
-        
-    neighborhood_reaction_expression = reaction_expression.dot(weights.T)
-    neighborhood_reaction_expression.columns = reaction_expression.columns
+            weights = weights.values
+    
+    #Only worsk for dense matrices: neighborhood_reaction_expression = reaction_expression.dot(weights.T). 
+    #Pandas unsuccesfully tries to cast the sparse weights with np.asarry()
+    neighborhood_reaction_expression = weights.dot(reaction_expression.T).T 
+    neighborhood_reaction_expression = pd.DataFrame(neighborhood_reaction_expression, index=reaction_expression.index, columns=reaction_expression.columns)
 
-    reaction_penalties = 1/(1+reaction_expression)
-    neighborhood_reaction_penalties = 1/(1+neighborhood_reaction_expression)
-
-    result = ((1-lambda_)*reaction_penalties +
-              lambda_*neighborhood_reaction_penalties)
+    result = (1-lambda_)/(1+reaction_expression) + lambda_/(1+neighborhood_reaction_expression)
 
     result.index.name = "Reaction"
 
@@ -319,12 +316,9 @@ def sample_weights_knn(data, num_neighbors, input_knn=None, output_knn=None):
         knn_df = pd.DataFrame(ind, index=columns)
         knn_df.to_csv(output_knn, sep='\t')
 
-    weights = np.zeros((data.shape[1], data.shape[1]))
-
-    weights[np.arange(data.shape[1]), ind.T] = 1
-    weights /= num_neighbors  # So weights sum to 1
-
-    weights = pd.DataFrame(weights, columns=columns, index=columns)
+    weights = sparse.coo_matrix( (np.ones(num_neighbors * data.shape[1]) / num_neighbors, 
+                                (np.repeat(np.arange(data.shape[1]), num_neighbors), ind.ravel())), 
+                                shape=(data.shape[1], data.shape[1]))
 
     return weights
 

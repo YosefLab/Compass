@@ -9,7 +9,7 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 import igraph
 import leidenalg
-from ..globals import PCA_SEED, LEIDEN_SEED
+from ..globals import PCA_SEED, LEIDEN_SEED, KMEANS_SEED
 
 def microcluster(exprData, cellsPerPartition=10,
                          filterInput = "fano",
@@ -47,15 +47,18 @@ def microcluster(exprData, cellsPerPartition=10,
 
 
     #Compute knn on PCA with K = min(30, K)
-    nn = NearestNeighbors(n_neighbors=min(K, 30), n_jobs=n_jobs)  #n_jobs to be changed after .ipynb
+    nn = NearestNeighbors(n_neighbors=min(K, 30), n_jobs=n_jobs)
     nn.fit(res.T)
     dist, ind = nn.kneighbors()
     
-    sigma = np.median(dist, axis=1) #sigma <- apply(d, 1, function(x) quantile(x, c(.5))[[1]])
-    adj = nn.kneighbors_graph().toarray()
-    d = np.where(adj > 0, np.exp(-1 * np.square(adj) / np.square(sigma)), np.zeros(1))
-    
-    cl = leidenalg.find_partition(igraph.Graph.Weighted_Adjacency(d), leidenalg.ModularityVertexPartition, seed=LEIDEN_SEED)
+    sigma = np.square(np.median(dist, axis=1)) #sigma <- apply(d, 1, function(x) quantile(x, c(.5))[[1]])
+    adj = nn.kneighbors_graph(mode='distance') #Should sparse graph of csr_format
+    adj.data = np.square(adj.data)
+    for i in range(adj.shape[0]):
+        adj[i] /= sigma[i]
+    adj.data = np.exp(-adj.data)
+
+    cl = leidenalg.find_partition(igraph.Graph.Weighted_Adjacency(adj), leidenalg.ModularityVertexPartition, seed=LEIDEN_SEED)
 
     clusters = {d:[] for d in np.unique(cl.membership)}
     for i in range(len(cl.membership)):
@@ -125,9 +128,9 @@ def readjust_clusters(clusters, data, cellsPerPartition=100):
             currCl = clusters[i]
             subData = data.iloc[:,currCl].T
             if len(currCl) > cellsPerPartition:
-                nCl = KMeans(n_clusters=round(subData.shape[0] / cellsPerPartition)).fit(subData)
+                nCl = KMeans(n_clusters=round(subData.shape[0] / cellsPerPartition), random_state=KMEANS_SEED).fit(subData)
             else:
-                nCl = KMeans(n_clusters=1).fit(subData)
+                nCl = KMeans(n_clusters=1, random_state=KMEANS_SEED).fit(subData)
             newClust = nCl.predict(subData)
             # Gather cluster vector to list of clusters
             
@@ -153,8 +156,8 @@ def pool_matrix_cols(data, pools):
     for g in pools:
         for i in pools[g]:
             groups[data.columns[i]] = g
-    groups = pd.DataFrame.from_dict(groups, orient='index', columns=['_compass_microcluster']).T
-    return data.append(groups).T.groupby("_compass_microcluster").mean().T
+    groups = pd.DataFrame.from_dict(groups, orient='index', columns=['compass_microcluster']).T
+    return data.append(groups).T.groupby("compass_microcluster").mean().T.rename(mapper=lambda x: 'cluster_'+str(int(x)), axis=1)
 
 def unpool_columns(pooled_data, pools, data):
     unpooled_cols = []

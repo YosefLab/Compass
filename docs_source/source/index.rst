@@ -21,5 +21,9 @@
 
    /install
    /user-guide
-   /Compass-Postprocessing-Tutorial
    /Compass-Settings
+   /Compass-Postprocessing-Tutorial
+   /micropooling
+
+
+

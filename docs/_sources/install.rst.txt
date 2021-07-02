@@ -28,9 +28,9 @@ Then simplest way to install Compass is using pip to install from the github rep
 
 .. code:: bash
 
-   pip install git+https://github.com/yoseflab/Compass.git
+   pip install git+https://github.com/yoseflab/Compass.git --upgrade
 
-Alternatively, you can clone the Compass repository and run setup.py.
+This command will also update Compass to the newest version. Alternatively, you can clone the Compass repository and run setup.py.
 
 Now to test if everything is installed, simply run:
 
