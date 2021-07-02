@@ -93,14 +93,14 @@ Metabolic Model Settings
    The media to simulate the model with. This is a placeholder for future algorithmic extensions.
 
 **\-\-species** [SPECIES]
-   Species to use to match genes to model. Options:
+   Species to use to match genes names to model. Options:
 
-   - homo_sapiens (default)
+   - homo_sapiens
    - mus_musculus
 
 **\-\-and-function** [FXN]
-   Which function used to aggregate and
-   associations. Options: 
+   A numeric function which substitutes AND relationships in translation of the GSMM's gene-protein
+   associations into reaction penalties Options: 
    
    - min 
    - median
@@ -112,7 +112,7 @@ Metabolic Model Settings
 
 **\-\-no-reactions**
    Flag to disable calculation and output of reaction
-   scores in addition to uptake/secretion scores.
+   scores and compute only uptake/secretion scores.
 
 
 
@@ -120,14 +120,19 @@ Penalty Settings
 ----------------
 
 **\-\-penalty-diffusion** [MODE]
-   Mode to use to share reaction penalty values
+   Mode to use in information sharing of reaction penalty values
    between single cells. Options:
 
    - gaussian 
    - knn (default)
 
 **\-\-lambda** [F]
-   Smoothing factor for single-cell data. Default is 0, should be set between 0 and 1. For datasets where information sharing is appropriate, we often use 0.25.
+   Smoothing factor for information sharing between single cells (Default is 0, no information sharing). 
+   Lambda should be set between 0 and 1. In the manuscript, where information sharing was appropriate, we used 0.25.
+   
+   Note there are two common scenarios where there is no need for information sharing and lambda should be set to 0:
+   # Running Compass on bulk (i.e., not single cell) RNA
+   # Using a cell pooling procedure (`micropools <https://yoseflab.github.io/Compass/micropooling.html>`_, or `metacells <https://tanaylab.github.io/metacell/>`_) and running Compass on the pooled results.
    
 .. note::
     If lambda is 0, then the cells are processed independently of each other so you can divide up samples to run them separately and get the same results.

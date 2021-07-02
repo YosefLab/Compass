@@ -10,8 +10,8 @@
    Its development was motivated by the challenge in characterizing the metabolic states of single cells on scale with current metabolic assays. Compass is an *in silico* approach to infer metabolic status of
    cells based on transcriptome data, which is readily available even in
    single cell resolutions. For a detailed description of the algorithm, refer to the
-   `biorxiv
-   preprint <https://www.biorxiv.org/content/10.1101/2020.01.23.912717v2>`__.
+   `manuscript
+   <https://doi.org/10.1016/j.cell.2021.05.045>`__.
    
    These pages have guides on how to install and use Compass, including a walkthrough of an analysis to replicate figures from the manuscript.
    
