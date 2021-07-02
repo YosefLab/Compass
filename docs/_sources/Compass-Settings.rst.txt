@@ -52,11 +52,12 @@ Output settings
 ------------------
    
 **\-\-output-dir** [DIR]
-   Final directory for final output files (e.g., reactions.txt).
+   Final directory for final output files (e.g., reactions.tsv). Defaults to ./ (the same directory the command was run from).
 
 **\-\-temp-dir** [DIR]
    Directory to store partial results for completed
    samples in a dataset (used to resume interrupted runs).
+   Defaults to ./_tmp.
 
 **\-\-list-genes** [FILE]
    File to output a list of metabolic genes needed for selected metabolic model.
@@ -82,6 +83,12 @@ Output settings
 Metabolic Model Settings
 ------------------------
 
+**\-\-species** [SPECIES]
+   Species to use to match genes to model. Required parameter. Options:
+
+   - homo_sapiens
+   - mus_musculus
+
 **\-\-model** [MODEL]
    Metabolic model to use. Options:
 
@@ -91,12 +98,6 @@ Metabolic Model Settings
 
 **\-\-media** [MEDIA]
    The media to simulate the model with. This is a placeholder for future algorithmic extensions.
-
-**\-\-species** [SPECIES]
-   Species to use to match genes to model. Options:
-
-   - homo_sapiens (default)
-   - mus_musculus
 
 **\-\-and-function** [FXN]
    Which function used to aggregate and
@@ -155,7 +156,7 @@ Penalty Settings
    The first column will be sample names, and the next k columns will be indices of the k nearest neighbors (by their order in column 1).
 
 **\-\-latent-space** [FILE]
-   File with latent space representation of the samples on which to do the kNN clustering.
+   File with latent space representation of the samples on which to do the kNN clustering for information sharing and/or micropooling.
    Should be a tsv with one row per sample and one column per dimension of the latent space.
 
 **\-\-only-penalties**
@@ -180,7 +181,6 @@ Computing Settings
 
 **\-\-precache**
    A flag to force compass to build up the cache for the input selected model and media. This will rebuild the cache even if one already exists.
-
 
 **\-\-microcluster-size** [C]
    A target number of cells per microcluster. Compass will aggregate similar cells into clusters and compute reaction penalties for the clusters (using the mean of the cluster).

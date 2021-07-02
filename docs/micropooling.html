@@ -36,7 +36,8 @@
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="AWS Tutorial" href="AWS-tutorial.html" />
+    <link rel="next" title="Compass Postprocessing" href="Compass-Postprocessing-Tutorial.html" />
+    <link rel="prev" title="Compass Settings" href="Compass-Settings.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en" />
   </head>
@@ -62,20 +63,8 @@
             <a class="nav-link" href="install.html">Installing Compass</a>
         </li>
         
-        <li class="nav-item ">
-            <a class="nav-link" href="user-guide.html">Compass User Guide</a>
-        </li>
-        
-        <li class="nav-item ">
-            <a class="nav-link" href="Compass-Settings.html">Compass Settings</a>
-        </li>
-        
-        <li class="nav-item ">
-            <a class="nav-link" href="Compass-Postprocessing-Tutorial.html">Compass Postprocessing</a>
-        </li>
-        
         <li class="nav-item active">
-            <a class="nav-link" href="">Micropooling</a>
+            <a class="nav-link" href="user-guide.html">Compass User Guide</a>
         </li>
         
         
@@ -110,12 +99,36 @@
         
         
         
-        
-        
-        
-        
-        
-        
+          
+            
+                <li class="">
+                    <a href="tutorial.html">Tutorial</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="Compass-Settings.html">Compass Settings</a>
+                </li>
+            
+          
+            
+                <li class="active">
+                    <a href="">Micropooling</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="Compass-Postprocessing-Tutorial.html">Compass Postprocessing</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="AWS-tutorial.html">AWS Tutorial</a>
+                </li>
+            
           
         
         
@@ -166,8 +179,10 @@
 </ul>
 </div>
 <p>To help the Compass algorithm scale to larger datasets we use micropooling/microclustering to aggregate samples into clusters which are analyzed with the Compass algorithm which can dramatically lower computational burdens.
-The micropooling algorithm is a reimplementation of micropooling using <a class="reference external" href="https://www.nature.com/articles/s41467-019-12235-0">VISION</a>. In short, the algorithm works by first coarsely clustering samples using the Louvain/Leiden algorithm on the K-nearest neighbors graph of the gene expression data and then iteratively applying k-means clustering until the clusters are the correct average size.
-Each cluster is then treated as a sample where the gene expression is the average of the gene expression for samples in the cluster and the Compass algorithm can be applied to a smaller number of samples.</p>
+The micropooling algorithm is a reimplementation of micropooling using <a class="reference external" href="https://www.nature.com/articles/s41467-019-12235-0">VISION</a>.</p>
+<p>In short, the algorithm works by first coarsely clustering samples using the Louvain/Leiden algorithm on the K-nearest neighbors graph of the gene expression data and then iteratively applying k-means clustering until the clusters are the correct average size.
+Each cluster is then treated as a sample where the gene expression is the average of the gene expression for samples in the cluster and the Compass algorithm can be applied to a smaller number of samples.
+If you specify a latent space, the K-nearest neighor graph will instead be computed using that latent space.</p>
 <div class="section" id="using-micropooling">
 <h2><a class="toc-backref" href="#id1">Using Micropooling</a><a class="headerlink" href="#using-micropooling" title="Permalink to this headline">¶</a></h2>
 <p>To enable micropooling using Compass, set the parameter --microcluster-size and the input data will first be clustered into pools before applying the Compass algorithm.
@@ -178,7 +193,7 @@ The reactions.tsv file that is output will now be a table of reaction penalties 
 <div class="section" id="example-of-micropooling">
 <h2><a class="toc-backref" href="#id2">Example of Micropooling</a><a class="headerlink" href="#example-of-micropooling" title="Permalink to this headline">¶</a></h2>
 <p>As in the tutorial, to use microclustering first open a command line in a directory with the gene expression data of interest, say “expression.tsv”. You can then run compass on the data with the following command using micropooling:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>compass --data expression.tsv --num-processes <span class="m">10</span> --microcluster-size <span class="m">10</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>compass --data expression.tsv --num-processes <span class="m">10</span> --microcluster-size <span class="m">10</span> --species homo_sapiens
 </pre></div>
 </div>
 <p>Once the command has finished running, there should be 3 output files in the same directory the command was run: reactions.tsv, micropools.tsv, and micropooled_data.tsv.
@@ -192,7 +207,8 @@ Reactions.tsv contains the penalties per reaction for each micropool, micropools
               
               <div class='prev-next-bottom'>
                 
-    <a class='left-prev' id="prev-link" href="AWS-tutorial.html" title="previous page">AWS Tutorial</a>
+    <a class='left-prev' id="prev-link" href="Compass-Settings.html" title="previous page">Compass Settings</a>
+    <a class='right-next' id="next-link" href="Compass-Postprocessing-Tutorial.html" title="next page">Compass Postprocessing</a>
 
               </div>
               

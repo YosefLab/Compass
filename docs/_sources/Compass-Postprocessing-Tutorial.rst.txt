@@ -3,7 +3,7 @@ Compass Postprocessing
 
 To postprocess the results of the Compass algorithm and analyze them, we have a python notebook  `here <https://github.com/YosefLab/Compass/blob/analysis/analysis/Demo.ipynb>`__ 
 which demonstrates a differential analysis pipeline comparing two groups of cells and replicates figures from our paper analyzing Th17 cell metabolism `Wagner
-et al. <https://www.biorxiv.org/content/10.1101/2020.01.23.912717v1>`__.
+et al. <https://www.biorxiv.org/content/10.1101/2020.01.23.912717v1>`__
 
 
 The presentation of the algorithm assumes a single-cell data set.
@@ -29,6 +29,6 @@ as well as the `output <https://github.com/YosefLab/Compass/blob/analysis/analys
 The notebook can be run top down and the main section goes through single-reactions using the Wilcoxon rank-sum test to compare pathogenic Th17p cells to non-pathogenic Th17n cells. 
 This differs slightly from the paper's version which uses metareactions instead, and the code for that is at the end of the notebook.
 
-To analyze other datasets you only would need use a different set of Compass results and provide the metadata to identify cells, 
+To analyze other datasets you would only need input a different set of Compass results and provide the metadata to identify cells, 
 though the figure titles about Th17 cells likely won't apply. 
 This example is intended to be a starting point and you may also want to do other analyses, replace the Wilcoxon rank sum test with your favorite statistical test, and/or add other preprocessing steps depending on how your data looks.
