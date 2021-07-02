@@ -7,17 +7,23 @@ Micropooling
 To help the Compass algorithm scale to larger datasets we use micropooling/microclustering to aggregate samples into clusters which are analyzed with the Compass algorithm which can dramatically lower computational burdens. 
 The micropooling algorithm is a reimplementation of micropooling using `VISION <https://www.nature.com/articles/s41467-019-12235-0>`__. 
 
-In short, the algorithm works by first coarsely clustering samples using the Louvain/Leiden algorithm on the K-nearest neighbors graph of the gene expression data and then iteratively applying k-means clustering until the clusters are the correct average size.
+In short, the algorithm works by first coarsely clustering samples using the Louvain/Leiden algorithm on the K-nearest neighbors (kNN) graph of the gene expression data and then iteratively applying k-means clustering until the clusters are the correct average size.
 Each cluster is then treated as a sample where the gene expression is the average of the gene expression for samples in the cluster and the Compass algorithm can be applied to a smaller number of samples. 
-If you specify a latent space, the K-nearest neighor graph will instead be computed using that latent space.
+If you specify a latent space, the K-nearest neighbor graph will instead be computed using that latent space. You may also specify the kNN graph directly (see in command line arguments).
+
+.. @Brandon: making sure my addition is ok and when you specify kNN directly it is used for micropooling?
 
 Using Micropooling
 ******************
 To enable micropooling using Compass, set the parameter \-\-microcluster-size and the input data will first be clustered into pools before applying the Compass algorithm. 
 The micropool assignments will be written to the \-\-microcluster-file in the output directory (by default micropools.tsv) as a tab-delimited table. 
-The reactions.tsv file that is output will now be a table of reaction penalties per micropool, analagous to the usual Compass output file but applied to the micropooled data.
+The reactions.tsv file that is output will now be a table of reaction penalties per micropool, analogous to the usual Compass output file but applied to the micropooled data.
 
-To analyze the micropooled results we would instead characterize the micropools. For instance when comparing a set of pathogenic cells to non-pathogenic, each micropool would be assessed by what type of cell primarily makes up the micropool.
+To analyze the micropooled results we would instead characterize the micropools. 
+* Numeric cell metadata (e.g., library size) can be averaged across cells in the micropool.
+* Discrete cell metadata (e.g., belonging to KO or WT) can be decided by majority decision, or if at least 90% (or some other threshold) of the cells in the micropool belong to one of the discrete phenotypes.
+
+ Depending on the research question, it could make sense to micropool discrete phenotypes separately. This will result in micrpools made of only WT or KO cells, for example, but may conceal some of the overlapping cellular programs between the two.
 
 
 Example of Micropooling

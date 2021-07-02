@@ -150,6 +150,8 @@ Penalty Settings
 **\-\-symmetric-kernel**
    Flag to enable symmetrizing the TSNE kernel which takes longer
 
+.. @Brandon, can you please add examples for the other input files (knn, weights, latent space etc.)
+
 **\-\-input-knn** [FILE]
    File to input a precomputed kNN graph for the samples. 
    File must be a tsv with one row per sample and (k+1) columns. 
@@ -165,7 +167,7 @@ Penalty Settings
    Should be a tsv with one row per sample and one column per dimension of the latent space.
 
 **\-\-only-penalties**
-   Flag for Compass to only compute the reaction penalties for the dataset.
+   Flag for Compass to only compute the reaction penalties for the dataset. This is useful for load splitting when information sharing between cells is needed; only the penalty computation needs to be centrally run, and the subsequent score computations can be split across machines.
 
 Computing Settings
 ------------------
@@ -188,10 +190,12 @@ Computing Settings
    A flag to force compass to build up the cache for the input selected model and media. This will rebuild the cache even if one already exists.
 
 **\-\-microcluster-size** [C]
-   A target number of cells per microcluster. Compass will aggregate similar cells into clusters and compute reaction penalties for the clusters (using the mean of the cluster).
+   A target number of cells per `microcluster <https://yoseflab.github.io/Compass/micropooling.html>`_. Compass will aggregate similar cells into clusters and compute reaction penalties for the clusters (using the mean of the cluster).
 
 **\-\-microcluster-file** [FILE]
    File where a tsv of microclusters will be output. There will be one column where each entry has the label for what micropool/microcluster the sample is in. Defaults to micropools.tsv in the output directory.
+
+.. @Brandon: do you output only the averaged metabolic genes or all the input genes? I think the latter should be more useful
 
 **\-\-microcluster-data-file** [FILE]
    File where a tsv of average gene expression per
