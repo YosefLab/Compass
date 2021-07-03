@@ -1,9 +1,9 @@
 Compass Postprocessing
 ======================
 
-To postprocess the results of the Compass algorithm and analyze them, we have a python notebook  `here <https://github.com/YosefLab/Compass/blob/analysis/analysis/Demo.ipynb>`__ 
-which demonstrates a differential analysis pipeline comparing two groups of cells and replicates figures from our paper analyzing Th17 cell metabolism `Wagner
-et al. <https://www.biorxiv.org/content/10.1101/2020.01.23.912717v1>`__
+To demonstrate downstream analysis (postprocessing) of Compass results, we provide a python notebook  `here <https://github.com/YosefLab/Compass/blob/analysis/analysis/Demo.ipynb>`__.
+The notebook demonstrates a differential analysis pipeline comparing two groups of cells and replicates figures from our  `paper
+<https://doi.org/10.1016/j.cell.2021.05.045>`__ paper analyzing Th17 cell metabolism.
 
 
 The presentation of the algorithm assumes a single-cell data set.
@@ -11,7 +11,7 @@ However, you may choose to group cells together (e.g. via
 `metacell <https://github.com/tanaylab/metacell>`__ or
 `micropooling <https://github.com/YosefLab/Vision>`__) to reduce
 computational overhead. You may also apply Compass to bulk transcriptome
-data sets (e.g. bulk RNA-seq or microarray data sets) of ample size.
+data sets (e.g. bulk RNA-seq or microarray data sets) if there are enough observations (samples) to gain statistical power.
 
 Requirements
 ************
@@ -26,9 +26,8 @@ Usage
 The example in the notebook uses `metadata <https://github.com/YosefLab/Compass/blob/analysis/analysis/extdata/Th17/cell_metadata.csv>`__ that would come from knowledge of what cells/samples were sequenced 
 as well as the `output <https://github.com/YosefLab/Compass/blob/analysis/analysis/extdata/Th17/reactions.tsv>`__ of a Compass run. 
 
-The notebook can be run top down and the main section goes through single-reactions using the Wilcoxon rank-sum test to compare pathogenic Th17p cells to non-pathogenic Th17n cells. 
-This differs slightly from the paper's version which uses metareactions instead, and the code for that is at the end of the notebook.
+The notebook can be run top down and the main section uses Wilcoxon rank sum to test for differential predicted activity of single reactions between pathogenic Th17 (Th17p) and non-pathogenic Th17 (Th17n) cells.
+This differs slightly from the paper's version which tests for predicted differential activity meta-reactions instead, and the code for that is at the end of the notebook.
 
-To analyze other datasets you would only need input a different set of Compass results and provide the metadata to identify cells, 
-though the figure titles about Th17 cells likely won't apply. 
-This example is intended to be a starting point and you may also want to do other analyses, replace the Wilcoxon rank sum test with your favorite statistical test, and/or add other preprocessing steps depending on how your data looks.
+The notebook can be modified to analyze other datasets by providing a different input of Compass results and relevant cell metadata.
+But of course, this example is intended to be a starting point and you may conduct other analyses, replace the Wilcoxon rank sum test or the Cohen's D effect size with your favorite statistical test, and/or add other preprocessing steps depending on how your data looks and what are your research questions.
