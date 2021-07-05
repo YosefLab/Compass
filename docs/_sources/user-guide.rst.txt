@@ -3,15 +3,19 @@ Compass User Guide
 
 Welcome to the user guide for Compass, if you haven't already installed Compass visit :doc:`the install guide <install>`. 
 
+.. contents:: In this page
+   :local:
+
 .. toctree::
    :maxdepth: 1
-   :caption: Contents:
+   :caption: Further resources:
+   
+   tutorial
+   Compass-Settings
+   micropooling
+   Compass-Postprocessing-Tutorial
+   AWS-tutorial
 
-   /tutorial
-   /Compass-Settings
-   /micropooling
-   /Compass-Postprocessing-Tutorial
-   /AWS-tutorial
 
 Quick Start
 ***********
@@ -30,7 +34,7 @@ If your gene expression matrix is in a matrix market format (.mtx file) you can 
 
 Once Compass has finished running, it will output a matrix ``reactions.tsv`` with reaction penalties where higher scores correspond to a reaction being less likely.
 
-More features
+Next steps
 *************
 
  - For a more detailed example of running Compass, visit :doc:`the tutorial <tutorial>`. 

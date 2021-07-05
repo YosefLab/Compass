@@ -1,7 +1,7 @@
-Installing Compass
+Installation
 ==================
 
-.. contents:: Contents
+.. contents:: In this page
    :local:
 
 Requirements
