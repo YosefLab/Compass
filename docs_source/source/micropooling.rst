@@ -11,7 +11,6 @@ In short, the algorithm works by first coarsely clustering samples using the Lou
 Each cluster is then treated as a sample where the gene expression is the average of the gene expression for samples in the cluster and the Compass algorithm can be applied to a smaller number of samples. 
 If you specify a latent space, the K-nearest neighbor graph will instead be computed using that latent space. You may also specify the kNN graph directly (see in command line arguments).
 
-.. @Brandon: making sure my addition is ok and when you specify kNN directly it is used for micropooling?
 
 Using Micropooling
 ******************

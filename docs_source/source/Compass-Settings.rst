@@ -150,7 +150,6 @@ Penalty Settings
 **\-\-symmetric-kernel**
    Flag to enable symmetrizing the TSNE kernel which takes longer
 
-.. @Brandon, can you please add examples for the other input files (knn, weights, latent space etc.)
 
 **\-\-input-knn** [FILE]
    File to input a precomputed kNN graph for the samples. 
