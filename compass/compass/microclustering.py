@@ -7,52 +7,74 @@ import pandas as pd
 from sklearn.neighbors import NearestNeighbors
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
+from scipy import sparse
 import igraph
 import leidenalg
 from ..globals import PCA_SEED, LEIDEN_SEED, KMEANS_SEED
+from ..utils import read_knn_ind, read_knn_dist
 
 def microcluster(exprData, cellsPerPartition=10,
                          filterInput = "fano",
                          filterThreshold = None,
                          filterNumMad = 2,
-                         latentSpace = None, K = None, 
+                         latentSpace = None, inputKnn = None, 
+                         inputKnnDistances = None, K = None, 
                          n_jobs = 1):
     
     if filterThreshold is None:
         filterThreshold = int(exprData.shape[1] * 0.05)
     if K is None:
         K = int(np.sqrt(exprData.shape[1]))
-
-    if latentSpace is None:
-        log_expression = np.log2(exprData+1)
-        
-        #Determine latent space genes
-        log_expression_filtered = applyFilters(log_expression, filterInput, 
-                                               filterThreshold, filterNumMad)
-
-        if len(log_expression_filtered) == 0:
-            raise Exception("0 genes were selected with current threshold, set a lower one and rerun")
-
-        model = PCA(n_components=min(log_expression_filtered.shape[0], log_expression_filtered.shape[1], 20),
-                    random_state = PCA_SEED)
-        if pd.__version__ >= '0.24':
-            pca_expression = model.fit_transform(log_expression.to_numpy().T).T
-        else:
-            pca_expression = model.fit_transform(log_expression.values.T).T
-        pca_expression = pd.DataFrame(pca_expression,
-                                    columns=exprData.columns)
-        res = pca_expression
-    else:
-        res = pd.read_csv(latentSpace, sep='\t', index_col=0).T
-
-
-    #Compute knn on PCA with K = min(30, K)
-    nn = NearestNeighbors(n_neighbors=min(K, 30), n_jobs=n_jobs)
-    nn.fit(res.T)
-    dist, ind = nn.kneighbors()
     
+    #The latent space is not relevant if there is already a specified knn computed
+    if inputKnn is not None:
+        ind = read_knn_ind(inputKnn, exprData)
+        if inputKnnDistances is not None:
+            dist = read_knn_dist(inputKnnDistances, exprData)
+        else:
+            dist = np.zeros(ind.shape)
+            #Could be vectorized using something like np.fromfunction but I am worried that numpy would copy each relevant entry of the array (ie an array of n-samples * k * dimensions of samples)
+            for i in range(ind.shape[0]):
+                dist[i] = np.linalg.norm(exprData.values.T[i] - exprData.values.T[ind[i]], axis=1)
+        #Adj is the adjacency matrix of the knn graph
+        adj = sparse.csr_matrix((dist.ravel(), (np.repeat(np.arange(ind.shape[0]), ind.shape[1]), ind.ravel())))
+
+        
+        if latentSpace is not None:
+            res = pd.read_csv(latentSpace, sep='\t', index_col=0).T
+        else: 
+            res = exprData #Assume that the clustering is done on raw gene expression if not specified
+    else:
+        if latentSpace is not None:
+            res = pd.read_csv(latentSpace, sep='\t', index_col=0).T
+        else:
+            log_expression = np.log2(exprData+1)
+            
+            #Determine latent space genes
+            log_expression_filtered = applyFilters(log_expression, filterInput, 
+                                                filterThreshold, filterNumMad)
+
+            if len(log_expression_filtered) == 0:
+                raise Exception("0 genes were selected with current threshold, set a lower one and rerun")
+
+            model = PCA(n_components=min(log_expression_filtered.shape[0], log_expression_filtered.shape[1], 20),
+                        random_state = PCA_SEED)
+            if pd.__version__ >= '0.24':
+                pca_expression = model.fit_transform(log_expression.to_numpy().T).T
+            else:
+                pca_expression = model.fit_transform(log_expression.values.T).T
+            pca_expression = pd.DataFrame(pca_expression,
+                                        columns=exprData.columns)
+            res = pca_expression
+
+        #Compute knn on PCA with K = min(30, K)
+        nn = NearestNeighbors(n_neighbors=min(K, 30), n_jobs=n_jobs)
+        nn.fit(res.T)
+        dist, ind = nn.kneighbors()
+        
+        adj = nn.kneighbors_graph(mode='distance') #Should sparse graph of csr_format
+
     sigma = np.square(np.median(dist, axis=1)) #sigma <- apply(d, 1, function(x) quantile(x, c(.5))[[1]])
-    adj = nn.kneighbors_graph(mode='distance') #Should sparse graph of csr_format
     adj.data = np.square(adj.data)
     for i in range(adj.shape[0]):
         adj[i] /= sigma[i]

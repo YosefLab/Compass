@@ -198,6 +198,11 @@ def parseArgs():
                         "and the next k columns should be indices of the k nearest neighbors (by their order in column 1)",
                         default=None, metavar="FILE")
 
+    parser.add_argument("--input-knn-distances", help="File with a precomputed knn graph for the samples. "
+                        "File must be a tsv with one row per sample and (k+1) columns. The first column should be sample names, "
+                        "and the next k columns should be indices of the k nearest neighbors (by their order in column 1)",
+                        default=None, metavar="FILE")
+
     parser.add_argument("--output-knn", help="File to save kNN of data to. "
                         "File will be a tsv with one row per sample and (k+1) columns. The first column will be sample names, "
                         "and the next k columns will be indices of the k nearest neighbors (by their order in column 1)",
@@ -305,6 +310,8 @@ def parseArgs():
 
     if args['input_knn']:
         args['input_knn'] = os.path.abspath(args['input_knn'])
+    if args['input_knn_distances']:
+        args['input_knn_distances'] = os.path.abspath(args['input_knn_distances'])
     if args['output_knn']:
         args['output_knn'] = os.path.abspath(args['output_knn'])
     if args['latent_space']:
@@ -439,13 +446,18 @@ def entry():
         pools_file = os.path.join(microcluster_dir, "pools.json")
 
         if os.path.exists(microcluster_success_token):
-            logger.info("Microclusters found from previous compass run")
+            logger.info("Micropools found from previous Compass run")
 
+            pooled_latent_file = os.path.join(microcluster_dir, "pooled_latent.tsv")
+            if os.path.exists(pooled_latent_file):
+                args['latent_space'] = pooled_latent_file
+                logger.info("Pooled latent space file found from previous Compass run")
         else:
             logger.info("Partitioning dataset into microclusters of size "+str(args['microcluster_size']))
             data = utils.read_data(args['data'])
             pools = microcluster(data, cellsPerPartition = args['microcluster_size'], 
-                                latentSpace = args['latent_space'], n_jobs = args['num_processes'])
+                                latentSpace = args['latent_space'], inputKnn = args['input_knn'], 
+                                inputKnnDistances = args['input_knn_distances'], n_jobs = args['num_processes'])
             pooled_data = pool_matrix_cols(data, pools)
             pooled_data.to_csv(pooled_data_file, sep="\t")
 
@@ -459,6 +471,10 @@ def entry():
                 pooled_latent = pool_matrix_cols(latent, pools).T
                 pooled_latent.to_csv(pooled_latent_file, sep='\t')
                 args['latent_space'] = pooled_latent_file
+
+            #Input KNN is not relevant for microclustered input
+            if args['input_knn']:
+                args['input_knn'] = None
 
             #outputting table of micropools
             pools_table = pd.DataFrame(columns = data.columns, index=['microcluster'])
