@@ -8,6 +8,7 @@ from __future__ import print_function, division
 import cplex
 import scipy.io
 import pandas as pd
+import numpy as np
 
 def get_steadystate_constraints(model):
     """
@@ -80,13 +81,39 @@ def read_mtx(mtx_file, rows_file, columns_file=None):
     else:
         return pd.SparseDataFrame(mtx, index=rows.to_numpy().ravel(), columns = columns)
 
-def read_knn(knn_data):
+def read_knn(knn_data, data=None, dist=False):
     """
-        Reads a knn_file in either csv or sparse format
+        Parses a knn input format from sklearn's nearest neighbors format (possibly wrapped in a Pandas dataframe)
+        Returns None if the result does not match
     """
-    if len(knn_data) > 2:
-        return read_mtx(knn_data[0], knn_data[1], knn_data[2])
-    elif len(knn_data) > 1:
-        return read_mtx(knn_data[0], knn_data[1], knn_data[1])
+    if (knn_data.endswith("npy")):
+        knn = np.load(knn_data)
+        if knn.shape[0] == data.shape[1]:
+            return knn
+        else:
+            return None
     else:
-        return pd.read_csv(knn_data[0], sep='\t', index_col=0)
+        knn = pd.read_csv(knn_data, sep='\t', index_col=0)
+        if data is None:
+            return knn.values #No choice but to assume that the indices are the same as input data
+        elif len(knn.index) != len(data.columns):
+            return None
+        elif np.all(knn.index == data.columns):
+            return knn.values 
+        elif np.all(np.sort(knn.index) == np.sort(data.columns)):
+            if dist:
+                return knn.loc[data.columns].values
+            else:
+                #Need this only for the array of indices (because they may be permuted)
+                LUT = {}
+                for i in range(data.shape[1]):
+                    LUT[i] = data.columns.get_loc(knn.index[i])
+                return knn.applymap(lambda x: LUT[x]).loc[data.columns].values 
+        else:
+            return None
+
+def read_knn_ind(knn_data, data=None):
+    return read_knn(knn_data, data, dist=False)
+
+def read_knn_dist(knn_data, data=None):
+    return read_knn(knn_data, data, dist=True)

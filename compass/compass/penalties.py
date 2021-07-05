@@ -283,7 +283,7 @@ def sample_weights_tsne_symmetric(data, perplexity, symmetric):
 
     return pvals
 
-def sample_weights_knn(data, num_neighbors, input_knn=None, output_knn=None):
+def sample_weights_knn(data_df, num_neighbors, input_knn=None, output_knn=None):
     """
     Calculates cell-to-cell weights using knn on data
 
@@ -293,20 +293,23 @@ def sample_weights_knn(data, num_neighbors, input_knn=None, output_knn=None):
         binary search perplexity target
     """
 
-    columns = data.columns
-    data = data.values
+    columns = data_df.columns
+    data = data_df.values
     ind = None
     if input_knn:
         logger = logging.getLogger('compass')
-        ind_df = pd.read_csv(input_knn, sep='\t', index_col=0)
-        #TBD: Check if the knn graph is specified as 2d array or adjacency list
-        if ind_df.shape[0] != data.shape[1]: #incompatible dimensions for data, will recompute kNN
-            logger.info("Input KNN has incompatible dimensions, recomputing KNN")
-        elif not np.all(ind_df.index == columns): #See if the reactions need to be reindexed
-            logger.info("Input KNN does not have the same samples as data, recomputing KNN")
+        ind = utils.read_knn_ind(input_knn, data=data_df)
+        if ind is None:
+            logger.error("Input KNN invalid: shape and/or indices do not match input data")
+            raise Exception('Compass Error: --input-knn invalid for input data')
+        elif ind.shape[1] != num_neighbors:
+            logger.info("Input KNN number of neighbors do not match. Expected: ", num_neighbors, ", but was: ", ind.shape[1])
+            logger.info("Proceeding using the input knn")
+            num_neighbors = ind.shape[1]
         else:
-            logger.info("KNN successfully loaded")
-            ind = ind_df.to_numpy()
+            logger.info("Input KNN successfully loaded")
+        
+
     if ind is None:
         nn = NearestNeighbors(n_neighbors=num_neighbors)
         nn.fit(data.T)
