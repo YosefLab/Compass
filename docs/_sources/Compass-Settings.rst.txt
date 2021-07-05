@@ -84,7 +84,7 @@ Metabolic Model Settings
 ------------------------
 
 **\-\-species** [SPECIES]
-   Species to use to match genes to model. Required parameter. Options:
+   Species to use to match gene names to model. Required parameter. Options:
 
    - homo_sapiens
    - mus_musculus
@@ -100,8 +100,8 @@ Metabolic Model Settings
    The media to simulate the model with. This is a placeholder for future algorithmic extensions.
 
 **\-\-and-function** [FXN]
-   Which function used to aggregate and
-   associations. Options: 
+   A numeric function which substitutes AND relationships in translation of the GSMM's gene-protein
+   associations into reaction penalties Options: 
    
    - min 
    - median
@@ -113,7 +113,7 @@ Metabolic Model Settings
 
 **\-\-no-reactions**
    Flag to disable calculation and output of reaction
-   scores in addition to uptake/secretion scores.
+   scores and compute only uptake/secretion scores.
 
 
 
@@ -121,14 +121,19 @@ Penalty Settings
 ----------------
 
 **\-\-penalty-diffusion** [MODE]
-   Mode to use to share reaction penalty values
+   Mode to use in information sharing of reaction penalty values
    between single cells. Options:
 
    - gaussian 
    - knn (default)
 
 **\-\-lambda** [F]
-   Smoothing factor for single-cell data. Default is 0, should be set between 0 and 1. For datasets where information sharing is appropriate, we often use 0.25.
+   Smoothing factor for information sharing between single cells (Default is 0, no information sharing). 
+   Lambda should be set between 0 and 1. In the manuscript, where information sharing was appropriate, we used 0.25.
+   
+   Note there are two common scenarios where there is no need for information sharing and lambda should be set to 0:
+   # Running Compass on bulk (i.e., not single cell) RNA
+   # Using a cell pooling procedure (`micropools <https://yoseflab.github.io/Compass/micropooling.html>`_, or `metacells <https://tanaylab.github.io/metacell/>`_) and running Compass on the pooled results.
    
 .. note::
     If lambda is 0, then the cells are processed independently of each other so you can divide up samples to run them separately and get the same results.
@@ -145,22 +150,36 @@ Penalty Settings
 **\-\-symmetric-kernel**
    Flag to enable symmetrizing the TSNE kernel which takes longer
 
+.. @Brandon, can you please add examples for the other input files (knn, weights, latent space etc.)
+
 **\-\-input-knn** [FILE]
    File to input a precomputed kNN graph for the samples. 
-   File must be a tsv with one row per sample and (k+1) columns. 
+   File can eiter be a tsv with one row per sample and (k+1) columns. 
    The first column should be sample names, and the next k columns should be indices of the k nearest neighbors (by their order in column 1).
+
+   You can also input the numpy array of values without a column of labels in npy format, but order of the samples must be the same as input data.
+
+**\-\-input-knn-distances** [FILE]
+   File to input a precomputed kNN graph for the samples. 
+   File can eiter be a tsv with one row per sample and (k+1) columns. 
+   The first column should be sample names, and the next k columns should be distances to the k nearest neighbors of that sample.
+
+   You can also input the numpy array of values without a column of labels in npy format, but order of the samples must be the same as input data.
 
 **\-\-output-knn** [FILE]
    File to save kNN graph of the samples to.
    File will be a tsv with one row per sample and (k+1) columns. 
    The first column will be sample names, and the next k columns will be indices of the k nearest neighbors (by their order in column 1).
 
+.. note::
+   These knn formats are the results from scikit-learn's nearest neighbors algorithm which are then wrapped in a Pandas dataframe.
+
 **\-\-latent-space** [FILE]
    File with latent space representation of the samples on which to do the kNN clustering for information sharing and/or micropooling.
    Should be a tsv with one row per sample and one column per dimension of the latent space.
 
 **\-\-only-penalties**
-   Flag for Compass to only compute the reaction penalties for the dataset.
+   Flag for Compass to only compute the reaction penalties for the dataset. This is useful for load splitting when information sharing between cells is needed; only the penalty computation needs to be centrally run, and the subsequent score computations can be split across machines.
 
 Computing Settings
 ------------------
@@ -183,7 +202,7 @@ Computing Settings
    A flag to force compass to build up the cache for the input selected model and media. This will rebuild the cache even if one already exists.
 
 **\-\-microcluster-size** [C]
-   A target number of cells per microcluster. Compass will aggregate similar cells into clusters and compute reaction penalties for the clusters (using the mean of the cluster).
+   A target number of cells per `microcluster <https://yoseflab.github.io/Compass/micropooling.html>`_. Compass will aggregate similar cells into clusters and compute reaction penalties for the clusters (using the mean of the cluster).
 
 **\-\-microcluster-file** [FILE]
    File where a tsv of microclusters will be output. There will be one column where each entry has the label for what micropool/microcluster the sample is in. Defaults to micropools.tsv in the output directory.

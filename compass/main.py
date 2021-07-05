@@ -200,7 +200,7 @@ def parseArgs():
 
     parser.add_argument("--input-knn-distances", help="File with a precomputed knn graph for the samples. "
                         "File must be a tsv with one row per sample and (k+1) columns. The first column should be sample names, "
-                        "and the next k columns should be indices of the k nearest neighbors (by their order in column 1)",
+                        "and the next k columns should be distances to the k nearest neighbors of that sample",
                         default=None, metavar="FILE")
 
     parser.add_argument("--output-knn", help="File to save kNN of data to. "

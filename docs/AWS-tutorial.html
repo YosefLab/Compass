@@ -170,7 +170,7 @@
         </li>
     
         <li class="nav-item toc-entry toc-h2">
-            <a href="#setting-up-the-compass-image-only-need-to-do-this-once" class="nav-link">Setting up the COMPASS Image (only need to do this once)</a><ul class="nav section-nav flex-column">
+            <a href="#setting-up-the-compass-image-only-need-to-do-this-once" class="nav-link">Setting up the Compass Image (only need to do this once)</a><ul class="nav section-nav flex-column">
                 
         <li class="nav-item toc-entry toc-h3">
             <a href="#creating-an-instance" class="nav-link">Creating an Instance</a>
@@ -267,7 +267,7 @@
 <li><p><a class="reference internal" href="#instances-and-images" id="id5">Instances and Images</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#setting-up-the-compass-image-only-need-to-do-this-once" id="id6">Setting up the COMPASS Image (only need to do this once)</a></p>
+<li><p><a class="reference internal" href="#setting-up-the-compass-image-only-need-to-do-this-once" id="id6">Setting up the Compass Image (only need to do this once)</a></p>
 <ul>
 <li><p><a class="reference internal" href="#creating-an-instance" id="id7">Creating an Instance</a></p></li>
 <li><p><a class="reference internal" href="#logging-into-your-instance" id="id8">Logging into your Instance</a></p></li>
@@ -362,14 +362,14 @@ is booted up. The same image can be used to launch multiple volumes.</p>
 <p>You don’t have to create your own image - Amazon has many images with
 different operating systems already prepared. However, if you use one of
 these, you’ll have to install any extra software every time you create
-an instance. Instead, we’re going to create an Image with COMPASS and
+an instance. Instead, we’re going to create an Image with Compass and
 its dependencies installed on it so that we only have to do this once.</p>
 <p>Note: Images are also referred to as <strong>AMI</strong>s (Amazon Machine Images).</p>
 </div>
 </div>
 <div class="section" id="setting-up-the-compass-image-only-need-to-do-this-once">
-<h2><a class="toc-backref" href="#id6">Setting up the COMPASS Image (only need to do this once)</a><a class="headerlink" href="#setting-up-the-compass-image-only-need-to-do-this-once" title="Permalink to this headline">¶</a></h2>
-<p>We are going to create an Image with COMPASS and its dependencies
+<h2><a class="toc-backref" href="#id6">Setting up the Compass Image (only need to do this once)</a><a class="headerlink" href="#setting-up-the-compass-image-only-need-to-do-this-once" title="Permalink to this headline">¶</a></h2>
+<p>We are going to create an Image with Compass and its dependencies
 installed.</p>
 <p>To do this, first we are going to create a server with a basic Ubuntu
 instance. Install the software. Then save it as an Image.</p>
@@ -440,7 +440,7 @@ already, but we’ll need to install ‘pip’ to download other packages:</p>
 <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">python3</span><span class="o">-</span><span class="n">pip</span>
 </pre></div>
 </div>
-<p>Now, let’s install the COMPASS python package along with all Python
+<p>Now, let’s install the Compass python package along with all Python
 dependencies:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">numpy</span>
 <span class="n">pip3</span> <span class="n">install</span> <span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">yoseflab</span><span class="o">/</span><span class="n">Compass</span><span class="o">.</span><span class="n">git</span>
@@ -452,11 +452,11 @@ compass can be run more easily.</p>
 </div>
 <div class="section" id="installing-cplex">
 <h3><a class="toc-backref" href="#id10">Installing CPLEX</a><a class="headerlink" href="#installing-cplex" title="Permalink to this headline">¶</a></h3>
-<p>CPLEX is an optimization engine that COMPASS uses and it must be
+<p>CPLEX is an optimization engine that Compass uses and it must be
 installed from IBM.</p>
 <p>First navigate to the main page for CPLEX
 <a class="reference external" href="https://www.ibm.com/products/ilog-cplex-optimization-studio">here</a></p>
-<p>COMPASS requires the full edition of CPLEX. However, if you are an
+<p>Compass requires the full edition of CPLEX. However, if you are an
 Academic (Student or Faculty) you can get a copy for free.</p>
 <p>Click the ‘Get student and faculty editions’ link:</p>
 <p>Register an account or Log In to an existing account. Once logged in,
@@ -524,7 +524,7 @@ instances from this Image.</p>
 </div>
 <div class="section" id="running-an-analysis">
 <h2><a class="toc-backref" href="#id13">Running an Analysis</a><a class="headerlink" href="#running-an-analysis" title="Permalink to this headline">¶</a></h2>
-<p>Now that we have a COMPASS Image, we can run an analysis in the Amazon
+<p>Now that we have a Compass Image, we can run an analysis in the Amazon
 cloud</p>
 <div class="section" id="launching-a-more-powerful-instance-with-our-ami">
 <h3><a class="toc-backref" href="#id14">Launching a (more powerful) instance with our AMI</a><a class="headerlink" href="#launching-a-more-powerful-instance-with-our-ami" title="Permalink to this headline">¶</a></h3>
@@ -594,7 +594,7 @@ run <code class="docutils literal notranslate"><span class="pre">tmux</span> <sp
 </div>
 <div class="section" id="downloading-the-results">
 <h3><a class="toc-backref" href="#id18">Downloading the results</a><a class="headerlink" href="#downloading-the-results" title="Permalink to this headline">¶</a></h3>
-<p>When COMPASS has completed, the outputs are stored in <code class="docutils literal notranslate"><span class="pre">reactions.txt</span></code>,
+<p>When Compass has completed, the outputs are stored in <code class="docutils literal notranslate"><span class="pre">reactions.txt</span></code>,
 <code class="docutils literal notranslate"><span class="pre">secretions.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">uptake.txt</span></code>. These should be in the directory
 where compass was run by default (can be overridden with the
 <code class="docutils literal notranslate"><span class="pre">--output-dir</span></code> option), which is the home directory in this tutorial.</p>

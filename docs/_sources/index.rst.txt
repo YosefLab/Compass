@@ -3,19 +3,18 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Compass's documentation!
-===================================
-
-Compass is an algorithm to characterize the metabolic state of cells based on single-cell RNA-Seq and flux balance analysis. 
-It is still a challenge to characterize the metabolic states of single cells on scale with current metabolic assays. We therefore
-developed Compass, an *in silico* approach to infer metabolic status of
-cells based on transcriptome data, which is readily available even in
-single cell resolutions. For a detailed description of the algorithm, refer to the
-`biorxiv
-preprint <https://www.biorxiv.org/content/10.1101/2020.01.23.912717v2>`__.
-
-These pages have guides on how to install and use Compass, including a walkthrough of an analysis to replicate figures from the preprint.
-
+   Welcome to Compass's documentation!
+   ===================================
+   
+   Compass is an algorithm to characterize the metabolic state of cells based on single-cell RNA-Seq and flux balance analysis (FBA). 
+   Its development was motivated by the challenge in characterizing the metabolic states of single cells on scale with current metabolic assays. Compass is an *in silico* approach to infer metabolic status of
+   cells based on transcriptome data, which is readily available even in
+   single cell resolutions. For a detailed description of the algorithm, refer to the
+   `manuscript
+   <https://doi.org/10.1016/j.cell.2021.05.045>`__.
+   
+   These pages have guides on how to install and use Compass, including a walkthrough of an analysis to replicate figures from the manuscript.
+   
 .. toctree::
    :maxdepth: 2
    :caption: Contents:

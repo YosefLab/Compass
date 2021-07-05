@@ -261,7 +261,7 @@ Unrecognized subsystems in FILE are ignored.</p>
 <div class="section" id="metabolic-model-settings">
 <h2><a class="toc-backref" href="#id3">Metabolic Model Settings</a><a class="headerlink" href="#metabolic-model-settings" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
-<dt><strong>--species</strong> [SPECIES]</dt><dd><p>Species to use to match genes to model. Required parameter. Options:</p>
+<dt><strong>--species</strong> [SPECIES]</dt><dd><p>Species to use to match gene names to model. Required parameter. Options:</p>
 <ul class="simple">
 <li><p>homo_sapiens</p></li>
 <li><p>mus_musculus</p></li>
@@ -276,8 +276,8 @@ Unrecognized subsystems in FILE are ignored.</p>
 </dd>
 <dt><strong>--media</strong> [MEDIA]</dt><dd><p>The media to simulate the model with. This is a placeholder for future algorithmic extensions.</p>
 </dd>
-<dt><strong>--and-function</strong> [FXN]</dt><dd><p>Which function used to aggregate and
-associations. Options:</p>
+<dt><strong>--and-function</strong> [FXN]</dt><dd><p>A numeric function which substitutes AND relationships in translation of the GSMM’s gene-protein
+associations into reaction penalties Options:</p>
 <ul class="simple">
 <li><p>min</p></li>
 <li><p>median</p></li>
@@ -288,21 +288,25 @@ associations. Options:</p>
 uptake/secretion scores in addition to reaction scores.</p>
 </dd>
 <dt><strong>--no-reactions</strong></dt><dd><p>Flag to disable calculation and output of reaction
-scores in addition to uptake/secretion scores.</p>
+scores and compute only uptake/secretion scores.</p>
 </dd>
 </dl>
 </div>
 <div class="section" id="penalty-settings">
 <h2><a class="toc-backref" href="#id4">Penalty Settings</a><a class="headerlink" href="#penalty-settings" title="Permalink to this headline">¶</a></h2>
-<dl class="simple">
-<dt><strong>--penalty-diffusion</strong> [MODE]</dt><dd><p>Mode to use to share reaction penalty values
+<dl>
+<dt><strong>--penalty-diffusion</strong> [MODE]</dt><dd><p>Mode to use in information sharing of reaction penalty values
 between single cells. Options:</p>
 <ul class="simple">
 <li><p>gaussian</p></li>
 <li><p>knn (default)</p></li>
 </ul>
 </dd>
-<dt><strong>--lambda</strong> [F]</dt><dd><p>Smoothing factor for single-cell data. Default is 0, should be set between 0 and 1. For datasets where information sharing is appropriate, we often use 0.25.</p>
+<dt><strong>--lambda</strong> [F]</dt><dd><p>Smoothing factor for information sharing between single cells (Default is 0, no information sharing).
+Lambda should be set between 0 and 1. In the manuscript, where information sharing was appropriate, we used 0.25.</p>
+<p>Note there are two common scenarios where there is no need for information sharing and lambda should be set to 0:
+# Running Compass on bulk (i.e., not single cell) RNA
+# Using a cell pooling procedure (<a class="reference external" href="https://yoseflab.github.io/Compass/micropooling.html">micropools</a>, or <a class="reference external" href="https://tanaylab.github.io/metacell/">metacells</a>) and running Compass on the pooled results.</p>
 </dd>
 </dl>
 <div class="admonition note">
@@ -319,18 +323,32 @@ The column and row labels should be the same as the names of samples in expressi
 </dd>
 <dt><strong>--symmetric-kernel</strong></dt><dd><p>Flag to enable symmetrizing the TSNE kernel which takes longer</p>
 </dd>
+</dl>
+<dl>
 <dt><strong>--input-knn</strong> [FILE]</dt><dd><p>File to input a precomputed kNN graph for the samples.
-File must be a tsv with one row per sample and (k+1) columns.
+File can eiter be a tsv with one row per sample and (k+1) columns.
 The first column should be sample names, and the next k columns should be indices of the k nearest neighbors (by their order in column 1).</p>
+<p>You can also input the numpy array of values without a column of labels in npy format, but order of the samples must be the same as input data.</p>
+</dd>
+<dt><strong>--input-knn-distances</strong> [FILE]</dt><dd><p>File to input a precomputed kNN graph for the samples.
+File can eiter be a tsv with one row per sample and (k+1) columns.
+The first column should be sample names, and the next k columns should be distances to the k nearest neighbors of that sample.</p>
+<p>You can also input the numpy array of values without a column of labels in npy format, but order of the samples must be the same as input data.</p>
 </dd>
 <dt><strong>--output-knn</strong> [FILE]</dt><dd><p>File to save kNN graph of the samples to.
 File will be a tsv with one row per sample and (k+1) columns.
 The first column will be sample names, and the next k columns will be indices of the k nearest neighbors (by their order in column 1).</p>
 </dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>These knn formats are the results from scikit-learn’s nearest neighbors algorithm which are then wrapped in a Pandas dataframe.</p>
+</div>
+<dl class="simple">
 <dt><strong>--latent-space</strong> [FILE]</dt><dd><p>File with latent space representation of the samples on which to do the kNN clustering for information sharing and/or micropooling.
 Should be a tsv with one row per sample and one column per dimension of the latent space.</p>
 </dd>
-<dt><strong>--only-penalties</strong></dt><dd><p>Flag for Compass to only compute the reaction penalties for the dataset.</p>
+<dt><strong>--only-penalties</strong></dt><dd><p>Flag for Compass to only compute the reaction penalties for the dataset. This is useful for load splitting when information sharing between cells is needed; only the penalty computation needs to be centrally run, and the subsequent score computations can be split across machines.</p>
 </dd>
 </dl>
 </div>
@@ -353,7 +371,7 @@ This is because it is generally better to have multiple optimization problems be
 </dd>
 <dt><strong>--precache</strong></dt><dd><p>A flag to force compass to build up the cache for the input selected model and media. This will rebuild the cache even if one already exists.</p>
 </dd>
-<dt><strong>--microcluster-size</strong> [C]</dt><dd><p>A target number of cells per microcluster. Compass will aggregate similar cells into clusters and compute reaction penalties for the clusters (using the mean of the cluster).</p>
+<dt><strong>--microcluster-size</strong> [C]</dt><dd><p>A target number of cells per <a class="reference external" href="https://yoseflab.github.io/Compass/micropooling.html">microcluster</a>. Compass will aggregate similar cells into clusters and compute reaction penalties for the clusters (using the mean of the cluster).</p>
 </dd>
 <dt><strong>--microcluster-file</strong> [FILE]</dt><dd><p>File where a tsv of microclusters will be output. There will be one column where each entry has the label for what micropool/microcluster the sample is in. Defaults to micropools.tsv in the output directory.</p>
 </dd>

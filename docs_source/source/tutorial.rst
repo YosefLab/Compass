@@ -32,13 +32,13 @@ Human or mouse species makes no difference for this command.
 Running Compass
 ---------------
 
-Then after opening a command line in a directory with an input file "expression.tsv", you can run compass on the data with the following command, which will limit the number of processes to 10:
+Then after opening a command line in a directory with an input file "expression.tsv", you can run Compass on the data with the following command, which will limit the number of processes to 10:
 
 .. code:: bash
 
    compass --data expression.tsv --num-processes 10 --species homo_sapiens
 
-And to run compass on mtx formatted data use the following:
+And to run Compass on mtx formatted data use the following:
 
 .. code:: bash
 
@@ -50,8 +50,8 @@ Below is an example of the formatting for gene expression (We only show a small 
 
 .. image:: images/input_ex.png
 
-For the first run of compass on a given model and media there will be overhead building up Compass's cache. 
-Compass will automatically build up the cache if it is empty, but you can also manually build up the cache before running compass with:
+For the first run of Compass on a given model and media there will be overhead building up Compass's cache. 
+Compass will automatically build up the cache if it is empty, but you can also manually build up the cache before running Compass with:
 
 .. code:: bash
 
@@ -127,5 +127,5 @@ Below is an example of the output matrix:
 
 To get more context on what the reaction identifiers are, you can visit `virtual metabolic human <https://www.vmh.life/#home>`__ or `the resources directory of compass <https://github.com/YosefLab/Compass/tree/master/compass/Resources/Recon2_export>`__ where there are several csv's which include information on the reactions in Recon2.
 
-\ *Note: While compass is running, it will store partial results for
+\ *Note: While Compass is running, it will store partial results for
 each sample in the _tmp directory/ (or the directory following \-\-temp\-dir)*\ 

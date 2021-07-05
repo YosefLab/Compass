@@ -35,6 +35,6 @@ More features
 
  - For a more detailed example of running Compass, visit :doc:`the tutorial <tutorial>`. 
  - If you want to see all the settings you can customize visit :doc:`here <Compass-Settings>`.
- - More details on the micropooling setting can be found here :doc:`here <micropooling>`.
+ - More details on the micropooling setting (useful for 10x-scale datasets) can be found here :doc:`here <micropooling>`.
  - For tools to postprocess and analyze the results of Compass, visit :doc:`here </Compass-Postprocessing-Tutorial>`
  - Cloud computing like AWS can help Compass scale because each cell can be handled in parallel, so we provide a :doc:`guide <AWS-tutorial>` for running Compass on AWS.

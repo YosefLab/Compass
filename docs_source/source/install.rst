@@ -70,7 +70,7 @@ Download
 
 First navigate to the main page for CPLEX `here <https://www.ibm.com/products/ilog-cplex-optimization-studio>`__ 
 
-COMPASS requires the full edition of CPLEX, which is free for academic use. Click the ‘Get student and faculty editions’ link.
+Compass requires the full edition of CPLEX, which is free for academic use. Click the ‘Get student and faculty editions’ link.
 
 Register an account or Log In to an existing account. Once logged in, \
 scroll down to the ‘Software’ section and to a download page for “ILOG CPLEX Optimization Studio”.

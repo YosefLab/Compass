@@ -69,13 +69,13 @@ Output settings
    for only a subset of the reactions in order to cut in computation times (see below, ``--select-reactions`` and ``--select-subsystems``)..
 
 **\-\-select-reactions** [FILE]
-   Compute compass scores only for the reactions listed in the given file. 
+   Compute Compass scores only for the reactions listed in the given file. 
    FILE is expected to be textual, with one line per reaction 
    (undirected, namely adding the suffix \"_pos\" or \"_neg\" to a line will create a valid directed reaction id). 
    Unrecognized reactions in FILE are ignored.
 
 **\-\-select-subsystems** [FILE]
-   Compute compass scores only for the subsystems listed in the given file. 
+   Compute Compass scores only for the subsystems listed in the given file. 
    FILE is expected to be textual, with one line per subsystem.
    Unrecognized subsystems in FILE are ignored.
 
@@ -154,13 +154,25 @@ Penalty Settings
 
 **\-\-input-knn** [FILE]
    File to input a precomputed kNN graph for the samples. 
-   File must be a tsv with one row per sample and (k+1) columns. 
+   File can eiter be a tsv with one row per sample and (k+1) columns. 
    The first column should be sample names, and the next k columns should be indices of the k nearest neighbors (by their order in column 1).
 
+   You can also input the numpy array of values without a column of labels in npy format, but be careful that the order of samples is the same as input data.
+
+**\-\-input-knn-distances** [FILE]
+   File to input a precomputed kNN graph for the samples. 
+   File can eiter be a tsv with one row per sample and (k+1) columns. 
+   The first column should be sample names, and the next k columns should be distances to the k nearest neighbors of that sample.
+
+   You can also input the numpy array of values without a column of labels in npy format, but be careful that the order of samples is the same as input data.
+   
 **\-\-output-knn** [FILE]
    File to save kNN graph of the samples to.
    File will be a tsv with one row per sample and (k+1) columns. 
    The first column will be sample names, and the next k columns will be indices of the k nearest neighbors (by their order in column 1).
+
+.. note::
+   These knn formats are the results from scikit-learn's nearest neighbors algorithm which are then wrapped in a Pandas dataframe.
 
 **\-\-latent-space** [FILE]
    File with latent space representation of the samples on which to do the kNN clustering for information sharing and/or micropooling.
@@ -187,15 +199,13 @@ Computing Settings
    Name of the torque queue to submit to
 
 **\-\-precache**
-   A flag to force compass to build up the cache for the input selected model and media. This will rebuild the cache even if one already exists.
+   A flag to force Compass to build up the cache for the input selected model and media. This will rebuild the cache even if one already exists.
 
 **\-\-microcluster-size** [C]
    A target number of cells per `microcluster <https://yoseflab.github.io/Compass/micropooling.html>`_. Compass will aggregate similar cells into clusters and compute reaction penalties for the clusters (using the mean of the cluster).
 
 **\-\-microcluster-file** [FILE]
    File where a tsv of microclusters will be output. There will be one column where each entry has the label for what micropool/microcluster the sample is in. Defaults to micropools.tsv in the output directory.
-
-.. @Brandon: do you output only the averaged metabolic genes or all the input genes? I think the latter should be more useful
 
 **\-\-microcluster-data-file** [FILE]
    File where a tsv of average gene expression per
@@ -219,7 +229,7 @@ There are several Compass arguments which are not listed by the parser because t
    Flag which enables more performance data collection such as runtimes per reaction per sample.
 
 **\-\-collect** 
-   Flag to have compass collect results. Used for batch jobs
+   Flag to have Compass collect results. Used for batch jobs
 
 **\-\-config-file** [FILE]
    Setting used for batch jobs

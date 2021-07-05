@@ -81,15 +81,15 @@ is booted up. The same image can be used to launch multiple volumes.
 You don’t have to create your own image - Amazon has many images with
 different operating systems already prepared. However, if you use one of
 these, you’ll have to install any extra software every time you create
-an instance. Instead, we’re going to create an Image with COMPASS and
+an instance. Instead, we’re going to create an Image with Compass and
 its dependencies installed on it so that we only have to do this once.
 
 Note: Images are also referred to as **AMI**\ s (Amazon Machine Images).
 
-Setting up the COMPASS Image (only need to do this once)
+Setting up the Compass Image (only need to do this once)
 ********************************************************
 
-We are going to create an Image with COMPASS and its dependencies
+We are going to create an Image with Compass and its dependencies
 installed.
 
 To do this, first we are going to create a server with a basic Ubuntu
@@ -175,7 +175,7 @@ already, but we’ll need to install ‘pip’ to download other packages:
    sudo apt-get update
    sudo apt-get install python3-pip
 
-Now, let’s install the COMPASS python package along with all Python
+Now, let’s install the Compass python package along with all Python
 dependencies:
 
 ::
@@ -190,13 +190,13 @@ compass can be run more easily.
 Installing CPLEX
 ----------------
 
-CPLEX is an optimization engine that COMPASS uses and it must be
+CPLEX is an optimization engine that Compass uses and it must be
 installed from IBM.
 
 First navigate to the main page for CPLEX
 `here <https://www.ibm.com/products/ilog-cplex-optimization-studio>`__
 
-COMPASS requires the full edition of CPLEX. However, if you are an
+Compass requires the full edition of CPLEX. However, if you are an
 Academic (Student or Faculty) you can get a copy for free.
 
 Click the ‘Get student and faculty editions’ link:
@@ -284,7 +284,7 @@ instances from this Image.
 Running an Analysis
 *******************
 
-Now that we have a COMPASS Image, we can run an analysis in the Amazon
+Now that we have a Compass Image, we can run an analysis in the Amazon
 cloud
 
 Launching a (more powerful) instance with our AMI
@@ -376,7 +376,7 @@ run ``tmux attach``.
 Downloading the results
 -----------------------
 
-When COMPASS has completed, the outputs are stored in ``reactions.txt``,
+When Compass has completed, the outputs are stored in ``reactions.txt``,
 ``secretions.txt`` and ``uptake.txt``. These should be in the directory
 where compass was run by default (can be overridden with the
 ``--output-dir`` option), which is the home directory in this tutorial.
