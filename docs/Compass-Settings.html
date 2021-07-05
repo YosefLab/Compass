@@ -247,12 +247,12 @@ This is useful if you’d like to subset the input matrix to include only the me
 <dt><strong>--list-reactions</strong> [FILE]</dt><dd><p>File to output a list of reaction id’s and their associated subsystem. This is useful if you’d like to compute Compass scores
 for only a subset of the reactions in order to cut in computation times (see below, <code class="docutils literal notranslate"><span class="pre">--select-reactions</span></code> and <code class="docutils literal notranslate"><span class="pre">--select-subsystems</span></code>)..</p>
 </dd>
-<dt><strong>--select-reactions</strong> [FILE]</dt><dd><p>Compute compass scores only for the reactions listed in the given file.
+<dt><strong>--select-reactions</strong> [FILE]</dt><dd><p>Compute Compass scores only for the reactions listed in the given file.
 FILE is expected to be textual, with one line per reaction
 (undirected, namely adding the suffix &quot;_pos&quot; or &quot;_neg&quot; to a line will create a valid directed reaction id).
 Unrecognized reactions in FILE are ignored.</p>
 </dd>
-<dt><strong>--select-subsystems</strong> [FILE]</dt><dd><p>Compute compass scores only for the subsystems listed in the given file.
+<dt><strong>--select-subsystems</strong> [FILE]</dt><dd><p>Compute Compass scores only for the subsystems listed in the given file.
 FILE is expected to be textual, with one line per subsystem.
 Unrecognized subsystems in FILE are ignored.</p>
 </dd>
@@ -328,12 +328,12 @@ The column and row labels should be the same as the names of samples in expressi
 <dt><strong>--input-knn</strong> [FILE]</dt><dd><p>File to input a precomputed kNN graph for the samples.
 File can eiter be a tsv with one row per sample and (k+1) columns.
 The first column should be sample names, and the next k columns should be indices of the k nearest neighbors (by their order in column 1).</p>
-<p>You can also input the numpy array of values without a column of labels in npy format, but order of the samples must be the same as input data.</p>
+<p>You can also input the numpy array of values without a column of labels in npy format, but be careful that the order of samples is the same as input data.</p>
 </dd>
 <dt><strong>--input-knn-distances</strong> [FILE]</dt><dd><p>File to input a precomputed kNN graph for the samples.
 File can eiter be a tsv with one row per sample and (k+1) columns.
 The first column should be sample names, and the next k columns should be distances to the k nearest neighbors of that sample.</p>
-<p>You can also input the numpy array of values without a column of labels in npy format, but order of the samples must be the same as input data.</p>
+<p>You can also input the numpy array of values without a column of labels in npy format, but be careful that the order of samples is the same as input data.</p>
 </dd>
 <dt><strong>--output-knn</strong> [FILE]</dt><dd><p>File to save kNN graph of the samples to.
 File will be a tsv with one row per sample and (k+1) columns.
@@ -369,7 +369,7 @@ This is because it is generally better to have multiple optimization problems be
 <dl class="simple">
 <dt><strong>--torque-queue</strong> [QUEUE]</dt><dd><p>Name of the torque queue to submit to</p>
 </dd>
-<dt><strong>--precache</strong></dt><dd><p>A flag to force compass to build up the cache for the input selected model and media. This will rebuild the cache even if one already exists.</p>
+<dt><strong>--precache</strong></dt><dd><p>A flag to force Compass to build up the cache for the input selected model and media. This will rebuild the cache even if one already exists.</p>
 </dd>
 <dt><strong>--microcluster-size</strong> [C]</dt><dd><p>A target number of cells per <a class="reference external" href="https://yoseflab.github.io/Compass/micropooling.html">microcluster</a>. Compass will aggregate similar cells into clusters and compute reaction penalties for the clusters (using the mean of the cluster).</p>
 </dd>
@@ -395,7 +395,7 @@ micropooled_data.tsv in the output directory.</p>
 </dd>
 <dt><strong>--detailed-perf</strong></dt><dd><p>Flag which enables more performance data collection such as runtimes per reaction per sample.</p>
 </dd>
-<dt><strong>--collect</strong></dt><dd><p>Flag to have compass collect results. Used for batch jobs</p>
+<dt><strong>--collect</strong></dt><dd><p>Flag to have Compass collect results. Used for batch jobs</p>
 </dd>
 <dt><strong>--config-file</strong> [FILE]</dt><dd><p>Setting used for batch jobs</p>
 </dd>

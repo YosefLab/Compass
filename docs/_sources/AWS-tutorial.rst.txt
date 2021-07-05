@@ -185,7 +185,7 @@ dependencies:
    source ~/.profile
 
 That last line just addes the ~/.local/bin directory to the path so
-compass can be run more easily.
+Compass can be run more easily.
 
 Installing CPLEX
 ----------------
@@ -378,7 +378,7 @@ Downloading the results
 
 When Compass has completed, the outputs are stored in ``reactions.txt``,
 ``secretions.txt`` and ``uptake.txt``. These should be in the directory
-where compass was run by default (can be overridden with the
+where Compass was run by default (can be overridden with the
 ``--output-dir`` option), which is the home directory in this tutorial.
 
 Now, before we shut down our server, we need to download the results. On
