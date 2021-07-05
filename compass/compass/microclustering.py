@@ -39,7 +39,6 @@ def microcluster(exprData, cellsPerPartition=10,
         #Adj is the adjacency matrix of the knn graph
         adj = sparse.csr_matrix((dist.ravel(), (np.repeat(np.arange(ind.shape[0]), ind.shape[1]), ind.ravel())))
 
-        
         if latentSpace is not None:
             res = pd.read_csv(latentSpace, sep='\t', index_col=0).T
         else: 
