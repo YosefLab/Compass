@@ -1,0 +1,68 @@
+Compass version: 0.9.9.4
+Git commit: Not in Git repo
+Python Version:
+3.8.10 (default, Jun  2 2021, 10:49:15) 
+[GCC 9.4.0]
+Python prefix: /usr
+Numpy version: 1.20.2
+Pandas version: 1.2.4
+Supplied Arguments: 
+   data: ['/data/scratch/users/schel337/late_test/data_th17.tsv']
+   data_mtx: None
+   model: RECON2_mat
+   species: mus_musculus
+   media: None
+   output_dir: /data/scratch/users/schel337/late_test/microcluster
+   temp_dir: /data/scratch/users/schel337/late_test/microcluster/_tmp
+   torque_queue: None
+   num_processes: 20
+   lambda: 0
+   single_sample: None
+   transposed: False
+   sample_range: None
+   reaction_range: None
+   metabolite_range: None
+   generate_cache: False
+   test_mode: False
+   num_threads: 1
+   and_function: mean
+   select_reactions: None
+   select_subsystems: None
+   glucose: None
+   collect: False
+   config_file: None
+   num_neighbors: 30
+   symmetric_kernel: False
+   input_weights: None
+   penalty_diffusion: knn
+   no_reactions: False
+   calc_metabolites: False
+   precache: False
+   input_knn: None
+   input_knn_distances: None
+   output_knn: None
+   latent_space: None
+   only_penalties: None
+   example_inputs: None
+   microcluster_size: 10
+   microcluster_file: /data/scratch/users/schel337/late_test/microcluster/micropools.tsv
+   microcluster_data_file: /data/scratch/users/schel337/late_test/microcluster/micropooled_data.tsv
+   detailed_perf: False
+   penalties_file: 
+   lpmethod: 4
+   advance: 2
+   save_argmaxes: False
+   list_genes: None
+   list_reactions: None
+
+COMPASS Started: 2021-07-07 21:55:59.363587
+Partitioning dataset into microclusters of size 10
+Evaluating Reaction Penalties...
+Cache for model and media already built
+Processing 29 samples using 20 processes
+Progress bar will update once the first sample is finished
+Collecting results from: /data/scratch/users/schel337/late_test/microcluster/_tmp
+Writing output to: /data/scratch/users/schel337/late_test/microcluster
+COMPASS Completed Successfully
+
+Elapsed Time: 0:35:43.462092
