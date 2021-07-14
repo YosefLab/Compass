@@ -157,6 +157,10 @@
         </li>
     
         <li class="nav-item toc-entry toc-h2">
+            <a href="#analysis-of-microopools" class="nav-link">Analysis of Microopools</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
             <a href="#micropooling-settings" class="nav-link">Micropooling Settings</a>
         </li>
     
@@ -180,7 +184,8 @@
 <ul class="simple">
 <li><p><a class="reference internal" href="#using-micropooling" id="id1">Using Micropooling</a></p></li>
 <li><p><a class="reference internal" href="#example-of-micropooling" id="id2">Example of Micropooling</a></p></li>
-<li><p><a class="reference internal" href="#micropooling-settings" id="id3">Micropooling Settings</a></p></li>
+<li><p><a class="reference internal" href="#analysis-of-microopools" id="id3">Analysis of Microopools</a></p></li>
+<li><p><a class="reference internal" href="#micropooling-settings" id="id4">Micropooling Settings</a></p></li>
 </ul>
 </div>
 <p>To help the Compass algorithm scale to larger datasets we use micropooling/microclustering to aggregate samples into clusters which are analyzed with the Compass algorithm which can dramatically lower computational burdens.
@@ -209,8 +214,13 @@ The reactions.tsv file that is output will now be a table of reaction penalties 
 <p>Once the command has finished running, there should be 3 output files in the same directory the command was run: reactions.tsv, micropools.tsv, and micropooled_data.tsv.
 Reactions.tsv contains the penalties per reaction for each micropool, micropools.tsv contains the micropool assignments for each of the original samples, and micropooled_data.tsv contains the average gene expression for each micropool.</p>
 </div>
+<div class="section" id="analysis-of-microopools">
+<h2><a class="toc-backref" href="#id3">Analysis of Microopools</a><a class="headerlink" href="#analysis-of-microopools" title="Permalink to this headline">¶</a></h2>
+<p>As the samples are now aggregated into pools, analysis of differential reaction scores requires one extra step of analyzing what cell types make up each pool. The micropools.tsv file in the output directory will contain a table of samples and their respective clusters.
+For an example of this, we provide another python notebook  <a class="reference external" href="https://github.com/YosefLab/Compass/blob/analysis/analysis/Demo-micropools.ipynb">here</a>.</p>
+</div>
 <div class="section" id="micropooling-settings">
-<h2><a class="toc-backref" href="#id3">Micropooling Settings</a><a class="headerlink" href="#micropooling-settings" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id4">Micropooling Settings</a><a class="headerlink" href="#micropooling-settings" title="Permalink to this headline">¶</a></h2>
 <p>Micropooling also works with precomputed k-nearest neighbors and/or a latent space to cluster samples on.
 The code is designed for specifying k-nearest neighbors using the results from scikit-learn’s nearest neighbors algorithm, which are an array of indices and an array of distances, possibly wrapped in a Pandas dataframe so that rows can be indexed by sample name.</p>
 <p>For the k-nearest neighbors step, if there are specified k-nearest neighbors indices but not distances, the distances will be computed using the latent space (or raw gene expression if no latent space is specified).

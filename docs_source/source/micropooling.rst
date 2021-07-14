@@ -37,6 +37,11 @@ As in the tutorial, to use microclustering first open a command line in a direct
 Once the command has finished running, there should be 3 output files in the same directory the command was run: reactions.tsv, micropools.tsv, and micropooled_data.tsv. 
 Reactions.tsv contains the penalties per reaction for each micropool, micropools.tsv contains the micropool assignments for each of the original samples, and micropooled_data.tsv contains the average gene expression for each micropool.
 
+Analysis of Microopools
+***********************
+As the samples are now aggregated into pools, analysis of differential reaction scores requires one extra step of analyzing what cell types make up each pool. The micropools.tsv file in the output directory will contain a table of samples and their respective clusters.
+For an example of this, we provide another python notebook  `here <https://github.com/YosefLab/Compass/blob/analysis/analysis/Demo-micropools.ipynb>`__.
+
 Micropooling Settings
 *********************
 Micropooling also works with precomputed k-nearest neighbors and/or a latent space to cluster samples on. 
