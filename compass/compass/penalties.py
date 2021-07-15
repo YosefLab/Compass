@@ -57,7 +57,7 @@ def eval_reaction_penalties(expression_file, model, media,
     latent_input = args['latent_space']
 
     expression = utils.read_data(expression_file) #pd.read_csv(expression_file, sep='\t', index_col=0)
-    expression.index = expression.index.str.upper()  # Gene names to upper
+    expression.index = expression.index.astype('str').str.upper()  # Gene names to upper
 
     # If genes exist with duplicate symbols
     # Need to aggregate them out
@@ -327,7 +327,7 @@ def sample_weights_knn(data_df, num_neighbors, input_knn=None, output_knn=None):
 
 def compute_knn(args):
     expression = utils.read_data(args['data'])
-    expression.index = expression.index.str.upper()  # Gene names to upper
+    expression.index = expression.index.astype('str').str.upper()  # Gene names to upper
 
     # If genes exist with duplicate symbols
     # Need to aggregate them out
