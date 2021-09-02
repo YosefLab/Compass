@@ -31,6 +31,8 @@ release = '2021'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'nbsphinx',
+    'nbsphinx_link'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -53,3 +55,31 @@ html_theme = 'pydata_sphinx_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+#Adds blurb to open in google collab automatically
+nbsphinx_prolog = r"""
+.. raw:: html
+
+{{% set docname = env.doc2path(env.docname, base=None).split("/")[-1] %}}
+
+.. raw:: html
+
+    <style>
+        p {{
+            margin-bottom: 0.5rem;
+        }}
+    </style>
+
+.. raw:: html
+
+    <div class="admonition note">
+        <p class="admonition-title">Note</p>
+        <p>
+        This page was generated from
+        <a class="reference external" href="https://github.com/YosefLab/Compass/tree/master/docs_source/source">{docname}</a>.
+        Interactive online version:
+        <span style="white-space: nowrap;"><a href="https://colab.research.google.com/YosefLab/Compass/tree/master/docs_source/source{docname}"><img alt="Colab badge" src="https://colab.research.google.com/assets/colab-badge.svg" style="vertical-align:text-bottom"></a>.</span>
+        </p>
+    </div>
+""".format(docname="{{ docname|e }}"
+)

@@ -1,6 +1,14 @@
 Compass Postprocessing
 ======================
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Contents:
+   :titlesonly:
+
+   notebooks/Demo
+   notebooks/Demo-micropools
+
 To demonstrate downstream analysis (postprocessing) of Compass results, we provide a python notebook  `here <https://github.com/YosefLab/Compass/blob/analysis/analysis/Demo.ipynb>`__.
 The notebook demonstrates a differential analysis pipeline comparing two groups of cells and replicates figures from our  `paper
 <https://doi.org/10.1016/j.cell.2021.05.045>`__ paper analyzing Th17 cell metabolism.
