@@ -450,9 +450,8 @@ div.rendered_html tbody tr:hover {
     <p class="admonition-title">Note</p>
     <p>
     This page was generated from
-    <a class="reference external" href="https://github.com/YosefLab/Compass/tree/master/docs_source/source">notebooks\Demo-micropools.nblink</a>.
-    Interactive online version:
-    <span style="white-space: nowrap;"><a href="https://colab.research.google.com/YosefLab/Compass/tree/master/docs_source/sourcenotebooks\Demo-micropools.nblink"><img alt="Colab badge" src="https://colab.research.google.com/assets/colab-badge.svg" style="vertical-align:text-bottom"></a>.</span>
+    <a class="reference external" href="https://github.com/YosefLab/Compass/blob/docs/notebooks\Demo-micropools.ipynb">notebooks\Demo-micropools.ipynb</a>.
+    To access the notebook you can clone the branch with git clone https://github.com/YosefLab/Compass.git --branch docs
     </p>
 </div><div class="section" id="Compass-Micropooled-Analysis">
 <h1>Compass Micropooled Analysis<a class="headerlink" href="#Compass-Micropooled-Analysis" title="Permalink to this headline">¶</a></h1>
@@ -486,7 +485,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">cell_md</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;extdata/Th17/cell_metadata.csv&quot;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">reactions</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;extdata/Th17-micropooled/reactions.tsv&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">reaction_penalties</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;extdata/Th17-micropooled/reactions.tsv&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">micropools</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;extdata/Th17-micropooled/micropools.tsv&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -590,9 +589,19 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 </div>
-<p>This now gives a metadata to use when determining what each cluster represents, analgous to the regular cell metadata.</p>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">micropool_md</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s2">&quot;extdata/Th17-micropooled/cluster_metadata.csv&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>This now gives a metadata to use when determining what each cluster represents, analgous to the regular cell metadata. Then the data can be analyzed as you would a regular dataset.</p>
+<p>For the <a class="reference external" href="https://github.com/YosefLab/Compass/blob/docs/notebooks/Demo.ipynb">python notebook</a> we demonstrate an analysis of Compass results with, this can be dome simply by changing the input files. Replace “extdata/Th17/reactions.tsv” with “extdata/Th17-micropooled/reactions.tsv” and “extdata/Th17/cell_metadata.csv” with “extdata/Th17-micropooled/cluster_metadata.csv”.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -601,7 +610,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">

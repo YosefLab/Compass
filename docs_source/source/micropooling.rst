@@ -40,7 +40,7 @@ Reactions.tsv contains the penalties per reaction for each micropool, micropools
 Analysis of Microopools
 ***********************
 As the samples are now aggregated into pools, analysis of differential reaction scores requires one extra step of analyzing what cell types make up each pool. The micropools.tsv file in the output directory will contain a table of samples and their respective clusters.
-For an example of this, we provide another python notebook  `here <https://github.com/YosefLab/Compass/blob/analysis/analysis/Demo-micropools.ipynb>`__.
+For an example of this, we provide another :doc:`python notebook <notebooks/Demo-micropools>`.
 
 Micropooling Settings
 *********************

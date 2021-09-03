@@ -20,15 +20,18 @@ If Numpy is not installed, you can install it with
 
 .. code:: bash
 
-   pip install numpy
+   python -m pip install numpy
    
 This needs to be installed before the other requirements because a C extension needs the location of numpy headers to compile.
+
+.. note::
+   Accessing pip through python -m pip is done to emphasize that on systems with multiple python installations (e.g. python 2.7 and python 3.6) Compass and Cplex must be installed to the same version of python. It is otherwise identical to just using pip. Using sudo can also invoke a different version of python depending on your environment.
 
 Then simplest way to install Compass is using pip to install from the github repository. This can be done with the following command in the terminal:
 
 .. code:: bash
 
-   pip install git+https://github.com/yoseflab/Compass.git --upgrade
+   python -m pip install git+https://github.com/yoseflab/Compass.git --upgrade
 
 This command will also update Compass to the newest version. Alternatively, you can clone the Compass repository and run setup.py.
 
@@ -39,7 +42,6 @@ Now to test if everything is installed, simply run:
    compass -h
 
 You should see the help text print out if installation was succesful :) For more details on how to use Compass you can visit our :doc:`tutorial <tutorial>`.
-
 
 .. _cplex-install:
 
@@ -93,6 +95,9 @@ installer by running the following commands:
 
 First install Java (required by CPLEX) if you haven’t already done so.
 
+.. note::
+   You may not require sudo for the following two commands depending on your environment. Given the packages install without errors, Compass should function fine.
+
 .. code:: bash
 
    sudo apt-get install default-jre
@@ -121,7 +126,11 @@ do this, run these commands:
 .. code:: bash
 
    cd /opt/ibm/ILOG/CPLEX_Studio129/cplex/python/3.6/x86-64_linux
-   sudo python3 setup.py install
+   python setup.py install
+
+.. note::
+   Note that this must install to the same version of python as Compass has/will be installed to. Otherwise Compass will be unable to import the Cplex python API.
+
 
 If all is good, cplex will be installed! To test this simply open a
 python instance and run the following command

@@ -217,12 +217,16 @@
 <div class="section" id="installing-compass">
 <h2><a class="toc-backref" href="#id2">Installing Compass</a><a class="headerlink" href="#installing-compass" title="Permalink to this headline">¶</a></h2>
 <p>If Numpy is not installed, you can install it with</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install numpy
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -m pip install numpy
 </pre></div>
 </div>
 <p>This needs to be installed before the other requirements because a C extension needs the location of numpy headers to compile.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Accessing pip through python -m pip is done to emphasize that on systems with multiple python installations (e.g. python 2.7 and python 3.6) Compass and Cplex must be installed to the same version of python. It is otherwise identical to just using pip. Using sudo can also invoke a different version of python depending on your environment.</p>
+</div>
 <p>Then simplest way to install Compass is using pip to install from the github repository. This can be done with the following command in the terminal:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install git+https://github.com/yoseflab/Compass.git --upgrade
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -m pip install git+https://github.com/yoseflab/Compass.git --upgrade
 </pre></div>
 </div>
 <p>This command will also update Compass to the newest version. Alternatively, you can clone the Compass repository and run setup.py.</p>
@@ -272,6 +276,10 @@ and follow the instructions there.</p>
 <p>Once the file has been transferred, on the Ubuntu instance, execute the
 installer by running the following commands:</p>
 <p>First install Java (required by CPLEX) if you haven’t already done so.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You may not require sudo for the following two commands depending on your environment. Given the packages install without errors, Compass should function fine.</p>
+</div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt-get install default-jre
 </pre></div>
 </div>
@@ -293,8 +301,12 @@ with
 <p>Lastly, we need to install the Python module that comes with cplex. To
 do this, run these commands:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> /opt/ibm/ILOG/CPLEX_Studio129/cplex/python/3.6/x86-64_linux
-sudo python3 setup.py install
+python setup.py install
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Note that this must install to the same version of python as Compass has/will be installed to. Otherwise Compass will be unable to import the Cplex python API.</p>
 </div>
 <p>If all is good, cplex will be installed! To test this simply open a
 python instance and run the following command</p>
