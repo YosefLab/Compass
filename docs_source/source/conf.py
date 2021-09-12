@@ -83,7 +83,8 @@ nbsphinx_prolog = r"""
         <p>
         This page was generated from
         <a class="reference external" href="https://github.com/YosefLab/Compass/blob/docs/{docname}">{docname}</a>.
-        To access the notebook you can clone the branch with git clone https://github.com/YosefLab/Compass.git --branch docs
+         Interactive online version:
+        <span style="white-space: nowrap;"><a href="https://colab.research.google.com/github/YosefLab/Compass/blob/docs/{docname}"><img alt="Colab badge" src="https://colab.research.google.com/assets/colab-badge.svg" style="vertical-align:text-bottom"></a>.</span>
         </p>
     </div>
 """.format(docname="{{ docname|e }}"

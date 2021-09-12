@@ -476,27 +476,45 @@ div.rendered_html tbody tr:hover {
     <p>
     This page was generated from
     <a class="reference external" href="https://github.com/YosefLab/Compass/blob/docs/notebooks\Demo.ipynb">notebooks\Demo.ipynb</a>.
-    To access the notebook you can clone the branch with git clone https://github.com/YosefLab/Compass.git --branch docs
+     Interactive online version:
+    <span style="white-space: nowrap;"><a href="https://colab.research.google.com/github/YosefLab/Compass/blob/docs/notebooks\Demo.ipynb"><img alt="Colab badge" src="https://colab.research.google.com/assets/colab-badge.svg" style="vertical-align:text-bottom"></a>.</span>
     </p>
 </div><div class="section" id="Compass-Analysis">
 <h1>Compass Analysis<a class="headerlink" href="#Compass-Analysis" title="Permalink to this headline">¶</a></h1>
 <p>This notebook gives a small demo of analyzing the results of the compass algorithm and replicates figures 2E and 2C from the paper.</p>
-<p>To install the required python packages, you can uncomment the lines below.</p>
+<p>To install the required python packages, you can uncomment the “install_reqs()” call.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="ch">#!pip install pandas</span>
-<span class="c1">#!pip install &quot;matplotlib&gt;=3.4&quot;</span>
-<span class="c1">#!pip install numpy</span>
-<span class="c1">#!pip install statsmodels</span>
-<span class="c1">#!pip install scipy</span>
+<span></span><span class="k">def</span> <span class="nf">install_reqs</span><span class="p">():</span>
+  <span class="o">!</span>pip install pandas
+  <span class="o">!</span>pip install <span class="s2">&quot;matplotlib&gt;=3.4&quot;</span>
+  <span class="o">!</span>pip install numpy
+  <span class="o">!</span>pip install statsmodels
+  <span class="o">!</span>pip install scipy
+<span class="c1">#install_reqs()</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="k">if</span> <span class="s2">&quot;google.colab&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
+  <span class="o">!</span>git clone -b docs https://github.com/YosefLab/Compass.git --depth <span class="m">1</span>
+  <span class="o">!</span>cp -r Compass/notebooks/extdata ./
+  <span class="o">!</span>cp /content/Compass/notebooks/compass_analysis.py /content/compass_analysis.py
+  <span class="o">!</span>rm -r /content/Compass
+  <span class="n">install_reqs</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -508,7 +526,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -520,7 +538,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>The file “extdata/Th17/reactions.tsv” is the outputs of a compass run and “extdata/Th17/cell_metadata.csv” is cell metadata, in this case it is only used to know the condition of the Th17 cells (pathogenic vs. non-pathogenic). Commented out are alternative files to use for a microcpooled example.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -530,7 +548,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -540,7 +558,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -553,7 +571,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>The reaction metadata for RECON2 is stored here. We’ll be using the confidence scores and the subsystem groupings to filter out reactions and group them for analysis.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -563,7 +581,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>Here is one example of a row for the reaction metadata:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -572,7 +590,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -627,7 +645,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>The numbers in the reactions tsv correspond to penalties for each reaction per cell, so we take the negative log to get scores that are higher the more active the reaction is predicted to be. This also drops reactions that are close to constant and therefore not informative for the comparison.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -644,7 +662,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -654,7 +672,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>We use the unpaired Wilcoxon rank-sum test (equivlanet to the Mann–Whitney U test) to analyze which reactions are predicted to be more active in pathogenic Th17p cells compared to the non-pathogenic Th17n cells. Positive values indicate higher potential activity in Th17p.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -672,7 +690,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>Next we join the metadata to the reactions in a new dataframe W, so that we can filter out non-core reactions. More specifically, we remove reactions with confidence other than 0 or 4 (4 = most confident; 0 = unassigned confidence) and filter out reactions in the citric acid cycle subsystem which are outside of the mitochondria.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -686,7 +704,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>Here is one example of a row of the reuslting dataframe for a reaction:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -695,7 +713,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -739,7 +757,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>The “_neg” or “_pos” suffixes indicate one direction of a bidirectional reaction. The “_pos” direction indicates positive flux through the reaction. For this example reaction it indicates water, oxygen, and putrescine are being consumed by this reaction to produce ammonium, hyrodgen peroxide, and 4-Aminobutanal.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -748,7 +766,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -763,7 +781,7 @@ div.rendered_html tbody tr:hover {
 <div class="section" id="Figure-2C-replication">
 <h2>Figure 2C replication<a class="headerlink" href="#Figure-2C-replication" title="Permalink to this headline">¶</a></h2>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -797,7 +815,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -809,29 +827,12 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">data</span> <span class="o">=</span> <span class="n">W</span><span class="p">[</span><span class="n">W</span><span class="p">[</span><span class="s1">&#39;subsystem&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Glycolysis/gluconeogenesis&quot;</span><span class="p">]</span>
 <span class="n">plot_differential_scores</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Glycolysis&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;#695D73&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/notebooks_Demo_29_0.png" src="../_images/notebooks_Demo_29_0.png" />
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">data</span> <span class="o">=</span> <span class="n">W</span><span class="p">[</span><span class="n">W</span><span class="p">[</span><span class="s1">&#39;subsystem&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Citric acid cycle&quot;</span><span class="p">]</span>
-<span class="n">plot_differential_scores</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;TCA Cycle&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;#D3A991&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -847,9 +848,8 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">data</span> <span class="o">=</span> <span class="n">W</span><span class="p">[</span><span class="n">W</span><span class="p">[</span><span class="s1">&#39;subsystem&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">amino_acid_metab</span><span class="p">)]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-<span class="n">data</span><span class="p">[</span><span class="s1">&#39;adjusted_pval&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;adjusted_pval&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mf">1e-12</span><span class="p">)</span>
-<span class="n">plot_differential_scores</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;Amino Acid Metabolism&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;#BF1E2E&quot;</span><span class="p">)</span>
+<span></span><span class="n">data</span> <span class="o">=</span> <span class="n">W</span><span class="p">[</span><span class="n">W</span><span class="p">[</span><span class="s1">&#39;subsystem&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Citric acid cycle&quot;</span><span class="p">]</span>
+<span class="n">plot_differential_scores</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;TCA Cycle&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;#D3A991&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -865,8 +865,9 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">data</span> <span class="o">=</span> <span class="n">W</span><span class="p">[</span><span class="n">W</span><span class="p">[</span><span class="s1">&#39;subsystem&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Fatty acid oxidation&quot;</span><span class="p">]</span>
-<span class="n">plot_differential_scores</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;Fatty Acid Oxidation&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;#040772&quot;</span><span class="p">)</span>
+<span></span><span class="n">data</span> <span class="o">=</span> <span class="n">W</span><span class="p">[</span><span class="n">W</span><span class="p">[</span><span class="s1">&#39;subsystem&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">amino_acid_metab</span><span class="p">)]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;adjusted_pval&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;adjusted_pval&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mf">1e-12</span><span class="p">)</span>
+<span class="n">plot_differential_scores</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;Amino Acid Metabolism&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;#BF1E2E&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -877,11 +878,28 @@ div.rendered_html tbody tr:hover {
 <img alt="../_images/notebooks_Demo_32_0.png" src="../_images/notebooks_Demo_32_0.png" />
 </div>
 </div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">data</span> <span class="o">=</span> <span class="n">W</span><span class="p">[</span><span class="n">W</span><span class="p">[</span><span class="s1">&#39;subsystem&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Fatty acid oxidation&quot;</span><span class="p">]</span>
+<span class="n">plot_differential_scores</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;Fatty Acid Oxidation&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s2">&quot;#040772&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_Demo_33_0.png" src="../_images/notebooks_Demo_33_0.png" />
+</div>
+</div>
 </div>
 <div class="section" id="Figure-2E-replication">
 <h2>Figure 2E replication<a class="headerlink" href="#Figure-2E-replication" title="Permalink to this headline">¶</a></h2>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -894,7 +912,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -911,7 +929,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -923,7 +941,7 @@ Text(0.5, 0, &#34;Cohen&#39;s d&#34;)
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/notebooks_Demo_35_1.png" src="../_images/notebooks_Demo_35_1.png" />
+<img alt="../_images/notebooks_Demo_36_1.png" src="../_images/notebooks_Demo_36_1.png" />
 </div>
 </div>
 </div>
@@ -931,7 +949,7 @@ Text(0.5, 0, &#34;Cohen&#39;s d&#34;)
 <h2>Metareactions<a class="headerlink" href="#Metareactions" title="Permalink to this headline">¶</a></h2>
 <p>The following section analyzes the the results by clustering the reactions into metareactions, matching with the manuscript as closely as possible (upto Python vs R). It will be repeating the previous analysis for the clustered reactions instead of single reactions.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -943,7 +961,7 @@ Text(0.5, 0, &#34;Cohen&#39;s d&#34;)
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -953,7 +971,7 @@ Text(0.5, 0, &#34;Cohen&#39;s d&#34;)
 </div>
 <p>We group reactions into metareactions using heirarchical clustering as detailed in the manuscript.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -963,7 +981,7 @@ Text(0.5, 0, &#34;Cohen&#39;s d&#34;)
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -972,7 +990,7 @@ Text(0.5, 0, &#34;Cohen&#39;s d&#34;)
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -982,7 +1000,7 @@ Text(0.5, 0, &#34;Cohen&#39;s d&#34;)
 </div>
 <p>Now each row of the dataframe contains the results of the statistical tests for each metareaction:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -991,7 +1009,7 @@ Text(0.5, 0, &#34;Cohen&#39;s d&#34;)
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -1040,7 +1058,7 @@ Text(0.5, 0, &#34;Cohen&#39;s d&#34;)
 </div>
 <p>Next the metareaction results dataframe is expanded out to each reaction that makes up the metareactions so that the metadata can be joined to it and used to generate plots.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1053,7 +1071,7 @@ Text(0.5, 0, &#34;Cohen&#39;s d&#34;)
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1070,7 +1088,7 @@ Text(0.5, 0, &#34;Cohen&#39;s d&#34;)
 </div>
 <p>Now each row contains information on a single reaction:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1079,7 +1097,7 @@ Text(0.5, 0, &#34;Cohen&#39;s d&#34;)
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -1123,7 +1141,7 @@ Text(0.5, 0, &#34;Cohen&#39;s d&#34;)
 </div>
 <p>To generate the following figures with the metareactions, simply uncomment the cell below and run it. Then you can generate the figures with the previous cells for <a class="reference external" href="#Figure-2C-replication">Figure 2C replication</a> and <a class="reference external" href="#Figure-2E-replication">Figure 2E replication</a> using the metareaction based data.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>

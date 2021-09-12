@@ -451,19 +451,21 @@ div.rendered_html tbody tr:hover {
     <p>
     This page was generated from
     <a class="reference external" href="https://github.com/YosefLab/Compass/blob/docs/notebooks\Demo-micropools.ipynb">notebooks\Demo-micropools.ipynb</a>.
-    To access the notebook you can clone the branch with git clone https://github.com/YosefLab/Compass.git --branch docs
+     Interactive online version:
+    <span style="white-space: nowrap;"><a href="https://colab.research.google.com/github/YosefLab/Compass/blob/docs/notebooks\Demo-micropools.ipynb"><img alt="Colab badge" src="https://colab.research.google.com/assets/colab-badge.svg" style="vertical-align:text-bottom"></a>.</span>
     </p>
 </div><div class="section" id="Compass-Micropooled-Analysis">
 <h1>Compass Micropooled Analysis<a class="headerlink" href="#Compass-Micropooled-Analysis" title="Permalink to this headline">¶</a></h1>
-<p>To install the required python packages, you can uncomment the lines below</p>
+<p>To install the required python packages, you can uncomment the “install_reqs()” call.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="ch">#!pip install pandas</span>
-<span class="c1">#!pip install &quot;matplotlib&gt;=3.4&quot;</span>
-<span class="c1">#!pip install numpy</span>
+<span></span><span class="k">def</span> <span class="nf">install_reqs</span><span class="p">():</span>
+    <span class="o">!</span>pip install pandas
+    <span class="o">!</span>pip install numpy
+<span class="c1">#install_reqs()</span>
 </pre></div>
 </div>
 </div>
@@ -472,15 +474,28 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="k">if</span> <span class="s2">&quot;google.colab&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
+  <span class="o">!</span>git clone -b docs https://github.com/YosefLab/Compass.git --depth <span class="m">1</span>
+  <span class="o">!</span>cp -r Compass/notebooks/extdata ./
+  <span class="o">!</span>rm -r /content/Compass
+  <span class="n">install_reqs</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 </pre></div>
 </div>
 </div>
 <p>This notebook demonstrates how to analyze the results of Compass when micropooled. In particular, how to determine what cell type each cluster/pool represents.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -491,7 +506,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -506,7 +521,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -526,7 +541,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>This gives percentage of the clusters that are Th17p or Th17n. In this case, all of the clusters are one cell type or the other. Then you can apply the regular analysis to the micropooled data and treat each cluster as being the predominant cell type.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -535,7 +550,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -573,7 +588,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>For dataset the micropooling worked very well and every single pool/cluster is only composed of one cell type. For others you may want to set a cutoff such as 90 percent used in the code below.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -590,7 +605,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -601,7 +616,7 @@ div.rendered_html tbody tr:hover {
 <p>This now gives a metadata to use when determining what each cluster represents, analgous to the regular cell metadata. Then the data can be analyzed as you would a regular dataset.</p>
 <p>For the <a class="reference external" href="https://github.com/YosefLab/Compass/blob/docs/notebooks/Demo.ipynb">python notebook</a> we demonstrate an analysis of Compass results with, this can be dome simply by changing the input files. Replace “extdata/Th17/reactions.tsv” with “extdata/Th17-micropooled/reactions.tsv” and “extdata/Th17/cell_metadata.csv” with “extdata/Th17-micropooled/cluster_metadata.csv”.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -610,7 +625,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
