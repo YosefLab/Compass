@@ -11,7 +11,7 @@ Its development was motivated by the challenge in characterizing the metabolic s
 cells based on transcriptome data, which is readily available even in
 single cell resolutions. 
 
-For a detailed description of the algorithm, refer to Wagner et al., *Cell* 2021 (
+For a detailed description of the algorithm, refer to Wagner et al., *Cell* 2021 
 (`link <https://doi.org/10.1016/j.cell.2021.05.045>`__). Code is available on our lab's GitHub page (`link <https://github.com/YosefLab/Compass>`__).
 
 These pages have guides on how to install and use Compass, including a walkthrough of an analysis to replicate figures from the manuscript.
