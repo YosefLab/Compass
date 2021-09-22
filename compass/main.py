@@ -57,7 +57,7 @@ def parseArgs():
     parser.add_argument("--model", help="Metabolic Model to Use."
                         " Currently supporting: RECON1_mat, RECON2_mat, or RECON2.2",
                         default="RECON2_mat",
-                        choices=["RECON1_mat", "RECON2_mat", "RECON2.2"],
+                        choices=["RECON1_mat", "RECON2_mat", "RECON2.2", "RECON3"],
                         metavar="MODEL")
 
     parser.add_argument("--species",
@@ -535,6 +535,20 @@ def entry():
         logger.debug("\nElapsed Time: {}".format(end_time-start_time))
         return
 
+    #Check if the cache for (model, media) exists already:
+    size_of_cache = len(cache.load(init_model(model=args['model'], species=args['species'],
+                    exchange_limit=globals.EXCHANGE_LIMIT,
+                    media=args['media']), args['media']))
+    if size_of_cache == 0 or args['precache']:
+        logger.info("Building up model cache")
+        precacheCompass(args=args)
+        end_time = datetime.datetime.now()
+        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
+        if not args['data']:
+            return
+    else:
+        logger.info("Cache for model and media already built")
+
     # Time to evaluate the reaction expression
     success_token = os.path.join(args['temp_dir'], 'success_token_penalties')
     penalties_file = os.path.join(args['temp_dir'], 'penalties.txt.gz')
@@ -553,20 +567,6 @@ def entry():
     args['penalties_file'] = penalties_file
     if args['only_penalties']:
         return
-
-    #Check if the cache for (model, media) exists already:
-    size_of_cache = len(cache.load(init_model(model=args['model'], species=args['species'],
-                    exchange_limit=globals.EXCHANGE_LIMIT,
-                    media=args['media']), args['media']))
-    if size_of_cache == 0 or args['precache']:
-        logger.info("Building up model cache")
-        precacheCompass(args=args)
-        end_time = datetime.datetime.now()
-        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
-        if not args['data']:
-            return
-    else:
-        logger.info("Cache for model and media already built")
 
     # Now run the individual cells through cplex in parallel
     # This is either done by sending to Torque queue, or running on the
@@ -839,30 +839,46 @@ def precacheCompass(args):
 
     n_processes = args['num_processes'] #max(1, args['num_processes'] - 1) #for later multithreading
     n_reactions = len(model.reactions.values())
-    chunk_size = int(ceil(n_reactions / n_processes))
-    chunks = [(i*chunk_size, min(n_reactions, (i+1)*chunk_size)) for i in range(n_processes)]
-
-    combined_cache = {}
-    partial_map_fun = partial(_parallel_map_precache_reactions, args=args)
-    pool = multiprocessing.Pool(n_processes)
-    for sub_cache in pool.imap_unordered(partial_map_fun, chunks):
-        combined_cache.update(sub_cache)
-
+    # Not all metabolites in the model are neccesarily involved in reactions
+    # This allows for generating the cache only for neccesary metabolites
     problem = initialize_cplex_problem(model, args['num_threads'], args['lpmethod'])
     n_metabs = len(problem.linear_constraints.get_names())
-    chunk_size = int(ceil(n_metabs / n_processes))
-    chunks = [(i*chunk_size, min(n_metabs, (i+1)*chunk_size)) for i in range(n_processes)]
+    
+    if n_processes > 1:
+        reaction_chunk_size = int(ceil(n_reactions / n_processes))
+        reaction_chunks = [(i*reaction_chunk_size, min(n_reactions, (i+1)*reaction_chunk_size)) for i in range(n_processes)]
 
-    partial_map_fun = partial(_parallel_map_precache_metabs, args=args)
-    pool = multiprocessing.Pool(n_processes)
-    for sub_cache in pool.imap_unordered(partial_map_fun, chunks):
-        combined_cache.update(sub_cache)
+        combined_cache = {}
+        partial_map_fun = partial(_parallel_map_precache_reactions, args=args)
+        pool = multiprocessing.Pool(n_processes)
+        for sub_cache in pool.imap_unordered(partial_map_fun, reaction_chunks):
+            combined_cache.update(sub_cache)
+        
+        metab_chunk_size = int(ceil(n_metabs / n_processes))
+        metab_chunks = [(i*metab_chunk_size, min(n_metabs, (i+1)*metab_chunk_size)) for i in range(n_processes)]
 
-    #cache.clear(model) TBD? don't want all the time
-    model_cache = cache.load(model)
-    model_cache.update(combined_cache)
-    #model_cache['dfs_reaction_order'] = lst
-    cache.save(model) 
+        partial_map_fun = partial(_parallel_map_precache_metabs, args=args)
+        pool = multiprocessing.Pool(n_processes)
+        for sub_cache in pool.imap_unordered(partial_map_fun, metab_chunks):
+            combined_cache.update(sub_cache)
+
+        cache.clear(model)
+        model_cache = cache.load(model)
+        model_cache.update(combined_cache)
+        cache.save(model) 
+    else:
+
+        metab_cache = maximize_metab_range((0, n_metabs), args)
+        reaction_cache = maximize_reaction_range((0, n_reactions), args)
+        cache.clear(model)
+        model_cache = cache.load(model)
+        model_cache.update(reaction_cache)
+        model_cache.update(metab_cache)
+        cache.save(model) 
+
+
+
+    
     
 
 
