@@ -727,7 +727,6 @@ def maximize_metab_range(start_stop, args):
 
     metabolites = sorted(list(model.species.values()), key=lambda r:r.id)[start_stop[0]:start_stop[1]]
 
-
     all_names = set(problem.linear_constraints.get_names())
 
     for metabolite in tqdm(metabolites, file=sys.stderr):
@@ -858,7 +857,7 @@ def maximize_metab_range(start_stop, args):
         for rxn_id in extra_uptake_rxns:
             old_ub = problem.variables.get_upper_bounds(rxn_id)
             old_uptake_upper[rxn_id] = old_ub
-            problem.variables.set_upper_bounds(0.0)
+            problem.variables.set_upper_bounds(rxn_id, 0.0)
 
         # Close all secretion
         old_secretion_upper = {}
