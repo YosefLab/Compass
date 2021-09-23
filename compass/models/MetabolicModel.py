@@ -503,10 +503,18 @@ class Association(object):
                     )
 
         elif self.type == 'or':
-            return or_function(
-                    [x.eval_expression(expression, and_function, or_function)
-                     for x in self.children]
-                    )
+            #Only counts isoforms of the same gene once if they are OR'd together
+            seen_genes = set()
+            child_expressions = []
+            for x in self.children:
+                if x.type == 'gene' and '.' in x.gene.id:
+                    gene_id = x.gene.id.split('.')[0]
+                    if gene_id not in seen_genes:
+                        seen_genes.add(gene_id)
+                        child_expressions.append(x.eval_expression(expression, and_function, or_function))
+                else:
+                    child_expressions.append(x.eval_expression(expression, and_function, or_function))
+            return or_function(child_expressions)
 
         elif self.type == 'gene':
 
