@@ -257,10 +257,11 @@ def parseArgs():
                         help=argparse.SUPPRESS)
 
     #Removes potential inflation of expression by isoforms
-    parser.add_argument("isoform-summing", 
+    parser.add_argument("--isoform-summing", 
                         choices=['legacy', 'remove-summing'],
-                        default = "legacy",
-                        help="Flag to stop isoforms of the same gene being summed/OR'd together (removes-summing) or kept (legacy). Defaults to legacy")
+                        default='legacy', 
+                        metavar="MODE",
+                        help="Flag to stop isoforms of the same gene being summed/OR'd together (remove-summing) or kept (legacy). Defaults to legacy")
                         
     #Argument to output the list of needed genes to a file
     parser.add_argument("--list-genes", default=None, metavar="FILE",

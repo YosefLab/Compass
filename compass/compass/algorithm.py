@@ -62,7 +62,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
         args['save_argmaxes_dir'] = None
 
     model = models.init_model(model=args['model'], species=args['species'],
-                       exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
+                       exchange_limit=EXCHANGE_LIMIT, media=args['media'], 
                        isoform_summing=args['isoform_summing'])
 
     logger.info("Running COMPASS on model: %s", model.name)
@@ -676,7 +676,7 @@ def maximize_reaction_range(start_stop, args):
     #make a sub cache for each thread to write into
     sub_cache = {}
     model = models.init_model(model=args['model'], species=args['species'],
-                       exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
+                       exchange_limit=EXCHANGE_LIMIT, media=args['media'], 
                        isoform_summing=args['isoform_summing'])
     problem = initialize_cplex_problem(model, args['num_threads'], args['lpmethod'])
 
@@ -723,7 +723,7 @@ def maximize_metab_range(start_stop, args):
     """
     sub_cache = {}
     model = models.init_model(model=args['model'], species=args['species'],
-                       exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
+                       exchange_limit=EXCHANGE_LIMIT, media=args['media'], 
                        isoform_summing=args['isoform_summing'])
     problem = initialize_cplex_problem(model, args['num_threads'], args['lpmethod'])
 
