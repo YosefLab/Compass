@@ -63,7 +63,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
 
     model = models.init_model(model, species=args['species'],
                               exchange_limit=EXCHANGE_LIMIT,
-                              media=media)
+                              media=media, remove_isoform_summing=args['remove_isoform_summing'])
 
     logger.info("Running COMPASS on model: %s", model.name)
 
@@ -336,14 +336,16 @@ def compass_exchange(model, problem, reaction_penalties, only_exchange=False, pe
         for rxn_id in all_uptake:
             old_ub = problem.variables.get_upper_bounds(rxn_id)
             old_uptake_upper[rxn_id] = old_ub
-            problem.variables.set_upper_bounds(rxn_id, 0.0)
+            old_lb = problem.variables.get_lower_bounds(rxn_id)
+            problem.variables.set_upper_bounds(rxn_id, max(old_lb, 0))
 
         # Close extra secretion, storing upper-bounds to restore later
         old_secretion_upper = {}
         for rxn_id in extra_secretion_rxns:
             old_ub = problem.variables.get_upper_bounds(rxn_id)
             old_secretion_upper[rxn_id] = old_ub
-            problem.variables.set_upper_bounds(rxn_id, 0.0)
+            old_lb = problem.variables.get_lower_bounds(rxn_id)
+            problem.variables.set_upper_bounds(rxn_id, max(old_lb, 0))
 
         # Get max of secretion reaction
         secretion_max = maximize_reaction(model, problem, secretion_rxn, perf_log=perf_log)
@@ -392,14 +394,16 @@ def compass_exchange(model, problem, reaction_penalties, only_exchange=False, pe
         for rxn_id in extra_uptake_rxns:
             old_ub = problem.variables.get_upper_bounds(rxn_id)
             old_uptake_upper[rxn_id] = old_ub
-            problem.variables.set_upper_bounds(0.0)
+            old_lb = problem.variables.get_lower_bounds(rxn_id)
+            problem.variables.set_upper_bounds(rxn_id, max(old_lb, 0))
 
         # Close all secretion
         old_secretion_upper = {}
         for rxn_id in all_secretion:
             old_ub = problem.variables.get_upper_bounds(rxn_id)
             old_secretion_upper[rxn_id] = old_ub
-            problem.variables.set_upper_bounds(rxn_id, 0.0)
+            old_lb = problem.variables.get_lower_bounds(rxn_id)
+            problem.variables.set_upper_bounds(rxn_id, max(old_lb, 0))
 
         # Get max of uptake reaction
         uptake_max = maximize_reaction(model, problem, uptake_rxn, perf_log=perf_log)
@@ -500,11 +504,10 @@ def compass_reactions(model, problem, reaction_penalties, perf_log=None, args = 
         if partner_reaction is not None:
             partner_id = partner_reaction.id
             old_partner_ub = problem.variables.get_upper_bounds(partner_id)
-            problem.variables.set_upper_bounds(partner_id, 0.0)
-
+            old_partner_lb = problem.variables.get_lower_bounds(partner_id)
+            problem.variables.set_upper_bounds(partner_id, max(old_partner_lb, 0))
         
         r_max = maximize_reaction(model, problem, reaction.id, perf_log=perf_log)
-        
 
         # If Reaction can't carry flux anyways, just continue
         if r_max == 0:
@@ -528,8 +531,6 @@ def compass_reactions(model, problem, reaction_penalties, perf_log=None, args = 
                 )
                 problem.objective.set_name('reaction_penalties')
                 problem.objective.set_sense(problem.objective.sense.minimize)
-            
-            
 
             if perf_log is not None:
                 #perf_log['blocked'][reaction.id] = False
@@ -690,7 +691,8 @@ def maximize_reaction_range(start_stop, args):
         if partner_reaction is not None:
             partner_id = partner_reaction.id
             old_partner_ub = problem.variables.get_upper_bounds(partner_id)
-            problem.variables.set_upper_bounds(partner_id, 0.0)
+            old_partner_lb = problem.variables.get_lower_bounds(partner_id)
+            problem.variables.set_upper_bounds(partner_id, max(old_partner_lb, 0))
 
         utils.reset_objective(problem)
         problem.objective.set_linear(reaction.id, 1.0)
@@ -819,14 +821,16 @@ def maximize_metab_range(start_stop, args):
         for rxn_id in all_uptake:
             old_ub = problem.variables.get_upper_bounds(rxn_id)
             old_uptake_upper[rxn_id] = old_ub
-            problem.variables.set_upper_bounds(rxn_id, 0.0)
+            old_lb = problem.variables.get_lower_bounds(rxn_id)
+            problem.variables.set_upper_bounds(rxn_id, max(old_lb, 0))
 
         # Close extra secretion, storing upper-bounds to restore later
         old_secretion_upper = {}
         for rxn_id in extra_secretion_rxns:
             old_ub = problem.variables.get_upper_bounds(rxn_id)
             old_secretion_upper[rxn_id] = old_ub
-            problem.variables.set_upper_bounds(rxn_id, 0.0)
+            old_lb = problem.variables.get_lower_bounds(rxn_id)
+            problem.variables.set_upper_bounds(rxn_id, max(old_lb, 0))
 
         # Get max of secretion reaction
         #secretion_max = maximize_reaction(model, problem, secretion_rxn)
@@ -857,14 +861,16 @@ def maximize_metab_range(start_stop, args):
         for rxn_id in extra_uptake_rxns:
             old_ub = problem.variables.get_upper_bounds(rxn_id)
             old_uptake_upper[rxn_id] = old_ub
-            problem.variables.set_upper_bounds(rxn_id, 0.0)
+            old_lb = problem.variables.get_lower_bounds(rxn_id)
+            problem.variables.set_upper_bounds(rxn_id, max(old_lb, 0))
 
         # Close all secretion
         old_secretion_upper = {}
         for rxn_id in all_secretion:
             old_ub = problem.variables.get_upper_bounds(rxn_id)
             old_secretion_upper[rxn_id] = old_ub
-            problem.variables.set_upper_bounds(rxn_id, 0.0)
+            old_lb = problem.variables.get_lower_bounds(rxn_id)
+            problem.variables.set_upper_bounds(rxn_id, max(old_lb, 0))
 
         # Get max of uptake reaction
         #uptake_max = maximize_reaction(model, problem, uptake_rxn)

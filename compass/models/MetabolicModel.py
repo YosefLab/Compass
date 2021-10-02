@@ -279,6 +279,13 @@ class MetabolicModel(object):
 
         self.media = media_name
 
+    def remove_isoform_summing(self):
+        """
+        Removes instances where two isoforms of the same gene are summed/OR'd together
+        """
+        for reaction in self.reactions.values():
+            reaction.gene_associations.remove_isoform_summing()
+
     def _calc_max_flux(self):
         """
         Determines the max (absolute) flux of the model
@@ -447,6 +454,8 @@ class Reaction(object):
 
         out['genes'] = gene_dict
 
+        out['gene_associations'] = self.gene_associations
+
         return out
 
 
@@ -503,18 +512,10 @@ class Association(object):
                     )
 
         elif self.type == 'or':
-            #Only counts isoforms of the same gene once if they are OR'd together
-            seen_genes = set()
-            child_expressions = []
-            for x in self.children:
-                if x.type == 'gene' and '.' in x.gene.id:
-                    gene_id = x.gene.id.split('.')[0]
-                    if gene_id not in seen_genes:
-                        seen_genes.add(gene_id)
-                        child_expressions.append(x.eval_expression(expression, and_function, or_function))
-                else:
-                    child_expressions.append(x.eval_expression(expression, and_function, or_function))
-            return or_function(child_expressions)
+            return or_function(
+                    [x.eval_expression(expression, and_function, or_function)
+                     for x in self.children]
+                    )
 
         elif self.type == 'gene':
 
@@ -541,9 +542,40 @@ class Association(object):
 
             return genes
 
+    def remove_isoform_summing(self):
+        """
+        Removes instances where two isoforms of the same gene are summed/OR'd together
+        """
+        if self.type == 'gene':
+            return 
+
+        elif self.type == 'or' or self.type == 'and':
+            seen = set()
+            children = []
+            for child in self.children:
+                if child.type == 'gene':
+                    if child.gene.name not in seen:
+                        seen.add(child.gene.name)
+                        children.append(child)
+                else:
+                    child.remove_isoform_summing()
+                    children.append(child)
+            self.children = children
+
     def __str__(self):
         return _print_node(self)
 
+    def to_serializable(self):
+        if self.type == 'gene':
+            return {
+                'type': self.type,
+                'name': self.gene.name
+            }
+        else:
+            return {
+                'type': self.type,
+                'children': [x.to_serializable() for x in self.children]
+            }
 
 class Gene(object):
 

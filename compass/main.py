@@ -255,6 +255,10 @@ def parseArgs():
     #Hidden argument to save argmaxes in the temp directory
     parser.add_argument("--save-argmaxes", action="store_true",
                         help=argparse.SUPPRESS)
+
+    #Removes potential inflation of expression by isoforms
+    parser.add_argument("--remove-isoform-summing", action="store_true",
+                            help=argparse.SUPPRESS)
                         
     #Argument to output the list of needed genes to a file
     parser.add_argument("--list-genes", default=None, metavar="FILE",
@@ -355,7 +359,8 @@ def entry():
         
     if args['list_genes'] is not None:
         model = init_model(model=args['model'], species=args['species'],
-                exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'])
+                exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'],
+                remove_isoform_summing=args['remove_isoform_summing'])
         genes = list(set.union(*[set(reaction.list_genes()) for reaction in model.reactions.values()]))
         genes = str("\n".join(genes))
         with open(args['list_genes'], 'w') as fout:
@@ -365,7 +370,8 @@ def entry():
 
     if args['list_reactions'] is not None:
         model = init_model(model=args['model'], species=args['species'],
-                exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'])
+                exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'],
+                remove_isoform_summing=args['remove_isoform_summing'])
         reactions = {r.id:r.subsystem for r in model.reactions.values()}
         with open(args['list_reactions'], 'w') as fout:
             json.dump(reactions, fout)
@@ -396,9 +402,10 @@ def entry():
                                       'current':{x:args[x] for x in diffs}})
                 print("Warning: The arguments used in the temporary directory (", args['temp_dir'],
                         ") are different from current arguments. Cached results may not be compatible with current settings")
-                print("Differing arguments: \n", table)
-                print("Enter 'y' or 'yes' if you want to continue Compass and used cached results.\n", 
-                        "Otherwise rerun Compass after removing/renaming the temporary directory or changing the --temp-dir argument")
+                print("Differing arguments:")
+                print(table)
+                print("Enter 'y' or 'yes' if you want to use cached results.\n", 
+                    "Otherwise press enter and rerun Compass after removing/renaming the temporary directory or changing the --temp-dir argument")
                 if sys.version_info.major >= 3:
                     ans = input()
                 else:
@@ -537,8 +544,8 @@ def entry():
 
     #Check if the cache for (model, media) exists already:
     size_of_cache = len(cache.load(init_model(model=args['model'], species=args['species'],
-                    exchange_limit=globals.EXCHANGE_LIMIT,
-                    media=args['media']), args['media']))
+                    exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
+                    remove_isoform_summing=args['remove_isoform_summing']), args['media']))
     if size_of_cache == 0 or args['precache']:
         logger.info("Building up model cache")
         precacheCompass(args=args)
@@ -785,8 +792,8 @@ def collectCompassResults(data, temp_dir, out_dir, args):
 
     # Output a JSON version of the model
     model = init_model(model=args['model'], species=args['species'],
-                       exchange_limit=globals.EXCHANGE_LIMIT,
-                       media=args['media'])
+                       exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
+                       remove_isoform_summing=args['remove_isoform_summing'])
 
     model_file = os.path.join(out_dir, 'model.json.gz')
 
@@ -835,7 +842,8 @@ def precacheCompass(args):
         args['num_processes'] = multiprocessing.cpu_count()
 
     model = init_model(model=args['model'], species=args['species'],
-        exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'])
+        exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
+        remove_isoform_summing=args['remove_isoform_summing'])
 
     n_processes = args['num_processes'] #max(1, args['num_processes'] - 1) #for later multithreading
     n_reactions = len(model.reactions.values())
