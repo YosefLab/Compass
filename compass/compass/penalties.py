@@ -55,6 +55,7 @@ def eval_reaction_penalties(expression_file, model, media,
     input_knn = args['input_knn']
     output_knn = args['output_knn']
     latent_input = args['latent_space']
+    remove_isoform_summing = args['remove_isoform_summing']
 
     expression = utils.read_data(expression_file) #pd.read_csv(expression_file, sep='\t', index_col=0)
     expression.index = expression.index.astype('str').str.upper()  # Gene names to upper
@@ -68,7 +69,7 @@ def eval_reaction_penalties(expression_file, model, media,
 
     model = models.init_model(model, species=species,
                               exchange_limit=EXCHANGE_LIMIT,
-                              media=media)
+                              media=media, remove_isoform_summing=remove_isoform_summing)
 
     # Evaluate reaction penalties
     input_weights = None
