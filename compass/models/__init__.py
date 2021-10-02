@@ -59,7 +59,7 @@ def load_metabolic_model(model_name, species='homo_sapiens'):
     return model
 
 
-def init_model(model, species, exchange_limit, media=None):
+def init_model(model, species, exchange_limit, media=None, remove_isoform_summing=False):
 
     model = load_metabolic_model(model, species)
 
@@ -71,5 +71,8 @@ def init_model(model, species, exchange_limit, media=None):
 
     if media is not None:
         model.load_media(media)
+
+    if remove_isoform_summing:
+        model.remove_isoform_summing()
 
     return model
