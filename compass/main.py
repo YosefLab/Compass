@@ -255,6 +255,12 @@ def parseArgs():
     #Hidden argument to save argmaxes in the temp directory
     parser.add_argument("--save-argmaxes", action="store_true",
                         help=argparse.SUPPRESS)
+
+    #Removes potential inflation of expression by isoforms
+    parser.add_argument("isoform-summing", 
+                        choices=['legacy', 'remove-summing'],
+                        default = "legacy",
+                        help="Flag to stop isoforms of the same gene being summed/OR'd together (removes-summing) or kept (legacy). Defaults to legacy")
                         
     #Argument to output the list of needed genes to a file
     parser.add_argument("--list-genes", default=None, metavar="FILE",
@@ -355,7 +361,8 @@ def entry():
         
     if args['list_genes'] is not None:
         model = init_model(model=args['model'], species=args['species'],
-                exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'])
+                exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'],
+                isoform_summing=args['isoform_summing'])
         genes = list(set.union(*[set(reaction.list_genes()) for reaction in model.reactions.values()]))
         genes = str("\n".join(genes))
         with open(args['list_genes'], 'w') as fout:
@@ -365,7 +372,8 @@ def entry():
 
     if args['list_reactions'] is not None:
         model = init_model(model=args['model'], species=args['species'],
-                exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'])
+                exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'],
+                isoform_summing=args['isoform_summing'])
         reactions = {r.id:r.subsystem for r in model.reactions.values()}
         with open(args['list_reactions'], 'w') as fout:
             json.dump(reactions, fout)
@@ -396,9 +404,10 @@ def entry():
                                       'current':{x:args[x] for x in diffs}})
                 print("Warning: The arguments used in the temporary directory (", args['temp_dir'],
                         ") are different from current arguments. Cached results may not be compatible with current settings")
-                print("Differing arguments: \n", table)
-                print("Enter 'y' or 'yes' if you want to continue Compass and used cached results.\n", 
-                        "Otherwise rerun Compass after removing/renaming the temporary directory or changing the --temp-dir argument")
+                print("Differing arguments:")
+                print(table)
+                print("Enter 'y' or 'yes' if you want to use cached results.\n", 
+                    "Otherwise press enter and rerun Compass after removing/renaming the temporary directory or changing the --temp-dir argument")
                 if sys.version_info.major >= 3:
                     ans = input()
                 else:
@@ -535,6 +544,20 @@ def entry():
         logger.debug("\nElapsed Time: {}".format(end_time-start_time))
         return
 
+    #Check if the cache for (model, media) exists already:
+    size_of_cache = len(cache.load(init_model(model=args['model'], species=args['species'],
+                    exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
+                    isoform_summing=args['isoform_summing']), args['media']))
+    if size_of_cache == 0 or args['precache']:
+        logger.info("Building up model cache")
+        precacheCompass(args=args)
+        end_time = datetime.datetime.now()
+        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
+        if not args['data']:
+            return
+    else:
+        logger.info("Cache for model and media already built")
+
     # Time to evaluate the reaction expression
     success_token = os.path.join(args['temp_dir'], 'success_token_penalties')
     penalties_file = os.path.join(args['temp_dir'], 'penalties.txt.gz')
@@ -553,20 +576,6 @@ def entry():
     args['penalties_file'] = penalties_file
     if args['only_penalties']:
         return
-
-    #Check if the cache for (model, media) exists already:
-    size_of_cache = len(cache.load(init_model(model=args['model'], species=args['species'],
-                    exchange_limit=globals.EXCHANGE_LIMIT,
-                    media=args['media']), args['media']))
-    if size_of_cache == 0 or args['precache']:
-        logger.info("Building up model cache")
-        precacheCompass(args=args)
-        end_time = datetime.datetime.now()
-        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
-        if not args['data']:
-            return
-    else:
-        logger.info("Cache for model and media already built")
 
     # Now run the individual cells through cplex in parallel
     # This is either done by sending to Torque queue, or running on the
@@ -785,8 +794,8 @@ def collectCompassResults(data, temp_dir, out_dir, args):
 
     # Output a JSON version of the model
     model = init_model(model=args['model'], species=args['species'],
-                       exchange_limit=globals.EXCHANGE_LIMIT,
-                       media=args['media'])
+                       exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
+                       isoform_summing=args['isoform_summing'])
 
     model_file = os.path.join(out_dir, 'model.json.gz')
 
@@ -835,34 +844,51 @@ def precacheCompass(args):
         args['num_processes'] = multiprocessing.cpu_count()
 
     model = init_model(model=args['model'], species=args['species'],
-        exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'])
+        exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
+        isoform_summing=args['isoform_summing'])
 
     n_processes = args['num_processes'] #max(1, args['num_processes'] - 1) #for later multithreading
     n_reactions = len(model.reactions.values())
-    chunk_size = int(ceil(n_reactions / n_processes))
-    chunks = [(i*chunk_size, min(n_reactions, (i+1)*chunk_size)) for i in range(n_processes)]
-
-    combined_cache = {}
-    partial_map_fun = partial(_parallel_map_precache_reactions, args=args)
-    pool = multiprocessing.Pool(n_processes)
-    for sub_cache in pool.imap_unordered(partial_map_fun, chunks):
-        combined_cache.update(sub_cache)
-
+    # Not all metabolites in the model are neccesarily involved in reactions
+    # This allows for generating the cache only for neccesary metabolites
     problem = initialize_cplex_problem(model, args['num_threads'], args['lpmethod'])
     n_metabs = len(problem.linear_constraints.get_names())
-    chunk_size = int(ceil(n_metabs / n_processes))
-    chunks = [(i*chunk_size, min(n_metabs, (i+1)*chunk_size)) for i in range(n_processes)]
+    
+    if n_processes > 1:
+        reaction_chunk_size = int(ceil(n_reactions / n_processes))
+        reaction_chunks = [(i*reaction_chunk_size, min(n_reactions, (i+1)*reaction_chunk_size)) for i in range(n_processes)]
 
-    partial_map_fun = partial(_parallel_map_precache_metabs, args=args)
-    pool = multiprocessing.Pool(n_processes)
-    for sub_cache in pool.imap_unordered(partial_map_fun, chunks):
-        combined_cache.update(sub_cache)
+        combined_cache = {}
+        partial_map_fun = partial(_parallel_map_precache_reactions, args=args)
+        pool = multiprocessing.Pool(n_processes)
+        for sub_cache in pool.imap_unordered(partial_map_fun, reaction_chunks):
+            combined_cache.update(sub_cache)
+        
+        metab_chunk_size = int(ceil(n_metabs / n_processes))
+        metab_chunks = [(i*metab_chunk_size, min(n_metabs, (i+1)*metab_chunk_size)) for i in range(n_processes)]
 
-    #cache.clear(model) TBD? don't want all the time
-    model_cache = cache.load(model)
-    model_cache.update(combined_cache)
-    #model_cache['dfs_reaction_order'] = lst
-    cache.save(model) 
+        partial_map_fun = partial(_parallel_map_precache_metabs, args=args)
+        pool = multiprocessing.Pool(n_processes)
+        for sub_cache in pool.imap_unordered(partial_map_fun, metab_chunks):
+            combined_cache.update(sub_cache)
+
+        cache.clear(model)
+        model_cache = cache.load(model)
+        model_cache.update(combined_cache)
+        cache.save(model) 
+    else:
+
+        metab_cache = maximize_metab_range((0, n_metabs), args)
+        reaction_cache = maximize_reaction_range((0, n_reactions), args)
+        cache.clear(model)
+        model_cache = cache.load(model)
+        model_cache.update(reaction_cache)
+        model_cache.update(metab_cache)
+        cache.save(model) 
+
+
+
+    
     
 
 

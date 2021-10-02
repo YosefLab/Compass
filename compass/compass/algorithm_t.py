@@ -43,8 +43,8 @@ def runCompassParallelTransposed(args):
 
     #   Get number of reactions and metabolites
     model = init_model(model=args['model'], species=args['species'],
-                       exchange_limit=globals.EXCHANGE_LIMIT,
-                       media=args['media'])
+                       exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
+                       isoform_summing=args['isoform_summing'])
     n_reactions = len(model.reactions)
     if args['test_mode']:
         n_reactions = min(n_reactions, 100)
@@ -214,8 +214,8 @@ def collectCompassResultsTransposed(data, temp_dir, out_dir, args):
 
     # Output a JSON version of the model
     model = init_model(model=args['model'], species=args['species'],
-                       exchange_limit=globals.EXCHANGE_LIMIT,
-                       media=args['media'])
+                       exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
+                       isoform_summing=args['isoform_summing'])
 
     model_file = os.path.join(out_dir, 'model.json.gz')
 
@@ -225,9 +225,9 @@ def collectCompassResultsTransposed(data, temp_dir, out_dir, args):
 def compass_transposed(ranges, data, model, media, args):
     logger = logging.getLogger("compass")
 
-    model = models.init_model(model, species=args['species'],
-                              exchange_limit=globals.EXCHANGE_LIMIT,
-                              media=media)
+    model = init_model(model=args['model'], species=args['species'],
+                       exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
+                       isoform_summing=args['isoform_summing'])
 
     reaction_range, metabolite_range, sample_range = ranges
     if not args['reaction_range']:
