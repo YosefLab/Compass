@@ -57,7 +57,7 @@ def parseArgs():
     parser.add_argument("--model", help="Metabolic Model to Use."
                         " Currently supporting: RECON1_mat, RECON2_mat, or RECON2.2",
                         default="RECON2_mat",
-                        choices=["RECON1_mat", "RECON2_mat", "RECON2.2", "RECON3_MODEL_mat", "RECON3_MIN_mat", "RECON3_mat"],
+                        choices=["RECON1_mat", "RECON2_mat", "RECON2.2"],
                         metavar="MODEL")
 
     parser.add_argument("--species",
