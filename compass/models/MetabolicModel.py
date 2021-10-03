@@ -554,7 +554,7 @@ class Association(object):
             children = []
             for child in self.children:
                 if child.type == 'gene':
-                    if child.gene.name not in seen:
+                    if child.gene.name not in seen or len(child.gene.name) < 1:
                         seen.add(child.gene.name)
                         children.append(child)
                 else:
