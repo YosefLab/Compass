@@ -14,20 +14,27 @@ def cohens_d(x, y):
     
 
 def wilcoxon_test(consistencies_matrix, group_A_cells, group_B_cells):
-    """
-        Performs an unpaired wilcoxon test (or mann-whitney U test) for each reaction between group_A and group_B
-    """
-    #per reaction/meta-reaction, conduct wilcoxon test between group_A and group_B
-    group_A = consistencies_matrix.loc[:,group_A_cells]
-    group_B = consistencies_matrix.loc[:,group_B_cells]
-    results = pd.DataFrame(index = consistencies_matrix.index, columns = ['wilcox_stat', 'wilcox_pval', 'cohens_d'], dtype='float64')
-    for rxn in consistencies_matrix.index:
-        A, B = group_A.loc[rxn].to_numpy().ravel(), group_B.loc[rxn].to_numpy().ravel()
-        stat, pval = mannwhitneyu(A, B, alternative='two-sided')
-        c_d = cohens_d(A, B)
-        results.loc[rxn, ['wilcox_stat', 'wilcox_pval', 'cohens_d']] = stat, pval, c_d
-    results['adjusted_pval'] = np.array(multipletests(results['wilcox_pval'], method='fdr_bh')[1], dtype='float64')
-    return results
+	"""
+		Performs an unpaired wilcoxon test (or mann-whitney U test) for each reaction between group_A and group_B
+	"""
+	#per reaction/meta-reaction, conduct wilcoxon test between group_A and group_B
+	group_A = consistencies_matrix.loc[:,group_A_cells]
+	group_B = consistencies_matrix.loc[:,group_B_cells]
+	results = pd.DataFrame(index = consistencies_matrix.index, columns = ['wilcox_stat', 'wilcox_pval', 'cohens_d'], dtype='float64')
+	for rxn in consistencies_matrix.index:
+		A, B = group_A.loc[rxn].to_numpy().ravel(), group_B.loc[rxn].to_numpy().ravel()
+		#sometimes there's a solitary value, and we don't want to test then
+		if len(np.unique(A)) == 1 and len(np.unique(B)) == 1:
+			if np.unique(A) == np.unique(B):
+				#we've got no data. set p-value to 1 and skip!
+				#(p-value needs to be 1 so multipletests doesn't cry)
+				results.loc[rxn, ['wilcox_pval']] = 1
+				continue
+		stat, pval = mannwhitneyu(A, B, alternative='two-sided')
+		c_d = cohens_d(A, B)
+		results.loc[rxn, ['wilcox_stat', 'wilcox_pval', 'cohens_d']] = stat, pval, c_d
+	results['adjusted_pval'] = np.array(multipletests(results['wilcox_pval'], method='fdr_bh')[1], dtype='float64')
+	return results
 
 def get_reaction_consistencies(compass_reaction_penalties, min_range=1e-3):
     """
