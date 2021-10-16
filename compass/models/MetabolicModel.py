@@ -279,12 +279,13 @@ class MetabolicModel(object):
 
         self.media = media_name
 
-    def isoform_summing(self):
+    def remove_isoform_summing(self):
         """
         Removes instances where two isoforms of the same gene are summed/OR'd together
         """
         for reaction in self.reactions.values():
-            reaction.gene_associations.isoform_summing()
+            if reaction.gene_associations:
+                reaction.gene_associations.remove_isoform_summing()
 
     def _calc_max_flux(self):
         """
@@ -542,7 +543,7 @@ class Association(object):
 
             return genes
 
-    def isoform_summing(self):
+    def remove_isoform_summing(self):
         """
         Removes instances where two isoforms of the same gene are summed/OR'd together
         """
@@ -558,7 +559,7 @@ class Association(object):
                         seen.add(child.gene.name)
                         children.append(child)
                 else:
-                    child.isoform_summing()
+                    child.remove_isoform_summing()
                     children.append(child)
             self.children = children
 

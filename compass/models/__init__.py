@@ -73,6 +73,6 @@ def init_model(model, species, exchange_limit, media=None, isoform_summing="lega
         model.load_media(media)
 
     if isoform_summing == 'remove-summing':
-        model.isoform_summing()
+        model.remove_isoform_summing()
 
     return model
