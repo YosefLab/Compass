@@ -433,6 +433,8 @@ def entry():
         logger.debug("Git commit: " + commit.decode())
     except sp.CalledProcessError:
         logger.debug("Git commit: Not in Git repo")
+    except sp.SubprocessError:
+        logger.debug("Git command failed to execute")
 
     logger.debug("Python Version:")
     logger.debug(sys.version)
