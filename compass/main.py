@@ -168,9 +168,6 @@ def parseArgs():
                         type=int,
                         metavar="N")
 
-    parser.add_argument("--symmetric-kernel", action="store_true",
-                        help="Use symmetric TSNE kernel (slower)")
-
     parser.add_argument("--input-weights",
                         help="File with input sample to sample weights",
                         required=False, metavar="FILE")
@@ -178,7 +175,7 @@ def parseArgs():
     parser.add_argument("--penalty-diffusion",
                         help="Mode to use to share reaction penalty "
                         "values between single cells",
-                        choices=["gaussian", "knn"],
+                        choices=["knn"],
                         metavar="MODE",
                         default="knn")
 

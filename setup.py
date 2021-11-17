@@ -16,27 +16,10 @@ try:
 except ImportError:
     use_cython = False
 
-if use_cython:
-    extensions = [
-        Extension(
-            "compass.compass.extensions.tsne_utils",
-            ["compass/compass/extensions/tsne_utils.pyx"],
-            include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs())
-    ]
-    extensions = cythonize(extensions)
-else:
-    extensions = [
-        Extension(
-            "compass.compass.extensions.tsne_utils",
-            ["compass/compass/extensions/tsne_utils.c"],
-            include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs())
-    ]
-
 setup(
     name="compass-sc",
     version=__version__,
     packages=find_packages(),
-    ext_modules=extensions,
     include_package_data=True,
 
     entry_points={'console_scripts':

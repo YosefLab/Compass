@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import logging
-from .extensions import tsne_utils
 from .. import utils
 from .. import models
 from ..globals import EXCHANGE_LIMIT, PCA_SEED
@@ -183,10 +182,7 @@ def eval_reaction_penalties_shared(model, expression,
                 data = model.fit_transform(data.values.T).T
             data = pd.DataFrame(data, columns=expression.columns)
 
-        if penalty_diffusion_mode == 'gaussian':
-            weights = sample_weights_tsne_symmetric(
-                data, num_neighbors, symmetric_kernel)
-        elif penalty_diffusion_mode == 'knn':
+        if penalty_diffusion_mode == 'knn':
             weights = sample_weights_knn(data, num_neighbors, input_knn, output_knn)
         else:
             raise ValueError(
@@ -233,56 +229,6 @@ def eval_reaction_expression_single(model, expression_data, and_function):
     reaction_expression = np.log2(reaction_expression + 1)
 
     return reaction_expression
-
-
-def sample_weights_tsne_symmetric(data, perplexity, symmetric):
-    """
-    Calculates p-values between samples using the procedure
-    from tSNE
-
-    As this version uses symmetric p-values, it must calculate
-    the p-values for every sample vs every other sample
-
-    data: pandas.DataFrame
-        data matrix with samples as columns
-    perplexity: float
-        binary search perplexity target
-    symmetric: boolean
-        whether or not to symmetrize the weights
-    """
-
-    columns = data.columns
-    data = data.values
-
-    # Calculate affinities (distance-squared) between samples
-
-    sumData2 = np.sum(data**2, axis=0, keepdims=True)
-    aff = -2*np.dot(data.T, data)
-    aff += sumData2
-    aff = aff.T
-    aff += sumData2
-    np.fill_diagonal(aff, 0)
-    aff = aff.astype('float32')
-
-    # Run the tsne perplexity procedure
-    pvals = tsne_utils.binary_search_perplexity(
-        affinities=aff,
-        neighbors=None,
-        desired_perplexity=perplexity,
-        verbose=0
-    )
-
-    # Symmetrize the pvals
-    if symmetric:
-        pvals += pvals.T
-        pvals /= 2
-
-    # Make the rows sum to 1
-    pvals /= pvals.sum(axis=1, keepdims=True)
-
-    pvals = pd.DataFrame(pvals, index=columns, columns=columns)
-
-    return pvals
 
 def sample_weights_knn(data_df, num_neighbors, input_knn=None, output_knn=None):
     """
