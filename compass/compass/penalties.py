@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
 import logging
-from .extensions import tsne_utils
 from .. import utils
 from .. import models
 from ..globals import EXCHANGE_LIMIT, PCA_SEED
 from sklearn.neighbors import NearestNeighbors
 from sklearn.decomposition import PCA
+from sklearn.manifold._utils import _binary_search_perplexity
 
 from scipy import sparse
 
@@ -265,11 +265,10 @@ def sample_weights_tsne_symmetric(data, perplexity, symmetric):
     aff = aff.astype('float32')
 
     # Run the tsne perplexity procedure
-    pvals = tsne_utils.binary_search_perplexity(
-        affinities=aff,
-        neighbors=None,
-        desired_perplexity=perplexity,
-        verbose=0
+    pvals = _binary_search_perplexity(
+        aff,
+        perplexity,
+        0
     )
 
     # Symmetrize the pvals
