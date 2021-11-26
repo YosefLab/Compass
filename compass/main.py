@@ -230,6 +230,17 @@ def parseArgs():
                         type=int, metavar="FILE", default=None,
                         help="File where a tsv of average gene expression per microcluster will be output. Defaults to micropooled_data.tsv in the output directory.")
 
+    parser.add_argument("--anndata-output", help="Enables output as .h5ad format",
+                        action="store_true")
+
+    #Hidden argument for any potential anndata obs or uns
+    parser.add_argument("--anndata-obs",
+                        help=argparse.SUPPRESS,
+                        default=None)
+    parser.add_argument("--anndata-uns",
+                        help=argparse.SUPPRESS,
+                        default=None)
+
     #Hidden argument which tracks more detailed information on runtimes
     parser.add_argument("--detailed-perf", action="store_true",
                         help=argparse.SUPPRESS)
@@ -614,7 +625,7 @@ def runCompassParallel(args):
         args['num_processes'] = multiprocessing.cpu_count()
 
     # Get the number of samples
-    data = utils.read_data(args['data'])#pd.read_csv(args['data'], sep='\t', index_col=0)
+    data = utils.read_data(args['data'])
     n_samples = len(data.columns)
 
     partial_map_fun = partial(_parallel_map_fun, args=args)
@@ -721,8 +732,17 @@ def collectCompassResults(data, temp_dir, out_dir, args):
     logger.info("Writing output to: " + out_dir)
 
     # Get the number of samples
-    expression = utils.read_data(data)#pd.read_csv(data, sep='\t', index_col=0)
+    if args['anndata_output']:
+        expression, obs, uns  = utils.read_data_obs_uns(data)
+    else:
+        expression = utils.read_data(data)
+        obs = uns = None
+    args['obs'] = obs
+    args['uns'] = uns
     n_samples = len(expression.columns)
+
+    #Get any potential observations
+    
 
     reactions_all = []
     secretions_all = []
@@ -769,31 +789,18 @@ def collectCompassResults(data, temp_dir, out_dir, args):
             pools = json.load(fin)
             fin.close()
         pools = {int(x):pools[x] for x in pools}  #Json saves dict keys as strings
-        orig_data = utils.read_data(args['orig_data'])
 
     # Join and output
     if not args['no_reactions']:
         reactions_all = pd.concat(reactions_all, axis=1, sort=True)
-        #This would expand the microclustered results out
-        #if args['microcluster_size']:
-        #    reactions_all = unpool_columns(reactions_all, pools, orig_data)
-        reactions_all.to_csv(
-            os.path.join(out_dir, 'reactions.tsv'), sep="\t")
-
+        utils.write_output(reactions_all, os.path.join(out_dir, 'reactions'), args)
+                
     if args['calc_metabolites']:
         secretions_all = pd.concat(secretions_all, axis=1, sort=True)
-        #This would expand the microclustered results out
-        #if args['microcluster_size']:
-        #    secretions_all = unpool_columns(secretions_all, pools, orig_data)
-        secretions_all.to_csv(
-            os.path.join(out_dir, 'secretions.tsv'), sep="\t")
+        utils.write_output(secretions_all, os.path.join(out_dir, 'secretions'), args)
 
         uptake_all = pd.concat(uptake_all, axis=1, sort=True)
-        #This would expand the microclustered results out
-        #if args['microcluster_size']:
-        #    uptake_all = unpool_columns(uptake_all, pools, orig_data)
-        uptake_all.to_csv(
-            os.path.join(out_dir, 'uptake.tsv'), sep="\t")
+        utils.write_output(uptake_all,os.path.join(out_dir, 'uptake'), args)
 
     # Output a JSON version of the model
     model = init_model(model=args['model'], species=args['species'],
