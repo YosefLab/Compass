@@ -61,25 +61,32 @@ def read_data(data):
     else:
         return read_mtx(data[0], data[1], data[2])
 
-def read_data_obs_uns(data):
+def read_annotations(data):
     if len(data) == 1:
         ext = os.path.splitext(data[0])[-1]
         if ext == '.h5ad':
-            res = anndata.read_h5ad(data[0])
-            return res.to_df().T, res.obs, res.uns
+            res = anndata.read_h5ad(data[0])[:,:0].copy() #Slice to remove all gene observations
+            return res
         else:
-            return pd.read_csv(data[0], sep='\t', index_col=0), None, None
+            return None
     elif len(data) == 3:
-        return read_mtx(data[0], data[1], data[2]), None, None
+        return None
 
 def write_output(output, path, args):
     if args['anndata_output']:
         #TODO: Add more control over output format
-        anndata.AnnData(output.T, obs=args['obs'], uns=args['uns']).write(path+'.h5ad', compression='gzip') 
+        
+        #Output will be indexed by "sample_%d".format(index) unless reading in slow names
+        #output.var = args['anndata_annotations'].obs
+
+        #Generally only observational annotations are relevant after Compass algorithm
+        annot = args['anndata_annotations']
+        res = anndata.AnnData(X=output.T, obs=annot.obs, uns=annot.uns, obsm=annot.obsm, obsp=annot.obsp)
+        res.write(path+'.h5ad', compression='gzip') 
     else:
         output.to_csv(path+".tsv", sep="\t")
 
-def read_sample_names(data, slow_names=False):
+def read_sample_names(data, slow_names=True):
     """
     Reads in sample names for dataset
 
@@ -87,8 +94,9 @@ def read_sample_names(data, slow_names=False):
     """
     if len(data) == 1:
         ext = os.path.splitext(data[0])[-1]
-        if ext == '.h5ad' and slow_names:
-            return anndata.read_h5ad(data[0]).obs.index
+        if ext == '.h5ad':
+            if slow_names:
+                return anndata.read_h5ad(data[0]).obs.index
         else:
             return pd.read_csv(data[0], sep='\t', index_col=0, nrows=1).columns
     elif len(data) >= 3 and data[2] is not None:

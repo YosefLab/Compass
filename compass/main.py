@@ -64,9 +64,9 @@ def parseArgs():
                         help="Species to use to match genes to model."
                         " Currently supporting: homo_sapiens or mus_musculus",
                         choices=["homo_sapiens", "mus_musculus"],
-                        metavar="SPECIES",
+                        metavar="SPECIES"
                         #originally default, now required so users will not accidentally overlook it
-                        required=True)
+                        )
 
     parser.add_argument("--media", help="Which media to simulate",
                         #default="media1", #TODO:Brandon, where is media1 set?
@@ -287,14 +287,17 @@ def parseArgs():
 
     load_config(args)
 
-    if not args['species'] and not args['example_inputs']:
-        parser.error("The --species argument is required except for when --example-inputs is selected")
+    if not args['species']:
+        if args['data'] or args['data_mtx']:
+            parser.error("The --species argument must be specified for the species of the dataset input")
+        if args['list_genes']:
+            parser.error("The --species argument must be specified for the genes to list")
 
     if args['data'] and args['data_mtx']:
         parser.error("--data and --data-mtx cannot be used at the same time. Select only one input per run.")
     if not args['data'] and not args['data_mtx']:
         if not args['precache'] and not args['list_genes'] and not args['example_inputs'] and not args['list_reactions']:
-            parser.error("--data or --data-mtx required unless --precache, --list-genes, --list-reactions, or --example-inputs option selected")
+            parser.error("Nothing selected to do. Add arguments --data, --data-mtx, --precache, --list-genes, --list-reactions, or --example-inputs for Compass to do something.")
     else:
         if args['data_mtx']:
             args['data'] = args['data_mtx']
@@ -544,6 +547,7 @@ def entry():
     #    return 
 
     if args['single_sample'] is not None:
+        args['penalties_file'] = os.path.join(args['temp_dir'], 'penalties.txt.gz')
         singleSampleCompass(data=args['data'], model=args['model'],
                             media=args['media'], directory=args['temp_dir'],
                             sample_index=args['single_sample'], args=args)
@@ -732,17 +736,11 @@ def collectCompassResults(data, temp_dir, out_dir, args):
     logger.info("Writing output to: " + out_dir)
 
     # Get the number of samples
-    if args['anndata_output']:
-        expression, obs, uns  = utils.read_data_obs_uns(data)
-    else:
-        expression = utils.read_data(data)
-        obs = uns = None
-    args['obs'] = obs
-    args['uns'] = uns
-    n_samples = len(expression.columns)
+    sample_names = utils.read_sample_names(data, slow_names = True)
+    n_samples = len(sample_names)
 
-    #Get any potential observations
-    
+    if args['anndata_output']:
+        args['anndata_annotations'] = utils.read_annotations(data)
 
     reactions_all = []
     secretions_all = []
@@ -751,7 +749,7 @@ def collectCompassResults(data, temp_dir, out_dir, args):
     # Gather all the results
     for i in range(n_samples):
 
-        sample_name = expression.columns[i]
+        sample_name = sample_names[i]
         sample_dir = os.path.join(temp_dir, 'sample' + str(i))
 
         try:
@@ -886,8 +884,8 @@ def precacheCompass(args):
         model_cache = cache.load(model)
         model_cache.update(combined_cache)
         cache.save(model) 
-    else:
 
+    else:
         metab_cache = maximize_metab_range((0, n_metabs), args)
         reaction_cache = maximize_reaction_range((0, n_reactions), args)
         cache.clear(model)

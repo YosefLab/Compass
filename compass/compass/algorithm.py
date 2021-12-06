@@ -79,7 +79,6 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     # Build model into cplex problem
     problem = initialize_cplex_problem(model, args['num_threads'], args['lpmethod'], args['advance'])
 
-
     # Only read this to get the number of samples and the sample name
     # Use nrows=1 so this is fast
     samples = utils.read_sample_names(data)
@@ -98,11 +97,10 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     logger.info("Evaluating Reaction Penalties...")
     reaction_penalties = pd.read_csv(
         args['penalties_file'], sep="\t", header=0,
-        usecols=["Reaction", sample_name])
+        usecols=[0, sample_index + 1]) #0 is the Reaction column,
 
     reaction_penalties = reaction_penalties.set_index("Reaction").iloc[:, 0]
     penalty_elapsed = timeit.default_timer() - penalty_start
-
 
     react_start = timeit.default_timer()
     if not args['no_reactions']:
@@ -111,7 +109,6 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
             model, problem, reaction_penalties,
             perf_log=perf_log, args=args)
     react_elapsed = timeit.default_timer() - react_start
-    
 
     #if user wants to calc reaction scores, but doesn't want to calc metabolite scores, calc only the exchange reactions
     logger.info("Evaluating Exchange/Secretion/Uptake Scores...")
