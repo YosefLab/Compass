@@ -25,7 +25,8 @@ setup(
         'scikit-learn>=0.19',
         'scipy>=1.0',
         'python-igraph>=0.9', #Need the version to be high enough fgo
-        'leidenalg>=0.8.2'],
+        'leidenalg>=0.8.2',
+        'anndata'],
 
         # 'cplex>=12.7.0.0' also required, but installed separately
 

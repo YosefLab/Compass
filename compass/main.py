@@ -64,9 +64,9 @@ def parseArgs():
                         help="Species to use to match genes to model."
                         " Currently supporting: homo_sapiens or mus_musculus",
                         choices=["homo_sapiens", "mus_musculus"],
-                        metavar="SPECIES",
+                        metavar="SPECIES"
                         #originally default, now required so users will not accidentally overlook it
-                        required=True)
+                        )
 
     parser.add_argument("--media", help="Which media to simulate",
                         #default="media1", #TODO:Brandon, where is media1 set?
@@ -230,6 +230,17 @@ def parseArgs():
                         type=int, metavar="FILE", default=None,
                         help="File where a tsv of average gene expression per microcluster will be output. Defaults to micropooled_data.tsv in the output directory.")
 
+    parser.add_argument("--anndata-output", help="Enables output as .h5ad format",
+                        action="store_true")
+
+    #Hidden argument for any potential anndata obs or uns
+    parser.add_argument("--anndata-obs",
+                        help=argparse.SUPPRESS,
+                        default=None)
+    parser.add_argument("--anndata-uns",
+                        help=argparse.SUPPRESS,
+                        default=None)
+
     #Hidden argument which tracks more detailed information on runtimes
     parser.add_argument("--detailed-perf", action="store_true",
                         help=argparse.SUPPRESS)
@@ -276,14 +287,17 @@ def parseArgs():
 
     load_config(args)
 
-    if not args['species'] and not args['example_inputs']:
-        parser.error("The --species argument is required except for when --example-inputs is selected")
+    if not args['species']:
+        if args['data'] or args['data_mtx']:
+            parser.error("The --species argument must be specified for the species of the dataset input")
+        if args['list_genes']:
+            parser.error("The --species argument must be specified for the genes to list")
 
     if args['data'] and args['data_mtx']:
         parser.error("--data and --data-mtx cannot be used at the same time. Select only one input per run.")
     if not args['data'] and not args['data_mtx']:
         if not args['precache'] and not args['list_genes'] and not args['example_inputs'] and not args['list_reactions']:
-            parser.error("--data or --data-mtx required unless --precache, --list-genes, --list-reactions, or --example-inputs option selected")
+            parser.error("Nothing selected to do. Add arguments --data, --data-mtx, --precache, --list-genes, --list-reactions, or --example-inputs for Compass to do something.")
     else:
         if args['data_mtx']:
             args['data'] = args['data_mtx']
@@ -533,6 +547,7 @@ def entry():
     #    return 
 
     if args['single_sample'] is not None:
+        args['penalties_file'] = os.path.join(args['temp_dir'], 'penalties.txt.gz')
         singleSampleCompass(data=args['data'], model=args['model'],
                             media=args['media'], directory=args['temp_dir'],
                             sample_index=args['single_sample'], args=args)
@@ -614,7 +629,7 @@ def runCompassParallel(args):
         args['num_processes'] = multiprocessing.cpu_count()
 
     # Get the number of samples
-    data = utils.read_data(args['data'])#pd.read_csv(args['data'], sep='\t', index_col=0)
+    data = utils.read_data(args['data'])
     n_samples = len(data.columns)
 
     partial_map_fun = partial(_parallel_map_fun, args=args)
@@ -721,8 +736,11 @@ def collectCompassResults(data, temp_dir, out_dir, args):
     logger.info("Writing output to: " + out_dir)
 
     # Get the number of samples
-    expression = utils.read_data(data)#pd.read_csv(data, sep='\t', index_col=0)
-    n_samples = len(expression.columns)
+    sample_names = utils.read_sample_names(data, slow_names = True)
+    n_samples = len(sample_names)
+
+    if args['anndata_output']:
+        args['anndata_annotations'] = utils.read_annotations(data)
 
     reactions_all = []
     secretions_all = []
@@ -731,7 +749,7 @@ def collectCompassResults(data, temp_dir, out_dir, args):
     # Gather all the results
     for i in range(n_samples):
 
-        sample_name = expression.columns[i]
+        sample_name = sample_names[i]
         sample_dir = os.path.join(temp_dir, 'sample' + str(i))
 
         try:
@@ -769,31 +787,18 @@ def collectCompassResults(data, temp_dir, out_dir, args):
             pools = json.load(fin)
             fin.close()
         pools = {int(x):pools[x] for x in pools}  #Json saves dict keys as strings
-        orig_data = utils.read_data(args['orig_data'])
 
     # Join and output
     if not args['no_reactions']:
         reactions_all = pd.concat(reactions_all, axis=1, sort=True)
-        #This would expand the microclustered results out
-        #if args['microcluster_size']:
-        #    reactions_all = unpool_columns(reactions_all, pools, orig_data)
-        reactions_all.to_csv(
-            os.path.join(out_dir, 'reactions.tsv'), sep="\t")
-
+        utils.write_output(reactions_all, os.path.join(out_dir, 'reactions'), args)
+                
     if args['calc_metabolites']:
         secretions_all = pd.concat(secretions_all, axis=1, sort=True)
-        #This would expand the microclustered results out
-        #if args['microcluster_size']:
-        #    secretions_all = unpool_columns(secretions_all, pools, orig_data)
-        secretions_all.to_csv(
-            os.path.join(out_dir, 'secretions.tsv'), sep="\t")
+        utils.write_output(secretions_all, os.path.join(out_dir, 'secretions'), args)
 
         uptake_all = pd.concat(uptake_all, axis=1, sort=True)
-        #This would expand the microclustered results out
-        #if args['microcluster_size']:
-        #    uptake_all = unpool_columns(uptake_all, pools, orig_data)
-        uptake_all.to_csv(
-            os.path.join(out_dir, 'uptake.tsv'), sep="\t")
+        utils.write_output(uptake_all,os.path.join(out_dir, 'uptake'), args)
 
     # Output a JSON version of the model
     model = init_model(model=args['model'], species=args['species'],
@@ -879,8 +884,8 @@ def precacheCompass(args):
         model_cache = cache.load(model)
         model_cache.update(combined_cache)
         cache.save(model) 
-    else:
 
+    else:
         metab_cache = maximize_metab_range((0, n_metabs), args)
         reaction_cache = maximize_reaction_range((0, n_reactions), args)
         cache.clear(model)

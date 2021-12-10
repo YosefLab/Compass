@@ -9,6 +9,9 @@ import cplex
 import scipy.io
 import pandas as pd
 import numpy as np
+from .globals import MODEL_DIR
+import os
+import anndata
 
 def get_steadystate_constraints(model):
     """
@@ -50,18 +53,56 @@ def reset_objective(problem):
 
 def read_data(data):
     if len(data) == 1:
-        return pd.read_csv(data[0], sep='\t', index_col=0)
+        ext = os.path.splitext(data[0])[-1]
+        if ext == '.h5ad':
+            return anndata.read_h5ad(data[0]).to_df().T
+        else:
+            return pd.read_csv(data[0], sep='\t', index_col=0)
     else:
         return read_mtx(data[0], data[1], data[2])
 
-def read_sample_names(data):
+def read_annotations(data):
     if len(data) == 1:
-        return pd.read_csv(data[0], sep='\t', index_col=0, nrows=1).columns
+        ext = os.path.splitext(data[0])[-1]
+        if ext == '.h5ad':
+            res = anndata.read_h5ad(data[0])[:,:0].copy() #Slice to remove all gene observations
+            return res
+        else:
+            return None
+    elif len(data) == 3:
+        return None
+
+def write_output(output, path, args):
+    if args['anndata_output']:
+        #TODO: Add more control over output format
+        
+        #Output will be indexed by "sample_%d".format(index) unless reading in slow names
+        #output.var = args['anndata_annotations'].obs
+
+        #Generally only observational annotations are relevant after Compass algorithm
+        annot = args['anndata_annotations']
+        res = anndata.AnnData(X=output.T, obs=annot.obs, uns=annot.uns, obsm=annot.obsm, obsp=annot.obsp)
+        res.write(path+'.h5ad', compression='gzip') 
+    else:
+        output.to_csv(path+".tsv", sep="\t")
+
+def read_sample_names(data, slow_names=True):
+    """
+    Reads in sample names for dataset
+
+    Some data input formats do not support fast ways to read sample names (h5ad) and when slow_names is False, reading them will be skipped.
+    """
+    if len(data) == 1:
+        ext = os.path.splitext(data[0])[-1]
+        if ext == '.h5ad':
+            if slow_names:
+                return anndata.read_h5ad(data[0]).obs.index
+        else:
+            return pd.read_csv(data[0], sep='\t', index_col=0, nrows=1).columns
     elif len(data) >= 3 and data[2] is not None:
         return pd.read_csv(data[2], sep='\t', header=None).to_numpy().ravel()
-    else:
-        #Sample names not provided
-        return None
+    #Sample names not provided or not efficient to read
+    return None
 
 def indexed_sample_names(n):
     return ['sample_'+str(i) for i in range(n)]
@@ -117,3 +158,10 @@ def read_knn_ind(knn_data, data=None):
 
 def read_knn_dist(knn_data, data=None):
     return read_knn(knn_data, data, dist=True)
+
+def read_metadata(model_name):
+    top_dir = os.path.join(MODEL_DIR, model_name)
+    metadata_dir = os.path.join(top_dir, 'metadata')
+    reaction_metadata_path = os.path.join(metadata_dir, 'reaction_metadata.csv')
+
+    return pd.read_csv(reaction_metadata_path, index_col=0)
