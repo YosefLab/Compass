@@ -68,8 +68,8 @@ def parseArgs():
                         #originally default, now required so users will not accidentally overlook it
                         )
 
-    parser.add_argument("--media", help="Which media to simulate",
-                        #default="media1", #TODO:Brandon, where is media1 set?
+    parser.add_argument("--media", help="Which media to simulate. The media file is expected to be a json with upper bounds per reaction, each specific to a given model.",
+                        default="default-media",
                         metavar="MEDIA")
 
     parser.add_argument("--output-dir", help="Where to store outputs",
@@ -270,9 +270,9 @@ def parseArgs():
     #Removes potential inflation of expression by isoforms
     parser.add_argument("--isoform-summing", 
                         choices=['legacy', 'remove-summing'],
-                        default='legacy', 
+                        default='remove-summing', 
                         metavar="MODE",
-                        help="Flag to stop isoforms of the same gene being summed/OR'd together (remove-summing) or kept (legacy). Defaults to legacy")
+                        help="Flag to stop isoforms of the same gene being summed/OR'd together (remove-summing) or kept (legacy). Defaults to remove-summing")
                         
     #Argument to output the list of needed genes to a file
     parser.add_argument("--list-genes", default=None, metavar="FILE",
@@ -407,13 +407,14 @@ def entry():
             with open(temp_args_file, 'w') as fout:
                 json.dump(args, fout)
                 fout.close()
+
         elif os.path.exists(temp_args_file):
             #Handle ths before making logger because the logger redirected outputs
             with open(temp_args_file, 'r') as fin:
                 temp_args =  json.load(fin)
                 fin.close()
             ignored_diffs = ['num_processes', 'only_penalties', 'num_threads', 'torque_queue', 'single_sample']
-            diffs = [x for x in args.keys() if args[x] != temp_args[x] and x not in ignored_diffs]
+            diffs = [x for x in args.keys() if x in temp_args and args[x] != temp_args[x] and x not in ignored_diffs]
             if len(diffs) > 0:
                 table = pd.DataFrame({'temp_dir':{x:temp_args[x] for x in diffs}, 
                                       'current':{x:args[x] for x in diffs}})
