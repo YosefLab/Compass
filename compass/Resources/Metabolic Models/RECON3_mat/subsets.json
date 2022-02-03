@@ -1,0 +1,7 @@
+{
+    "filtered": {
+        "subsystemsRemove": [
+            "Drug metabolism"
+        ]
+    }
+}
