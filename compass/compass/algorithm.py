@@ -256,7 +256,7 @@ def compass_exchange(model, problem, reaction_penalties, only_exchange=False, pe
 
         # Metabolites represented by a constraint: get associated reactions
         sp = problem.linear_constraints.get_rows(met_id)
-        rxn_ids = problem.variables.get_names(sp.ind)
+        rxn_ids = [problem.variables.get_names(x) for x in sp.ind]
         reactions = [model.reactions[x] for x in rxn_ids]
 
         #If user wants only exchange reaction - limit the reactions space through which we iterate
@@ -297,9 +297,8 @@ def compass_exchange(model, problem, reaction_penalties, only_exchange=False, pe
 
             # Add it to the metabolites constraint
             rxn_index = problem.variables.get_indices(secretion_rxn)
-            sp.ind.append(rxn_index)
-            sp.val.append(-1.0)
-
+            sp.ind = list(sp.ind) + [rxn_index]
+            sp.val = list(sp.val) + [-1.0]
 
         #if only exchange flag is set - don't add uptakes that do not exist
         if (uptake_rxn is None):
@@ -314,9 +313,8 @@ def compass_exchange(model, problem, reaction_penalties, only_exchange=False, pe
 
             # Add it to the metabolite's constraint
             rxn_index = problem.variables.get_indices(uptake_rxn)
-            sp.ind.append(rxn_index)
-            sp.val.append(1.0)
-
+            sp.ind = list(sp.ind) + [rxn_index]
+            sp.val = list(sp.val) + [1.0]
         # Modify the constraint in the problem
         #   e.g. Add the metabolites connections
         problem.linear_constraints.set_linear_components(met_id, sp)
@@ -752,7 +750,7 @@ def maximize_metab_range(start_stop, args):
 
         # Metabolites represented by a constraint: get associated reactions
         sp = problem.linear_constraints.get_rows(met_id)
-        rxn_ids = problem.variables.get_names(sp.ind)
+        rxn_ids = [problem.variables.get_names(x) for x in sp.ind]
         reactions = [model.reactions[x] for x in rxn_ids]
 
         for reaction in reactions:
@@ -782,8 +780,8 @@ def maximize_metab_range(start_stop, args):
 
             # Add it to the metabolites constraint
             rxn_index = problem.variables.get_indices(secretion_rxn)
-            sp.ind.append(rxn_index)
-            sp.val.append(-1.0)
+            sp.ind = list(sp.ind) + [rxn_index]
+            sp.val = list(sp.val) + [-1.0]
 
 
         #if only exchange flag is set - don't add uptakes that do not exist
@@ -799,8 +797,8 @@ def maximize_metab_range(start_stop, args):
 
             # Add it to the metabolite's constraint
             rxn_index = problem.variables.get_indices(uptake_rxn)
-            sp.ind.append(rxn_index)
-            sp.val.append(1.0)
+            sp.ind = list(sp.ind) + [rxn_index]
+            sp.val = list(sp.val) + [1.0]
 
         # Modify the constraint in the problem
         #   e.g. Add the metabolites connections
