@@ -1,3 +1,4 @@
+from copy import deepcopy
 from collections import defaultdict
 import logging
 import numpy as np
@@ -7,6 +8,8 @@ import sys
 import tempfile
 from typing import List, Tuple
 from unittest.mock import patch
+
+from .compass import cache
 
 from turbo_mc.iterative_models.matrix_oracle import MatrixOracle
 from turbo_mc.models.exclude_constant_columns_model_wrapper import ExcludeConstantColumnsModelWrapper
@@ -94,6 +97,25 @@ class CompassResourceManager():
         """
         return self.compass_parsed_args['temp_dir']
 
+    def _check_cache_is_present(self):
+        """
+        Makes sure that the model and media are cached in the compass resources.
+        Recall that this data contains the reaction maximums, that are used many
+        times, which is why it is good to cache them first.
+        """
+        compass_args = deepcopy(self.compass_args)
+        model = self.compass_parsed_args["model"]
+        media = self.compass_parsed_args["media"]
+        if media is None:
+            raise ValueError(f"Please explicitly provide the media used with --media")
+        cache.load(model, media)
+        if len(cache._cache[(model, media)]) == 0:
+            raise ValueError(
+                f"Cache not present for model '{model}' and media '{media}'."
+                " Please generate it first by running compass (NOT turbo-compass) "
+                f"with the --generate-cache flag."
+            )
+
 
 class CompassOracle(MatrixOracle):
     def __init__(self, compass_args: List[str]):
@@ -104,6 +126,7 @@ class CompassOracle(MatrixOracle):
         # Let's first figure out on what cells and reactions Compass is being run on.
         self.compass_args = compass_args[:]
         compass_resource_manager = CompassResourceManager(compass_args=compass_args)
+        compass_resource_manager._check_cache_is_present()
         self.cell_names = np.array(compass_resource_manager.get_cell_names())
         self.reaction_ids = np.array(compass_resource_manager.get_reaction_ids())
         cache_dir = os.path.join(
