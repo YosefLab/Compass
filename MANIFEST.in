@@ -1,3 +1,2 @@
 recursive-include */Resources *.*
-include compass/compass/extensions/tsne_utils.pyx
 

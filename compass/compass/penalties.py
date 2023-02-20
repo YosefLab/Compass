@@ -1,11 +1,14 @@
 import numpy as np
 import pandas as pd
-from .extensions import tsne_utils
+import logging
+from .. import utils
 from .. import models
-from ..globals import EXCHANGE_LIMIT
+from ..globals import EXCHANGE_LIMIT, PCA_SEED
 from sklearn.neighbors import NearestNeighbors
 from sklearn.decomposition import PCA
+from sklearn.manifold._utils import _binary_search_perplexity
 
+from scipy import sparse
 
 def eval_reaction_penalties(expression_file, model, media,
                             species, args):
@@ -49,9 +52,13 @@ def eval_reaction_penalties(expression_file, model, media,
     input_weights_file = args['input_weights']
     penalty_diffusion_mode = args['penalty_diffusion']
     and_function = args['and_function']
+    input_knn = args['input_knn']
+    output_knn = args['output_knn']
+    latent_input = args['latent_space']
+    isoform_summing = args['isoform_summing']
 
-    expression = pd.read_csv(expression_file, sep='\t', index_col=0)
-    expression.index = expression.index.str.upper()  # Gene names to upper
+    expression = utils.read_data(expression_file) #pd.read_csv(expression_file, sep='\t', index_col=0)
+    expression.index = expression.index.astype('str').str.upper()  # Gene names to upper
 
     # If genes exist with duplicate symbols
     # Need to aggregate them out
@@ -62,21 +69,26 @@ def eval_reaction_penalties(expression_file, model, media,
 
     model = models.init_model(model, species=species,
                               exchange_limit=EXCHANGE_LIMIT,
-                              media=media)
+                              media=media, isoform_summing=isoform_summing)
 
     # Evaluate reaction penalties
     input_weights = None
     if input_weights_file:
-        input_weights = pd.read_csv(input_weights_file, sep='\t', index_col=0)
-        # ensure same cell labels
-        if len(input_weights.index & expression.columns) != \
-                input_weights.shape[0]:
-            raise Exception("Input weights file rows must have same sample "
-                            "labels as expression columns")
-        if len(input_weights.columns & expression.columns) != \
-                input_weights.shape[1]:
-            raise Exception("Input weights file columns must have same sample "
-                            "labels as expression columns")
+        if input_weights_file[-3:] == 'mtx':
+            input_weights = scipy.io.mmread(input_weights_file).todense()
+            input_weights = input_weights / input_weights.sum(axis=1,keepdims=1) #normalize the weights so each row sums to 1.
+            input_weights = pd.DataFrame(input_weights, index=input_weights.index, columns=input_weights.index)
+        else:
+            input_weights = pd.read_csv(input_weights_file, sep='\t', index_col=0)
+            # ensure same cell labels
+            if len(input_weights.index & expression.columns) != \
+                    input_weights.shape[0]:
+                raise Exception("Input weights file rows must have same sample "
+                                "labels as expression columns")
+            if len(input_weights.columns & expression.columns) != \
+                    input_weights.shape[1]:
+                raise Exception("Input weights file columns must have same sample "
+                                "labels as expression columns")
 
         input_weights = input_weights.loc[expression.columns, :] \
             .loc[:, expression.columns]
@@ -86,7 +98,8 @@ def eval_reaction_penalties(expression_file, model, media,
         num_neighbors=num_neighbors, symmetric_kernel=symmetric_kernel,
         and_function=and_function,
         penalty_diffusion_mode=penalty_diffusion_mode,
-        input_weights=input_weights)
+        input_weights=input_weights, 
+        input_knn=input_knn, output_knn=output_knn, latent_input=latent_input)
 
     return reaction_penalties
 
@@ -95,7 +108,9 @@ def eval_reaction_penalties_shared(model, expression,
                                    lambda_, num_neighbors,
                                    symmetric_kernel, and_function,
                                    penalty_diffusion_mode,
-                                   input_weights=None):
+                                   input_weights=None, 
+                                   input_knn=None, output_knn=None,
+                                   latent_input=None):
     """
     Determines reaction penalties, on the given model, for
     the given expression data
@@ -153,25 +168,26 @@ def eval_reaction_penalties_shared(model, expression,
     if input_weights is not None:
         weights = input_weights.values
     elif lambda_ == 0:
-        weights = np.zeros(
-            (reaction_expression.shape[1], reaction_expression.shape[1])
-        )
+        weights = sparse.csr_matrix((reaction_expression.shape[1], reaction_expression.shape[1]))
     else:
+        if latent_input is not None:
+            data = pd.read_csv(latent_input, sep='\t', index_col=0).T
         # log scale and PCA expresion
-
-        log_expression = np.log2(expression+1)
-        model = PCA(n_components=min(
-            log_expression.shape[0], log_expression.shape[1], 20)
-        )
-        pca_expression = model.fit_transform(log_expression.T).T
-        pca_expression = pd.DataFrame(pca_expression,
-                                      columns=expression.columns)
+        else:
+            data = np.log2(expression+1)
+            model = PCA(n_components=min(data.shape[0], data.shape[1], 20),
+                    random_state = PCA_SEED)
+            if pd.__version__ >= '0.24':
+               data = model.fit_transform(data.to_numpy().T).T
+            else:
+                data = model.fit_transform(data.values.T).T
+            data = pd.DataFrame(data, columns=expression.columns)
 
         if penalty_diffusion_mode == 'gaussian':
             weights = sample_weights_tsne_symmetric(
-                pca_expression, num_neighbors, symmetric_kernel)
+                data, num_neighbors, symmetric_kernel)
         elif penalty_diffusion_mode == 'knn':
-            weights = sample_weights_knn(pca_expression, num_neighbors)
+            weights = sample_weights_knn(data, num_neighbors, input_knn, output_knn)
         else:
             raise ValueError(
                 'Invalid value for penalty_diffusion_mode: {}'
@@ -179,14 +195,19 @@ def eval_reaction_penalties_shared(model, expression,
             )
 
     # Compute weights between samples
-    neighborhood_reaction_expression = reaction_expression.dot(weights.T)
-    neighborhood_reaction_expression.columns = reaction_expression.columns
+    #This fixes potential error messages caused by labels being strings vs byte strings
+    if isinstance(weights, pd.DataFrame):
+        if pd.__version__ >= '0.24':
+            weights = weights.to_numpy()
+        else:
+            weights = weights.values
+    
+    #Only worsk for dense matrices: neighborhood_reaction_expression = reaction_expression.dot(weights.T). 
+    #Pandas unsuccesfully tries to cast the sparse weights with np.asarry()
+    neighborhood_reaction_expression = weights.dot(reaction_expression.T).T 
+    neighborhood_reaction_expression = pd.DataFrame(neighborhood_reaction_expression, index=reaction_expression.index, columns=reaction_expression.columns)
 
-    reaction_penalties = 1/(1+reaction_expression)
-    neighborhood_reaction_penalties = 1/(1+neighborhood_reaction_expression)
-
-    result = ((1-lambda_)*reaction_penalties +
-              lambda_*neighborhood_reaction_penalties)
+    result = (1-lambda_)/(1+reaction_expression) + lambda_/(1+neighborhood_reaction_expression)
 
     result.index.name = "Reaction"
 
@@ -244,11 +265,10 @@ def sample_weights_tsne_symmetric(data, perplexity, symmetric):
     aff = aff.astype('float32')
 
     # Run the tsne perplexity procedure
-    pvals = tsne_utils.binary_search_perplexity(
-        affinities=aff,
-        neighbors=None,
-        desired_perplexity=perplexity,
-        verbose=0
+    pvals = _binary_search_perplexity(
+        aff,
+        perplexity,
+        0
     )
 
     # Symmetrize the pvals
@@ -263,8 +283,7 @@ def sample_weights_tsne_symmetric(data, perplexity, symmetric):
 
     return pvals
 
-
-def sample_weights_knn(data, num_neighbors):
+def sample_weights_knn(data_df, num_neighbors, input_knn=None, output_knn=None):
     """
     Calculates cell-to-cell weights using knn on data
 
@@ -274,22 +293,65 @@ def sample_weights_knn(data, num_neighbors):
         binary search perplexity target
     """
 
-    columns = data.columns
-    data = data.values
+    columns = data_df.columns
+    data = data_df.values
+    ind = None
+    if input_knn:
+        logger = logging.getLogger('compass')
+        ind = utils.read_knn_ind(input_knn, data=data_df)
+        if ind is None:
+            logger.error("Input KNN invalid: shape and/or indices do not match input data")
+            raise Exception('Compass Error: --input-knn invalid for input data')
+        elif ind.shape[1] != num_neighbors:
+            logger.info("Input KNN number of neighbors do not match. Expected: ", num_neighbors, ", but was: ", ind.shape[1])
+            logger.info("Proceeding using the input knn")
+            num_neighbors = ind.shape[1]
+        else:
+            logger.info("Input KNN successfully loaded")
+        
 
-    nn = NearestNeighbors(n_neighbors=num_neighbors)
-    nn.fit(data.T)
+    if ind is None:
+        nn = NearestNeighbors(n_neighbors=num_neighbors)
+        nn.fit(data.T)
+        ind = nn.kneighbors(return_distance=False)
 
-    ind = nn.kneighbors(return_distance=False)
+    if output_knn:
+        knn_df = pd.DataFrame(ind, index=columns)
+        knn_df.to_csv(output_knn, sep='\t')
 
-    weights = np.zeros((data.shape[1], data.shape[1]))
-
-    weights[np.arange(data.shape[1]), ind.T] = 1
-    weights /= num_neighbors  # So weights sum to 1
-
-    weights = pd.DataFrame(weights, columns=columns, index=columns)
+    weights = sparse.coo_matrix( (np.ones(num_neighbors * data.shape[1]) / num_neighbors, 
+                                (np.repeat(np.arange(data.shape[1]), num_neighbors), ind.ravel())), 
+                                shape=(data.shape[1], data.shape[1]))
 
     return weights
+
+def compute_knn(args):
+    expression = utils.read_data(args['data'])
+    expression.index = expression.index.astype('str').str.upper()  # Gene names to upper
+
+    # If genes exist with duplicate symbols
+    # Need to aggregate them out
+    if not expression.index.is_unique:
+        expression.index.name = "GeneSymbol"
+        expression = expression.reset_index()
+        expression = expression.groupby("GeneSymbol").sum()
+        
+    log_expression = np.log2(expression+1)
+    model = PCA(n_components=min(
+        log_expression.shape[0], log_expression.shape[1], 20)
+    )
+    if pd.__version__ >= '0.24':
+        pca_expression = model.fit_transform(log_expression.to_numpy().T).T
+    else:
+        pca_expression = model.fit_transform(log_expression.values.T).T
+    pca_expression = pd.DataFrame(pca_expression,columns=expression.columns)
+
+    nn = NearestNeighbors(n_neighbors=args['num_neighbors'])
+    nn.fit(pca_expression.T)
+    ind = nn.kneighbors(return_distance=False)
+
+    knn_df = pd.DataFrame(ind, index=expression.columns)
+    knn_df.to_csv(args['output_knn'], sep='\t')
 
 
 def sample_weights_bio(bio_groups):
@@ -323,3 +385,5 @@ def sample_weights_bio(bio_groups):
     pvals = (aff == 0).astype('float')
 
     return pvals
+
+    

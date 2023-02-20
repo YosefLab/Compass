@@ -279,6 +279,14 @@ class MetabolicModel(object):
 
         self.media = media_name
 
+    def remove_isoform_summing(self):
+        """
+        Removes instances where two isoforms of the same gene are summed/OR'd together
+        """
+        for reaction in self.reactions.values():
+            if reaction.gene_associations:
+                reaction.gene_associations.remove_isoform_summing()
+
     def _calc_max_flux(self):
         """
         Determines the max (absolute) flux of the model
@@ -447,6 +455,8 @@ class Reaction(object):
 
         out['genes'] = gene_dict
 
+        out['gene_associations'] = self.gene_associations
+
         return out
 
 
@@ -533,9 +543,40 @@ class Association(object):
 
             return genes
 
+    def remove_isoform_summing(self):
+        """
+        Removes instances where two isoforms of the same gene are summed/OR'd together
+        """
+        if self.type == 'gene':
+            return 
+
+        elif self.type == 'or' or self.type == 'and':
+            seen = set()
+            children = []
+            for child in self.children:
+                if child.type == 'gene':
+                    if child.gene.name not in seen or len(child.gene.name) < 1:
+                        seen.add(child.gene.name)
+                        children.append(child)
+                else:
+                    child.remove_isoform_summing()
+                    children.append(child)
+            self.children = children
+
     def __str__(self):
         return _print_node(self)
 
+    def to_serializable(self):
+        if self.type == 'gene':
+            return {
+                'type': self.type,
+                'name': self.gene.name
+            }
+        else:
+            return {
+                'type': self.type,
+                'children': [x.to_serializable() for x in self.children]
+            }
 
 class Gene(object):
 
