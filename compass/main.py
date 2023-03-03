@@ -203,12 +203,6 @@ def parseArgs():
         required=False,
         metavar="FILE")
 
-    parser.add_argument(
-        "--select-subsystems",
-        help="Compute compass scores only for the subsystems listed in the given file. FILE is expected to be textual, with one line per subsystem. Unrecognized subsystems in FILE are ignored.",
-        required=False,
-        metavar="FILE")
-
     parser.add_argument("--glucose", type=float,
                         required=False, help=argparse.SUPPRESS)
 
