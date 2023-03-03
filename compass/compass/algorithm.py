@@ -2,7 +2,6 @@
 Run the procedure for COMPASS
 """
 from __future__ import print_function, division, absolute_import
-import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from random import shuffle
@@ -623,6 +622,7 @@ def solve_problem_wrapper(problem) -> float:
         return problem.solution.get_objective_value()
     else:
         return np.nan
+
 def maximize_reaction_range(start_stop, args):
     """
     Maximizes a range of reactions from start_stop=(start, stop).
