@@ -178,10 +178,10 @@ def parseArgs():
         choices=["min", "median", "mean"],
         metavar="FXN",
         default="mean")
-
+    
     parser.add_argument(
-        "--select-reactions",
-        help="Compute compass scores only for the reactions listed in the given file. FILE is expected to be textual, with one line per reaction (undirected, namely adding the suffix \"_pos\" or \"_neg\" to a line will create a valid directed reaction id). Unrecognized reactions in FILE are ignored.",
+        "--select_reactions",
+        help="Compute compass scores only for the reactions listed in the given file. FILE is expected to be textual, with one line per reaction (directed, namely every line ends with a  \"_pos\" or \"_neg\" suffix). Unrecognized reactions in FILE are ignored.",
         required=False,
         metavar="FILE")
 
