@@ -206,18 +206,6 @@ def parseArgs():
     parser.add_argument("--glucose", type=float,
                         required=False, help=argparse.SUPPRESS)
 
-    parser.add_argument(
-        "--selected-reactions-for-each-cell",
-        help=argparse.SUPPRESS,
-        # help="Compute Compass scores only for the reactions listed for each cell, "
-        #      "in the given file. FILE is expected to have one comma-separated line per cell of interest: the "
-        #      "first string in each file is the cell's name, and it is followed by the reaction ids "
-        #      "(which are directional or exchange reactions - in general, they look like what "
-        #      "you see in the reaction.tsv file you get after you run Compass)."
-        #      "E.g. 'cell42,BUP2_pos,BUP2_neg,DHPM2_pos' is a valid line.",
-        required=False,
-        metavar="FILE")  # Not part of public API
-
     # Hidden argument.  Used for batch jobs
     parser.add_argument("--collect", action="store_true",
                         help=argparse.SUPPRESS)
