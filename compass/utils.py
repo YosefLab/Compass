@@ -5,7 +5,6 @@ Functions to be used by other optimization routines
 """
 
 from __future__ import print_function, division
-import cplex
 import scipy.io
 import pandas as pd
 import numpy as np
@@ -13,44 +12,48 @@ from .globals import MODEL_DIR
 import os
 import anndata
 
-def get_steadystate_constraints(model):
+import gurobipy as gp
+
+def get_steadystate_constraints(model, gp_model):
+
     """
     Uses the s_mat to define connectivity constraints
     """
+
+    # s_mat is a dictionary with metabolites as keys and list of (reactions, stoichiometric coefficients) as values
     s_mat = model.getSMAT()
 
     lin_expr = []
-    senses = []
     rhs = []
     names = []
 
     for metab, rx in s_mat.items():
+        # If there is no reaction associated with the given metabolite, then skip
         if len(rx) == 0:
             continue
 
-        ind = [x[0] for x in rx]
-        val = [x[1] for x in rx]
+        # x[0] is name of reaction
+        # x[1] is stoichiometric coefficient of metabolite in reaction x[0]
+        expr = gp.LinExpr()
+        for x in rx:
+            expr += x[1] * gp_model.getVarByName(x[0])
 
-        lin_expr.append(cplex.SparsePair(ind=ind, val=val))
-        senses.append('E')
+        lin_expr.append(expr)
         rhs.append(0)
         names.append(metab)
 
-    return lin_expr, senses, rhs, names
+    return lin_expr, rhs, names
 
 
-def reset_objective(problem):
+def reset_objective(gp_model):
     """
     Clears all the objective coefficients for the current problem
     by setting all to 0
     """
 
-    names = problem.variables.get_names()
-    zeros = [0 for x in names]
-
-    problem.objective.set_linear(zip(names, zeros))
-    problem.objective.set_name('none')
-
+    gp_model.setObjective(0)
+    gp_model.update()
+    
 def read_data(data):
     if len(data) == 1:
         ext = os.path.splitext(data[0])[-1]
@@ -134,6 +137,10 @@ def read_knn(knn_data, data=None, dist=False):
         else:
             return None
     else:
+        # knn should be of shape (# of samples, k+1)
+        # first column is the sample names of the k nearest neighbors
+        # following k columns are indices of the k nearest neighbors
+        # data is of shape (# of genes, # of cells)
         knn = pd.read_csv(knn_data, sep='\t', index_col=0)
         if data is None:
             return knn.values #No choice but to assume that the indices are the same as input data
@@ -165,3 +172,18 @@ def read_metadata(model_name):
     reaction_metadata_path = os.path.join(metadata_dir, 'reaction_metadata.csv')
 
     return pd.read_csv(reaction_metadata_path, index_col=0)
+
+def parse_gurobi_license_file(file_path):
+    credentials = {}
+
+    with open(file_path, 'r') as file:
+        for line in file:
+            line = line.strip()
+            if line.startswith("WLSACCESSID="):
+                credentials['WLSACCESSID'] = line.split('=')[1]
+            elif line.startswith("WLSSECRET="):
+                credentials['WLSSECRET'] = line.split('=')[1]
+            elif line.startswith("LICENSEID="):
+                credentials['LICENSEID'] = int(line.split('=')[1])
+
+    return credentials

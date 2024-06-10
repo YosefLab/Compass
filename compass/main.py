@@ -21,8 +21,8 @@ from math import ceil
 from .compass import cache
 from ._version import __version__
 from .compass.torque import submitCompassTorque
-from .compass.algorithm import singleSampleCompass, maximize_reaction_range, maximize_metab_range, initialize_cplex_problem
-from .compass.algorithm_t import runCompassParallelTransposed
+from .compass.algorithm import singleSampleCompass, maximize_reaction_range, maximize_metab_range, initialize_gurobi_model
+#from .compass.algorithm_t import runCompassParallelTransposed
 from .compass.microclustering import microcluster, pool_matrix_cols, unpool_columns
 from .models import init_model
 from .compass.penalties import eval_reaction_penalties, compute_knn
@@ -100,6 +100,10 @@ def parseArgs():
                         help=argparse.SUPPRESS,
                         type=int,
                         metavar="N")
+
+    parser.add_argument("--set-license",
+                        help="Location of Gurobi license file gurobi.lic",
+                        metavar="LICENSE")
 
     #Arguments to help with schedueler scripts
     parser.add_argument("--transposed",
@@ -296,8 +300,8 @@ def parseArgs():
     if args['data'] and args['data_mtx']:
         parser.error("--data and --data-mtx cannot be used at the same time. Select only one input per run.")
     if not args['data'] and not args['data_mtx']:
-        if not args['precache'] and not args['list_genes'] and not args['example_inputs'] and not args['list_reactions']:
-            parser.error("Nothing selected to do. Add arguments --data, --data-mtx, --precache, --list-genes, --list-reactions, or --example-inputs for Compass to do something.")
+        if not args['precache'] and not args['list_genes'] and not args['example_inputs'] and not args['list_reactions'] and not args['set_license']:
+            parser.error("Nothing selected to do. Add arguments --data, --data-mtx, --precache, --list-genes, --list-reactions, --example-inputs, or --set-license for Compass to do something.")
     else:
         if args['data_mtx']:
             args['data'] = args['data_mtx']
@@ -369,6 +373,16 @@ def entry():
     start_time = datetime.datetime.now()
 
     args = parseArgs()
+
+    if (not args['set_license']) and (not os.path.exists(os.path.join(globals.LICENSE_DIR, 'gurobi.lic'))):
+        print('A Gurobi license is required to run Compass. Please refer to the documentation for setup instructions.')
+    elif args['set_license']:
+        credentials = utils.parse_gurobi_license_file(args['set_license'])
+        with open(os.path.join(globals.LICENSE_DIR, 'gurobi.lic'), 'w') as file:
+            file.write(f"WLSACCESSID={credentials['WLSACCESSID']}\n")
+            file.write(f"WLSSECRET={credentials['WLSSECRET']}\n")
+            file.write(f"LICENSEID={credentials['LICENSEID']}\n")
+        return
 
     if args['example_inputs']:
         print(os.path.join(globals.RESOURCE_DIR, "Test-Data"))
@@ -482,9 +496,12 @@ def entry():
         else:
             logger.info("Partitioning dataset into microclusters of size "+str(args['microcluster_size']))
             data = utils.read_data(args['data'])
+            # pools is a dict with keys as cluster indices and values as list of indices of samples that belong to this cluster
             pools = microcluster(data, cellsPerPartition = args['microcluster_size'], 
                                 latentSpace = args['latent_space'], inputKnn = args['input_knn'], 
                                 inputKnnDistances = args['input_knn_distances'], n_jobs = args['num_processes'])
+            # pooled_data is of shape (# of genes, # of clusters)
+            # Each column is the average gene expression of all samples in the cluster
             pooled_data = pool_matrix_cols(data, pools)
             pooled_data.to_csv(pooled_data_file, sep="\t")
 
@@ -515,6 +532,7 @@ def entry():
                 fout.close()
 
         args['orig_data'] = args['data']
+        # Compute compass on micropooled expression data
         args['data'] = [pooled_data_file]
         args['pools_file'] = pools_file
         
@@ -549,6 +567,22 @@ def entry():
 
     if args['single_sample'] is not None:
         args['penalties_file'] = os.path.join(args['temp_dir'], 'penalties.txt.gz')
+
+        # Calculate reaction penalties
+        success_token = os.path.join(args['temp_dir'], 'success_token_penalties')
+        penalties_file = os.path.join(args['temp_dir'], 'penalties.txt.gz')
+        if os.path.exists(success_token):
+            logger.info("Reaction Penalties already evaluated")
+            logger.info("Resuming execution from previous run...")
+        else:
+            logger.info("Evaluating Reaction Penalties...")
+            penalties = eval_reaction_penalties(args['data'], args['model'],
+                                                args['media'], args['species'],
+                                                args)
+            penalties.to_csv(penalties_file, sep='\t', compression='gzip')
+            with open(success_token, 'w') as fout:
+                fout.write('Success!')
+
         singleSampleCompass(data=args['data'], model=args['model'],
                             media=args['media'], directory=args['temp_dir'],
                             sample_index=args['single_sample'], args=args)
@@ -852,16 +886,22 @@ def precacheCompass(args):
     if args['num_processes'] > multiprocessing.cpu_count():
         args['num_processes'] = multiprocessing.cpu_count()
 
+    # Cache is determined by type of model, species, and media used
+    # Computes maximal reaction flux v_r^opt for each reaction
+    # Maximal flux is agnostic of gene expression level
     model = init_model(model=args['model'], species=args['species'],
         exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
         isoform_summing=args['isoform_summing'])
 
     n_processes = args['num_processes'] #max(1, args['num_processes'] - 1) #for later multithreading
     n_reactions = len(model.reactions.values())
+
     # Not all metabolites in the model are neccesarily involved in reactions
     # This allows for generating the cache only for neccesary metabolites
-    problem = initialize_cplex_problem(model, args['num_threads'], args['lpmethod'])
-    n_metabs = len(problem.linear_constraints.get_names())
+    # i.e. get_steadystate_constraints only includes metabolites that are associated with reactions in Sv = 0 constraint
+    credentials = utils.parse_gurobi_license_file(os.path.join(globals.LICENSE_DIR, 'gurobi.lic'))
+    gp_model = initialize_gurobi_model(model, credentials, args['num_threads'], args['lpmethod'])
+    n_metabs = len(gp_model.getConstrs())
     
     if n_processes > 1:
         reaction_chunk_size = int(ceil(n_reactions / n_processes))
@@ -891,14 +931,15 @@ def precacheCompass(args):
         reaction_cache = maximize_reaction_range((0, n_reactions), args)
         cache.clear(model)
         model_cache = cache.load(model)
+        # Reaction cache and metabolite cache may have some overlapping reactions
         model_cache.update(reaction_cache)
         model_cache.update(metab_cache)
         cache.save(model) 
 
 
 
-    
-    
+
+
 
 
 
