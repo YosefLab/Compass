@@ -170,6 +170,10 @@ class MetabolicModel(object):
         coefficient is positive if metabolite is produced in the reaction,
             negative if consumed
         """
+
+        # NOTE: for each reaction, only metabolites that are associated with this reaction are added to SMAT
+        # Metabolites that are not associated with any reaction are not added to the SMAT
+
         s_mat = {}
         for reaction_id, rr in self.reactions.items():
 

@@ -28,6 +28,8 @@ from .models import init_model
 from .compass.penalties import eval_reaction_penalties, compute_knn
 from . import globals
 from . import utils
+import compass.global_state as global_state
+from .turbo_compass import turbo_compass_entry
 
 
 
@@ -135,6 +137,45 @@ def parseArgs():
                         type=int, default=1,
                         metavar="N")
 
+    parser.add_argument("--turbo",
+                        help="If you are willing to sacrifice some accuracy in favour of speed, "
+                             "you can run Compass with --turbo specifying the minimum tolerated "
+                             "Spearman R2 (MIN_SR2) of the output matrix as compared to the ground "
+                             "truth Compass matrix. This option is mutually exclusive with "
+                             "--calc-metabolites. By default MIN_SR2=1.0, i.e. no approximation "
+                             "is performed. Even setting MIN_SR2=0.95 can speed up Compass 5x, "
+                             "producing an extremely fidelitous reaction score matrix.",
+                        type=float,
+                        default=1.0,
+                        metavar="MIN_SR2")
+
+    parser.add_argument("--turbo-increments",
+                        help="Turbo Compass runs by incrementally computing only subsets of the "
+                             "reaction score matrix. This argument indicates what percentage is"
+                             "computed in each iteration.",
+                        type=float,
+                        default=0.01,
+                        metavar="INC")
+
+    parser.add_argument("--turbo-min-pct",
+                        help="The minimum tolerated Spearman R2 (SR2) only has to hold for MIN_PCT "
+                             "of the reactions. Requiring 100 pct of reactions to meet the SR2 condition "
+                             "is typically too taxing since SR2 computation is pedantic and "
+                             "leads to there always being some reaction that fails it. Setting this "
+                             "argument to e.g. 0.99 is enough to fix the artifact without compromising "
+                             "the reconstruction quality. In general, decreasing this argument will "
+                             "cause Compass to run faster but produce more reactions that violate the "
+                             "SR2 condition.",
+                        type=float,
+                        default=0.99,
+                        metavar="MIN_PCT")
+
+    parser.add_argument("--turbo-max-iters",
+                        help="Maximum number of iterative matrix completion steps.",
+                        type=int,
+                        default=1000000,  # Infinity
+                        metavar="MAX_ITERS")
+
     parser.add_argument(
         "--and-function",
         help="Which function used to aggregate AND associations",
@@ -147,6 +188,18 @@ def parseArgs():
         help="Compute compass scores only for the reactions listed in the given file. FILE is expected to be textual, with one line per reaction (undirected, namely adding the suffix \"_pos\" or \"_neg\" to a line will create a valid directed reaction id). Unrecognized reactions in FILE are ignored.",
         required=False,
         metavar="FILE")
+
+    parser.add_argument(
+        "--selected-reactions-for-each-cell",
+        help=argparse.SUPPRESS,
+        # help="Compute Compass scores only for the reactions listed for each cell, "
+        #      "in the given file. FILE is expected to have one comma-separated line per cell of interest: the "
+        #      "first string in each file is the cell's name, and it is followed by the reaction ids "
+        #      "(which are directional or exchange reactions - in general, they look like what "
+        #      "you see in the reaction.tsv file you get after you run Compass)."
+        #      "E.g. 'cell42,BUP2_pos,BUP2_neg,DHPM2_pos' is a valid line.",
+        required=False,
+        metavar="FILE")  # Not part of public API
 
     parser.add_argument(
         "--select-subsystems",
@@ -318,6 +371,9 @@ def parseArgs():
     if args['select_reactions']:
         args['select_reactions'] = os.path.abspath(args['select_reactions'])
 
+    if args['selected_reactions_for_each_cell']:
+        args['selected_reactions_for_each_cell'] = os.path.abspath(args['selected_reactions_for_each_cell'])
+
     if args['select_subsystems']:
         args['select_subsystems'] = os.path.abspath(args['select_subsystems'])
 
@@ -345,6 +401,11 @@ def parseArgs():
     if args['lambda'] < 0 or args['lambda'] > 1:
         parser.error(
             "'lambda' parameter cannot be less than 0 or greater than 1"
+        )
+
+    if args['turbo'] < 0 or args['turbo'] > 1:
+        parser.error(
+            "'turbo' parameter cannot be less than 0 or greater than 1"
         )
 
     if args['generate_cache'] and \
@@ -477,6 +538,14 @@ def entry():
     logger.debug("\nCOMPASS Started: {}".format(start_time))
     # Parse arguments and decide what course of action to take
 
+    if args['turbo'] < 1.0:
+        turbo_compass_entry()
+        return
+
+    # args.get returns None if the key 'selected_reactions_for_each_cell' does not exist
+    global_state.init_selected_reactions_for_each_cell(
+        args.get('selected_reactions_for_each_cell', None))
+
     if args['microcluster_size'] and args['data']:
         microcluster_dir = os.path.join(args['temp_dir'], "microclusters")
         if not os.path.isdir(microcluster_dir):
@@ -583,6 +652,9 @@ def entry():
             with open(success_token, 'w') as fout:
                 fout.write('Success!')
 
+        # maximize_reaction retrieves v_r^opt if already cached
+        # If args['single_sample'] is given, then cache is not computed
+        # therefore v_r^opt is computed on the fly
         singleSampleCompass(data=args['data'], model=args['model'],
                             media=args['media'], directory=args['temp_dir'],
                             sample_index=args['single_sample'], args=args)
@@ -603,6 +675,7 @@ def entry():
                     isoform_summing=args['isoform_summing']), args['media']))
     if size_of_cache == 0 or args['precache']:
         logger.info("Building up model cache")
+        # Compute v_r^opt for each reaction beforehand
         precacheCompass(args=args)
         end_time = datetime.datetime.now()
         logger.debug("\nElapsed Time: {}".format(end_time-start_time))
@@ -900,8 +973,7 @@ def precacheCompass(args):
     # This allows for generating the cache only for neccesary metabolites
     # i.e. get_steadystate_constraints only includes metabolites that are associated with reactions in Sv = 0 constraint
     credentials = utils.parse_gurobi_license_file(os.path.join(globals.LICENSE_DIR, 'gurobi.lic'))
-    gp_model = initialize_gurobi_model(model, credentials, args['num_threads'], args['lpmethod'])
-    n_metabs = len(gp_model.getConstrs())
+    n_metabs = len(model.species.values())
     
     if n_processes > 1:
         reaction_chunk_size = int(ceil(n_reactions / n_processes))

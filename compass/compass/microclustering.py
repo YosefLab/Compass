@@ -21,6 +21,7 @@ def microcluster(exprData, cellsPerPartition=10,
                          inputKnnDistances = None, K = None, 
                          n_jobs = 1):
     
+    # exprData is a genes x cells count matrix
     if filterThreshold is None:
         filterThreshold = int(exprData.shape[1] * 0.05)
     if K is None:
@@ -44,9 +45,13 @@ def microcluster(exprData, cellsPerPartition=10,
         #Adj is the adjacency matrix of the knn graph
         adj = sparse.csr_matrix((dist.ravel(), (np.repeat(np.arange(ind.shape[0]), ind.shape[1]), ind.ravel())))
     else:
+        # Compute k-nearest-neighbors if not provided
+        # latentSpace is of shape (# of samples, # of features)
+        # res is of shape (# of features, # of samples)
         if latentSpace is not None:
             res = pd.read_csv(latentSpace, sep='\t', index_col=0).T
         else:
+            # log transform count matrix of shape (# of genes, # of cells)
             log_expression = np.log2(exprData+1)
             
             #Determine latent space genes
@@ -67,10 +72,16 @@ def microcluster(exprData, cellsPerPartition=10,
             res = pca_expression
 
         #Compute knn on PCA with K = min(30, K)
+        # res is of shape (# of genes, # of cells)
+        # nn.fit takes parameter of shape (# of samples, # of features)
         nn = NearestNeighbors(n_neighbors=min(K, 30), n_jobs=n_jobs)
         nn.fit(res.T)
+        # dist is of shape (# of samples, k) and contains the distances between the k-nearest-neighbors and each sample
+        # ind is of shape (# of samples, k) and contains the indices of the k-nearest-neighbors of each sample
         dist, ind = nn.kneighbors()
         
+        # adj is of shape (# of samples, # of sample)
+        # adj[i][j] is the distance between sample i and j if j is the k nearest neighbor of i
         adj = nn.kneighbors_graph(mode='distance') #Should sparse graph of csr_format
 
     sigma = np.square(np.median(dist, axis=1)) #sigma <- apply(d, 1, function(x) quantile(x, c(.5))[[1]])
@@ -81,12 +92,15 @@ def microcluster(exprData, cellsPerPartition=10,
 
     cl = leidenalg.find_partition(igraph.Graph.Weighted_Adjacency(adj), leidenalg.ModularityVertexPartition, seed=LEIDEN_SEED)
 
+    # cl.membership contains a list of cluster assignments
+    # len(cl.membership) = # of vertices in the graph
     clusters = {d:[] for d in np.unique(cl.membership)}
     for i in range(len(cl.membership)):
         clusters[cl.membership[i]].append(i)
 
     pools = readjust_clusters(clusters, res, cellsPerPartition = cellsPerPartition)
     #Conversion here fixes downstream type errors with numpy integers
+    # pools is a dict with keys as cluster indices and values as list of indices of samples that belong to this cluster
     pools = {int(x):pools[x] for x in pools}  
     return pools
 

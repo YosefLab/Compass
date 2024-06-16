@@ -15,6 +15,7 @@ from .. import utils
 from .. import models
 from . import cache
 from ..globals import BETA, EXCHANGE_LIMIT, LICENSE_DIR
+import compass.global_state as global_state
 
 import gurobipy as gp
 from gurobipy import GRB
@@ -91,6 +92,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
         sample_name = str(samples[sample_index])
         logger.info("Processing Sample %i/%i: %s", sample_index,
             len(samples), sample_name)
+    global_state.set_current_cell_name(sample_name)
 
     # Run core compass algorithm
 
@@ -370,14 +372,16 @@ def compass_exchange(model, gp_model, reaction_penalties, only_exchange=False, p
         for rxn, penalty in reaction_penalties.items():
             obj += penalty * gp_model.getVarByName(rxn)
         gp_model.setObjective(obj, GRB.MINIMIZE)
+        gp_model.update()
         
-
         if perf_log is not None:
             start_time = time.process_time()
-        gp_model.optimize()
+        #gp_model.optimize()
         if perf_log is not None:
             perf_log['min penalty time'][secretion_rxn] = time.process_time() - start_time
-        value = gp_model.ObjVal
+        #value = gp_model.ObjVal
+        global_state.set_current_reaction_id(secretion_rxn)
+        value = optimize_model_wrapper(gp_model)
         secretion_scores[met_id] = value
 
         # Clear Secretion constraint
@@ -424,7 +428,6 @@ def compass_exchange(model, gp_model, reaction_penalties, only_exchange=False, p
         rhs = BETA * uptake_max
         name = 'UPTAKE_OPT'
         gp_model.addConstr(uptake_var >= rhs, name=name)
-        gp_model.update()
 
         # Find minimimum penalty
         obj = gp.LinExpr()
@@ -433,13 +436,16 @@ def compass_exchange(model, gp_model, reaction_penalties, only_exchange=False, p
         for rxn, penalty in reaction_penalties.items():
             obj += penalty * gp_model.getVarByName(rxn)
         gp_model.setObjective(obj, GRB.MINIMIZE)
+        gp_model.update()
 
         if perf_log is not None:
             start_time = time.process_time()
-        gp_model.optimize()
+        #gp_model.optimize()
         if perf_log is not None:
             perf_log['min penalty time'][uptake_rxn] = time.process_time() - start_time
-        value = gp_model.ObjVal
+        #value = gp_model.ObjVal
+        global_state.set_current_reaction_id(uptake_rxn)
+        value = optimize_model_wrapper(gp_model)
         uptake_scores[met_id] = value
 
         # Clear Secretion constraint
@@ -549,13 +555,13 @@ def compass_reactions(model, gp_model, reaction_penalties, perf_log=None, args =
             for rxn, penalty in reaction_penalties.items():
                 obj += penalty * gp_model.getVarByName(rxn)
             gp_model.setObjective(obj, GRB.MINIMIZE)
-            ### gp_model.update()
+            gp_model.update()
 
             if perf_log is not None:
                 #perf_log['blocked'][reaction.id] = False
                 start_time = time.process_time()
 
-            gp_model.optimize()
+            #gp_model.optimize()
 
             # TODO: modify for gurobi
             if perf_log is not None:
@@ -571,7 +577,9 @@ def compass_reactions(model, gp_model, reaction_penalties, perf_log=None, args =
                 argmaxes.append(np.array(values))
                 argmaxes_order.append(reaction.id)
 
-            value = gp_model.ObjVal
+            #value = gp_model.ObjVal
+            global_state.set_current_reaction_id(reaction.id)
+            value = optimize_model_wrapper(gp_model)
             reaction_scores[reaction.id] = value
 
             # Remove Constraint
@@ -695,10 +703,12 @@ def maximize_reaction(model, gp_model, rxn, use_cache=True, perf_log=None):
     # Maximize the reaction
     ### utils.reset_objective(gp_model)
     gp_model.setObjective(gp_model.getVarByName(rxn), GRB.MAXIMIZE)
-    ### gp_model.update()
+    gp_model.update()
 
-    gp_model.optimize()
-    rxn_max = gp_model.ObjVal
+    #gp_model.optimize()
+    #rxn_max = gp_model.ObjVal
+    global_state.set_current_reaction_id(rxn)
+    rxn_max = optimize_model_wrapper(gp_model)
 
     # Save the result
     model_cache = cache.load(model)
@@ -986,3 +996,15 @@ def maximize_metab_range(start_stop, args):
             gp_model.remove(secretion_var)
             
     return sub_cache
+
+
+def optimize_model_wrapper(gp_model) -> float:
+    r"""
+    Only optimize the Gurobi model if the reaction is selected for the cell. Else,
+    skip the computation and return np.nan.
+    """
+    if global_state.current_reaction_is_selected_for_current_cell():
+        gp_model.optimize()
+        return gp_model.ObjVal
+    else:
+        return np.nan
