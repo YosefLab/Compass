@@ -26,9 +26,10 @@ setup(
         'scipy>=1.0',
         'python-igraph>=0.9', #Need the version to be high enough fgo
         'leidenalg>=0.8.2',
-        'anndata'],
-
-        # 'cplex>=12.7.0.0' also required, but installed separately
+        'anndata',
+        'gurobipy==11.0.0',
+        'turbo_mc @ git+https://github.com/DPLemonade/turbo_mc.git',
+        'scikit-surprise'],
 
     author="David DeTomaso",
     author_email="david.detomaso@berkeley.edu",
