@@ -511,6 +511,7 @@ def entry():
         globals.init_logger(args['output_dir'])
 
     # Log some things for debugging/record
+    globals.init_logger(args['output_dir'])
     logger = logging.getLogger('compass')
     logger.debug("Compass version: " + __version__)
 
@@ -1017,4 +1018,5 @@ def precacheCompass(args):
 
 
 if __name__ == '__main__':
+    multiprocessing.set_start_method('fork')
     entry()

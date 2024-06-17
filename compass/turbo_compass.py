@@ -314,6 +314,7 @@ def pop_argument(args: List[str], arg: str) -> Tuple[List[str], str]:
 def turbo_compass_entry() -> None:
     logger.info("******** Turbo Compass started ********")
     # Extract turbo arguments.
+    import compass.main
     compass_parsed_args = compass.main.parseArgs()
     requested_cv_spearman_r2, increments, min_pct_meet_sr2_requirement, max_iters =\
         compass_parsed_args['turbo'],\
