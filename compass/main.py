@@ -436,13 +436,17 @@ def entry():
     args = parseArgs()
 
     if (not args['set_license']) and (not os.path.exists(os.path.join(globals.LICENSE_DIR, 'gurobi.lic'))):
-        print('A Gurobi license is required to run Compass. Please refer to the documentation for setup instructions.')
+        print('A Gurobi license is required to run Compass. Run Compass again with \'--set-license <PATH_TO_LICENSE>\' to save license.')
+        return
     elif args['set_license']:
         credentials = utils.parse_gurobi_license_file(args['set_license'])
         with open(os.path.join(globals.LICENSE_DIR, 'gurobi.lic'), 'w') as file:
             file.write(f"WLSACCESSID={credentials['WLSACCESSID']}\n")
             file.write(f"WLSSECRET={credentials['WLSSECRET']}\n")
             file.write(f"LICENSEID={credentials['LICENSEID']}\n")
+
+        if os.path.exists(os.path.join(globals.LICENSE_DIR, 'gurobi.lic')):
+            print('Successfully saved Gurobi license')
         return
 
     if args['example_inputs']:
