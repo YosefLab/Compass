@@ -34,7 +34,7 @@ def init_logger(directory="."):
 
     # Add file stream to compass.log
     log_file = os.path.join(directory, "compass.log")
-    fh = logging.FileHandler(log_file, mode='w')
+    fh = logging.FileHandler(log_file, mode='a')
     fh.name = 'logfile'
 
     formatter = logging.Formatter(

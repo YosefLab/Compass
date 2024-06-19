@@ -10,13 +10,14 @@ from typing import List, Tuple
 from unittest.mock import patch
 
 from .compass import cache
+from . import globals
 
-from turbo_mc.iterative_models.matrix_oracle import MatrixOracle
-from turbo_mc.models.exclude_constant_columns_model_wrapper import ExcludeConstantColumnsModelWrapper
-from turbo_mc.models.column_normalizer_model_wrapper import ColumnNormalizerModelWrapper
-from turbo_mc.models.matrix_completion_fast_als import MatrixCompletionFastALS
-from turbo_mc.models.cv_matrix_completion_model import TrainValSplitCVMatrixCompletionModel
-from turbo_mc.iterative_models.iterative_matrix_completion_model import IterativeMCMWithGuaranteedSpearmanR2
+from .turbo_mc.iterative_models.matrix_oracle import MatrixOracle
+from .turbo_mc.models.exclude_constant_columns_model_wrapper import ExcludeConstantColumnsModelWrapper
+from .turbo_mc.models.column_normalizer_model_wrapper import ColumnNormalizerModelWrapper
+from .turbo_mc.models.matrix_completion_fast_als import MatrixCompletionFastALS
+from .turbo_mc.models.cv_matrix_completion_model import TrainValSplitCVMatrixCompletionModel
+from .turbo_mc.iterative_models.iterative_matrix_completion_model import IterativeMCMWithGuaranteedSpearmanR2
 
 import compass
 
@@ -36,6 +37,7 @@ class CompassResourceManager():
             E.g. ["compass", "--media", "media1", "--data", "compass/Resources/Test Data/rsem_tpmTable_full.txt"]
         """
         self.compass_args = compass_args[:]  # Dependency injection
+        self.logger_dir = get_argument(self.compass_args, "--output-dir")
         with patch.object(sys, 'argv', self.compass_args):
             self.compass_parsed_args = compass.main.parseArgs()
 
@@ -76,6 +78,7 @@ class CompassResourceManager():
             # This avoids performing the actual optimization and returns a mocked solution instead.
             with patch.object(sys, 'argv', compass_args):
                 compass.main.entry()
+            globals.init_logger(self.logger_dir)
             reaction_scores = CompassResourceManager(compass_args).get_reaction_scores()
             reaction_ids = list(reaction_scores.index)
             return reaction_ids
@@ -127,6 +130,7 @@ class CompassOracle(MatrixOracle):
         logger.info("Initializing CompassOracle ...")
         # Let's first figure out on what cells and reactions Compass is being run on.
         self.compass_args = compass_args[:]
+        self.logger_dir = get_argument(self.compass_args, "--output-dir")
         compass_resource_manager = CompassResourceManager(compass_args=compass_args)
         compass_resource_manager._check_cache_is_present()
         self.cell_names = np.array(compass_resource_manager.get_cell_names())
@@ -197,12 +201,17 @@ class CompassOracle(MatrixOracle):
     def _observe_entries(
         self,
         rows: List[int],
-        cols: List[int]
+        cols: List[int],
+        iter: int
     ) -> np.array:
         # Start by running Compass on the selected cells (rows) and reactions (cols).
         assert("--selected-reactions-for-each-cell" not in self.compass_args)
         compass_args_to_observe_entries = self.compass_args[:]
-        with tempfile.NamedTemporaryFile("w") as selected_reactions_file:
+        iter_output_dir = os.path.join(get_argument(compass_args_to_observe_entries, "--output-dir"), '_tmp', f'iteration_{iter + 1}')
+        selected_reactions_file_path = os.path.join(iter_output_dir, 'selected_reactions.txt')
+        if not os.path.exists(iter_output_dir):
+            os.makedirs(iter_output_dir)
+        with open(selected_reactions_file_path, 'w+') as selected_reactions_file:
             # Create list of selected cells and reactions
             logger.info(f"CompassOracle populating the file {selected_reactions_file.name} with the selected cells and reactions ...")
             self._populate_selected_reactions_file(rows, cols, selected_reactions_file.name)
@@ -211,27 +220,27 @@ class CompassOracle(MatrixOracle):
                 compass_args_to_observe_entries,
                 "--selected-reactions-for-each-cell",
                 selected_reactions_file.name)
-            with tempfile.TemporaryDirectory() as output_dir_name:
-                logger.info(
-                    f"CompassOracle created temporary output directory "
-                    f"'{output_dir_name}' for running Compass")
-                set_argument(compass_args_to_observe_entries, "--output-dir", output_dir_name)
-                logger.info("CompassOracle running Compass for the selected subset of the reaction score matrix ...")
-                with patch.object(sys, 'argv', compass_args_to_observe_entries):
-                    compass.main.entry()
-                logger.info(
-                    "CompassOracle successfully ran Compass. "
-                    "Now will retrieve the computed reaction scores ...")
-                # Retrieve reaction scores.
-                compass_resource_manager = CompassResourceManager(compass_args_to_observe_entries)
-                reaction_scores = compass_resource_manager.get_reaction_scores()
-                # Check that rows and cols agree
-                assert(list(reaction_scores.columns) == list(self.cell_names))
-                assert(list(reaction_scores.index) == list(self.reaction_ids))
-                vals = reaction_scores.to_numpy().T[(rows, cols)]
-                logger.info("CompassOracle caching the latest Compass results ...")
-                self._cache_observations(rows, cols, list(vals), self.cache_filepath)
-                return vals
+            logger.info(
+                f"CompassOracle created output directory "
+                f"'{iter_output_dir}' for running Compass")
+            set_argument(compass_args_to_observe_entries, "--output-dir", iter_output_dir)
+            logger.info("CompassOracle running Compass for the selected subset of the reaction score matrix ...")
+            with patch.object(sys, 'argv', compass_args_to_observe_entries):
+                compass.main.entry()
+            globals.init_logger(self.logger_dir)
+            logger.info(
+                "CompassOracle successfully ran Compass. "
+                "Now will retrieve the computed reaction scores ...")
+            # Retrieve reaction scores.
+            compass_resource_manager = CompassResourceManager(compass_args_to_observe_entries)
+            reaction_scores = compass_resource_manager.get_reaction_scores()
+            # Check that rows and cols agree
+            assert(list(reaction_scores.columns) == list(self.cell_names))
+            assert(list(reaction_scores.index) == list(self.reaction_ids))
+            vals = reaction_scores.to_numpy().T[(rows, cols)]
+            logger.info("CompassOracle caching the latest Compass results ...")
+            self._cache_observations(rows, cols, list(vals), self.cache_filepath)
+            return vals
 
     def _populate_selected_reactions_file(
         self,
@@ -311,8 +320,17 @@ def pop_argument(args: List[str], arg: str) -> Tuple[List[str], str]:
     assert(False)
 
 
+def get_argument(args: List, arg_name: str) -> str:
+    if arg_name not in args:
+        return ""
+    for i in range(len(args) - 1):
+        if args[i] == arg_name:
+            return args[i + 1]
+    assert(False)
+
+
 def turbo_compass_entry() -> None:
-    logger.info("******** Turbo Compass started ********")
+    logger.info("\n******** Turbo Compass started ********")
     # Extract turbo arguments.
     import compass.main
     compass_parsed_args = compass.main.parseArgs()
@@ -367,7 +385,8 @@ def turbo_compass_entry() -> None:
             min_pct_meet_sr2_requirement=min_pct_meet_sr2_requirement,
             verbose=True,
             plot_progress=False,
-            max_iterations=max_iters
+            max_iterations=max_iters,
+            logger_dir=compass_matrix_oracle.logger_dir
         )
 
     # Fit iterative model. This is the core procedure of Turbo Compass (here is where all the magic happens)
