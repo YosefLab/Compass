@@ -9,10 +9,8 @@
 installation.md
 user_guide.md
 settings.md
-postprocessing.md
+notebooks/example
 changelog.md
 contributing.md
 references.md
-
-notebooks/example
 ```
