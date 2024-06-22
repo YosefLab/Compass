@@ -255,7 +255,7 @@ class IterativeMCMWithGuaranteedSpearmanR2(IterativeMatrixCompletionModel):
         if self.finally_refit_model_func is not None:
             if callable(self.finally_refit_model_func):
                 self.logger.info(
-                    f"Refitting final model on ({R}, {C}) matrix after observing "
+                    f"\nRefitting final model on ({R}, {C}) matrix after observing "
                     + "%.3f/1.00 pct of entries ..." % (sampling_density * (iteration + 1)))
                 final_model =\
                     self.finally_refit_model_func(
@@ -264,7 +264,7 @@ class IterativeMCMWithGuaranteedSpearmanR2(IterativeMatrixCompletionModel):
                             C=C,
                             sampled_density=sampling_density * (iteration + 1)))
             else:
-                self.logger.info("Not refitting any model at the very end.")
+                self.logger.info("\nNot refitting any model at the very end.")
                 final_model = copy.deepcopy(self.finally_refit_model_func)
             final_model.fit_matrix(X_observed, Z)
         else:

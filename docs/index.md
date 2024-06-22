@@ -6,7 +6,10 @@
 :hidden: true
 :maxdepth: 1
 
-api.md
+installation.md
+user_guide.md
+settings.md
+postprocessing.md
 changelog.md
 contributing.md
 references.md
