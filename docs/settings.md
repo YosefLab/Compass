@@ -3,7 +3,13 @@
 Compass allows the user to customize various features:
 
 ```bash
-usage: compass [-h] [--data FILE] [--data-mtx FILE [FILE ...]] [--model MODEL] [--species SPECIES] [--media MEDIA] [--output-dir DIR] [--temp-dir DIR] [--torque-queue QUEUE] [--num-processes N] [--lambda F] [--num-threads N] [--and-function FXN] [--select-reactions FILE] [--select-subsystems FILE] [--num-neighbors N] [--symmetric-kernel] [--input-weights FILE] [--penalty-diffusion MODE] [--no-reactions] [--calc-metabolites] [--precache] [--input-knn FILE] [--output-knn FILE] [--latent-space FILE] [--only-penalties] [--example-inputs] [--microcluster-size C] [--list-genes FILE] [--list-reactions FILE] [--turbo MIN_SR2] [--turbo-increments INC] [--turbo-min-pct MIN_PCT] [--turbo-max-iters MAX_ITERS]
+usage: Compass [-h] [--data FILE] [--data-mtx FILE [FILE ...]] [--model MODEL] [--species SPECIES] [--media MEDIA] 
+[--output-dir DIR] [--temp-dir DIR] [--torque-queue QUEUE] [--num-processes N] [--lambda F] [--num-threads N]
+[--and-function FXN] [--select-reactions FILE] [--select-subsystems FILE] [--num-neighbors N] [--symmetric-kernel] 
+[--input-weights FILE] [--penalty-diffusion MODE] [--no-reactions] [--calc-metabolites] [--precache]
+[--input-knn FILE] [--output-knn FILE] [--latent-space FILE] [--only-penalties] [--example-inputs]
+[--microcluster-size C] [--list-genes FILE] [--list-reactions FILE] [--turbo MIN_SR2] [--turbo-increments INC] 
+[--turbo-min-pct MIN_PCT] [--turbo-max-iters MAX_ITERS]
 ```
 
 ## Input Settings

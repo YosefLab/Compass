@@ -73,7 +73,7 @@ To get more context on what the reaction identifiers are, you can visit [virtual
 Once Compass has finished running, we apply several steps of postprocessing to the data. Mainly, the postprocessing converts reaction penalties (where high values correspond to low likelihood reactions) to reaction scores (where high values correspond to likely reactions). Refer to [this page][link-notebook] of the documentation for an example notebook.
 
 [link-test-data]: https://github.com/YosefLab/Compass/tree/compass_v2/compass/Resources/Test-Data
-[link-settings]: https://compass_v2.readthedocs.io/latest/settings.html
+[link-settings]: https://compass-sc.readthedocs.io/latest/settings.html
 [link-vmh]: https://www.vmh.life/#home
 [link-resources]: https://github.com/YosefLab/Compass/tree/compass_v2/compass/Resources/Recon2_export
-[link-notebook]: https://compass_v2.readthedocs.io/latest/notebooks/example.html
+[link-notebook]: https://compass-sc.readthedocs.io/latest/notebooks/example.html
