@@ -14,4 +14,5 @@ turbo_compass.tex
 changelog.md
 contributing.md
 references.md
+install.rst
 ```

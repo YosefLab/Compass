@@ -21,7 +21,7 @@ pip install git+https://github.com/YosefLab/Compass.git@main
 
 Please refer to the [documentation][link-docs]. In particular, the
 
--   [API documentation][link-api].
+-   [Compass settings documentation][link-settings].
 
 ## Release notes
 
@@ -34,5 +34,5 @@ See the [changelog][changelog].
 [changelog]: https://compass_v2.readthedocs.io/latest/changelog.html
 [link-docs]: https://compass-sc.readthedocs.io
 [link-repo]: https://github.com/YosefLab/Compass
-[link-api]: https://compass_v2.readthedocs.io/latest/api.html
+[link-settings]: https://compass-sc.readthedocs.io/en/latest/settings.html
 [link-manuscript]: https://doi.org/10.1016/j.cell.2021.05.045
