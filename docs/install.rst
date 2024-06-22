@@ -41,7 +41,7 @@ Now to test if everything is installed, simply run:
 
    compass -h
 
-You should see the help text print out if installation was succesful :) For more details on how to use Compass you can visit our :doc:`tutorial <tutorial>`.
+You should see the help text print out if installation was succesful :) For more details on how to use Compass you can visit our tutorial.
 
 .. _cplex-install:
 
