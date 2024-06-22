@@ -4,17 +4,17 @@ Compass allows the user to customize various features:
 
 ```bash
 usage: Compass [-h] [--data FILE] [--data-mtx FILE [FILE ...]] [--model MODEL] [--species SPECIES] [--media MEDIA] 
-[--output-dir DIR] [--temp-dir DIR] [--torque-queue QUEUE] [--num-processes N] [--lambda F] [--num-threads N]
+[--output-dir DIR] [--temp-dir DIR] [--num-processes N] [--torque-queue QUEUE] [--lambda F] [--num-threads N]
 [--and-function FXN] [--select-reactions FILE] [--select-subsystems FILE] [--num-neighbors N] [--symmetric-kernel] 
 [--input-weights FILE] [--penalty-diffusion MODE] [--no-reactions] [--calc-metabolites] [--precache]
-[--input-knn FILE] [--output-knn FILE] [--latent-space FILE] [--only-penalties] [--example-inputs]
-[--microcluster-size C] [--list-genes FILE] [--list-reactions FILE] [--turbo MIN_SR2] [--turbo-increments INC] 
-[--turbo-min-pct MIN_PCT] [--turbo-max-iters MAX_ITERS]
+[--input-knn FILE] [--input-knn-distances FILE] [--output-knn FILE] [--latent-space FILE] [--only-penalties]
+[--example-inputs] [--microcluster-size C] [--list-genes FILE] [--list-reactions FILE] [--turbo MIN_SR2]
+[--turbo-increments INC] [--turbo-min-pct MIN_PCT] [--turbo-max-iters MAX_ITERS]
 ```
 
 ## Input Settings
 
-Input gene expression matrix is specified in one of two ways:
+The input gene expression matrix is specified in one of two ways:
 
 **--data [FILE]**
 
@@ -105,6 +105,10 @@ Flag to enable calculation and output of uptake/secretion scores in addition to 
 **--no-reactions**
 
 Flag to disable calculation and output of reaction scores and compute only uptake/secretion scores.
+
+## Turbo Settings
+
+Turbo-Compass is an implementation of Compass that allows for faster runtime at the expense of accuracy. If you would like to use Turbo-Compass, please refer to [this section][link-turbo] of the documentation.
 
 ## Penalty Settings
 
@@ -247,3 +251,5 @@ Argument to choose the setting for Cplex’s advanced basis setting. See Cplex d
 **--save-argmaxes**
 
 Flag to enable saving the argmaxes for computing Compass scores of each reaction. Fun fact: solving the TSP greedily on the argmaxes graph to make full use of the advanced basis setting with the simplex algorithm did not outperform the barrier algorithm in practice.
+
+[link-turbo]: https://compass-sc.readthedocs.io/en/latest/turbo_compass.html
