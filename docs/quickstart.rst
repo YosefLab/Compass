@@ -51,7 +51,7 @@ Though the sample names file can be omitted, in which case the samples will be l
 
 Below is an example of the formatting for gene expression (we only show a small portion of the matrix):
 
-**Insert image here**
+.. image:: images/input_ex.png
 
 For the first run of Compass on a given model and media there will be overhead building up the Compass cache. 
 Compass will automatically build up the cache if it is empty, but you can also manually build up the cache 
@@ -69,7 +69,7 @@ before running Compass with:
     Therefore, Compass can also be stopped and restarted after it is done processing a subset of samples 
     so long as the _tmp directory is still there.
 
-For an in-depth explanation of Compass' various parameters, see `here <https://compass-sc.readthedocs.io/en/latest/settings.html>`__.
+For an in-depth explanation of the various Compass parameters, see `here <https://compass-sc.readthedocs.io/en/latest/settings.html>`__.
 
 Output
 *******
@@ -79,7 +79,7 @@ in the specified output directory (. directory when running Compass by default).
 
 Below is an example of the output matrix:
 
-**Insert image here**
+.. image:: images/output_ex.png
 
 To get more context on what the reaction identifiers are, you can visit `virtual metabolic human <https://www.vmh.life/#home>`__ 
 or the `resources directory <https://github.com/YosefLab/Compass/tree/compass_v2/compass/Resources/Recon2_export>`__ 

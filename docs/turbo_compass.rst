@@ -1,6 +1,40 @@
 Turbo-Compass
 ==============
 
+Turbo-Compass Settings
+**********************
+
+**\-\-turbo** [MIN_SR2]
+    If you are willing to sacrifice some accuracy in favor of speed, you can run Compass with the ``--turbo`` 
+    parameter specifying the minimum tolerated Spearman R2 (MIN_SR2) of the output matrix compared to the ground
+    truth Compass matrix. This option is mutually exclusive with ``--calc-metabolites``. 
+    By default MIN_SR2=1.0, i.e. no approximation is performed.
+
+**\-\-turbo-increments** [INC]
+    Turbo Compass runs by incrementally computing subsets of the reaction score matrix and using these subsets to
+    impute the final reaction score matrix. This argument indicates what percentage is computed in each iteration. 
+    Default value is INC=0.01.
+
+**\-\-turbo-min-pct** [MIN_PCT]
+    The minimum tolerated Spearman R2 (SR2) for MIN_PCT of the reactions. 
+    Requiring 100% of reactions to meet the SR2 condition is typically too stringent since there always being 
+    some reactions that fail to meet this condition. In general, decreasing this argument will 
+    cause Compass to run faster but produce more reactions that violate the SR2 condition. 
+    The default MIN_PCT=0.99 is enough to fix this artifact without compromising the reconstruction quality.
+
+**\-\-turbo-max-iters** [MAX_ITERS]
+    Maximum number of iterative matrix completion steps. During each iteration, INC percent of the reaction score matrix
+    will be sampled and used to impute the reaction score matrix. If MIN_PCT of entries achieve a Spearman R2 that is
+    higher than MIN_SR2, then Turbo-Compass will move on to the imputation of the final reaction score matrix without
+    completing all MAX_ITERS iterations.
+
+
+Recommended Turbo-Compass Settings
+**********************************
+
+Algorithm
+*********
+
 Turbo-Compass is based on a **black-box iterative matrix completion algorithm**. 
 In each step of the algorithm, only a subset of entries of the reaction score matrix are computed and used 
 for imputation of the entire reaction score matrix, allowing for faster runtime at the expense of accuracy.
@@ -15,7 +49,7 @@ The goal of the algorithm is for every reaction to be imputed with a cross-valid
 which is a hyperparameter of the method, by default :math:`\rho = 0.95` (corresponding to 95%). 
 If all reactions meet this threshold, the algorithm terminates and returns the imputed reaction score matrix 
 (by first re-fitting the model on all the available data, rather than using a specific cross-validation split, 
-which would be wasteful). Otherwise, we query another $p$ percent of the entries of the matrix, 
+which would be wasteful). Otherwise, we query another :math:`p` percent of the entries of the matrix, 
 distributing the budget evenly among the reactions failing to meet the threshold. 
 Any remaining budget is evenly distributed among the well-imputed reactions. 
 Cross-validated Spearman correlation is then re-evaluated, and the process is iterated 
@@ -42,8 +76,8 @@ such that :math:`X \approx AB^T`. More precisely, we solve:
     \end{equation}
 
 where :math:`k` is the rank of the factorization and :math:`\lambda \geq 0` is a regularization hyperparameter; 
-:math:`P_\Omega` is the operator that sets the unobserved entries to zero, and :math:`|| ||_F` is the Frobenius norm. 
-We choose :math:`k = max(1, \floor{\frac{1}{2}min(n, m)pt}` in the :math:`t`-th iteration, 
+:math:`P_\Omega` is the operator that sets the unobserved entries to zero, and :math:`|| \cdot ||_F` is the Frobenius norm. 
+We choose :math:`k = max(1, \lfloor \frac{1}{2}min(n, m)pt \rfloor` in the :math:`t`-th iteration, 
 which is inspired by the theory of low-rank matrix estimation, and we fix :math:`λ = 10` based on manual experimentation. 
 Before fitting the low-rank matrix completion model, we normalize each column (i.e. reaction) of :math:`X` to have 
 mean 0 and variance 1; this ensures that all reactions contribute to the loss with similar weight, 
