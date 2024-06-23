@@ -29,7 +29,7 @@ Turbo-Compass Settings
     completing all MAX_ITERS iterations.
 
 
-Recommended Turbo-Compass Settings
+Recommended Settings
 **********************************
 
 Algorithm
@@ -77,7 +77,7 @@ such that :math:`X \approx AB^T`. More precisely, we solve:
 
 where :math:`k` is the rank of the factorization and :math:`\lambda \geq 0` is a regularization hyperparameter; 
 :math:`P_\Omega` is the operator that sets the unobserved entries to zero, and :math:`|| \cdot ||_F` is the Frobenius norm. 
-We choose :math:`k = max(1, \lfloor \frac{1}{2}min(n, m)pt \rfloor` in the :math:`t`-th iteration, 
+We choose :math:`k = max(1, \lfloor \frac{1}{2}min(n, m)pt \rfloor)` in the :math:`t`-th iteration, 
 which is inspired by the theory of low-rank matrix estimation, and we fix :math:`λ = 10` based on manual experimentation. 
 Before fitting the low-rank matrix completion model, we normalize each column (i.e. reaction) of :math:`X` to have 
 mean 0 and variance 1; this ensures that all reactions contribute to the loss with similar weight, 

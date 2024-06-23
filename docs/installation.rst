@@ -10,7 +10,7 @@ Requirements
  - gurobipy >= 11.0.0
  - numpy >= 1.12
  - pandas >= 0.20
- - scikit-learn >- 0.19
+ - scikit-learn >= 0.19
  - scipy >= 1.0
 
 Install Compass

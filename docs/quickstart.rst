@@ -86,7 +86,7 @@ or the `resources directory <https://github.com/YosefLab/Compass/tree/compass_v2
 of Compass where there are several .csv files which include information on the reactions in Recon2.
 
 .. note::
-    While Compass is running, it will store partial results for each sample in the _tmp directory/ 
+    While Compass is running, it will store partial results for each sample in the _tmp directory 
     (or the directory following --temp-dir)
 
 Postprocessing
