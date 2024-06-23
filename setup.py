@@ -27,8 +27,7 @@ setup(
         'python-igraph>=0.9', #Need the version to be high enough fgo
         'leidenalg>=0.8.2',
         'anndata',
-        'gurobipy>=11.0.0',
-        'scikit-surprise'],
+        'gurobipy>=11.0.0'],
 
     author="David DeTomaso",
     author_email="david.detomaso@berkeley.edu",
