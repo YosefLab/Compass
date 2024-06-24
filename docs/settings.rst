@@ -210,7 +210,7 @@ Computing Settings
 Microcluster Settings
 **********************
 
-.. note::
+.. warning::
 
    Microclustering is currently deprecated for this version of Compass. We still provide the relevant arguments, but please 
    note that the code is no longer maintained and we do not provide any guarantee on the correctness or validity of the results.
