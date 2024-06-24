@@ -207,6 +207,19 @@ Computing Settings
 **\-\-precache**
    A flag to force Compass to build up the cache for the input selected model and media. This will rebuild the cache even if one already exists.
 
+Microcluster Settings
+**********************
+
+.. note::
+
+   Microclustering is currently deprecated for this version of Compass. We still provide the relevant arguments, but please 
+   note that the code is no longer maintained and we do not provide any guarantee on the correctness or validity of the results.
+   
+   To reduce runtime, we recommend that the user perform pseudobulking on the data, i.e. aggregation of the expression values
+   from a group of cells with shared characteristics, such as cells from the same patient, replicate, cell type, etc. 
+   As this process is highly dependent on the experiments performed to generate the dataset, 
+   we leave this to the discretion of the user.
+
 **\-\-microcluster-size** [C]
    A target number of cells per `microcluster <https://yoseflab.github.io/Compass/micropooling.html>`__. Compass will aggregate similar cells into clusters and compute reaction penalties for the clusters (using the mean of the cluster).
 
