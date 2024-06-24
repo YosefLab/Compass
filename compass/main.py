@@ -22,7 +22,6 @@ from .compass import cache
 from ._version import __version__
 from .compass.torque import submitCompassTorque
 from .compass.algorithm import singleSampleCompass, maximize_reaction_range, maximize_metab_range, initialize_gurobi_model
-#from .compass.algorithm_t import runCompassParallelTransposed
 from .compass.microclustering import microcluster, pool_matrix_cols, unpool_columns
 from .models import init_model
 from .compass.penalties import eval_reaction_penalties, compute_knn
@@ -108,10 +107,6 @@ def parseArgs():
                         metavar="LICENSE")
 
     #Arguments to help with schedueler scripts
-    parser.add_argument("--transposed",
-                        help=argparse.SUPPRESS,
-                        action="store_true")
-
     parser.add_argument("--sample-range",
                         help=argparse.SUPPRESS,
                         nargs=2)
@@ -722,10 +717,7 @@ def entry():
                             queue=args['torque_queue'])
         return
     else:
-        if args['transposed']:
-            runCompassParallelTransposed(args)
-        else:
-            runCompassParallel(args)
+        runCompassParallel(args)
         end_time = datetime.datetime.now()
         logger.debug("\nElapsed Time: {}".format(end_time-start_time))
         return

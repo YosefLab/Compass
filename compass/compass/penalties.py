@@ -9,6 +9,7 @@ from sklearn.decomposition import PCA
 from sklearn.manifold._utils import _binary_search_perplexity
 
 from scipy import sparse
+from scipy.io import mmread
 
 def eval_reaction_penalties(expression_file, model, media,
                             species, args):
@@ -75,7 +76,7 @@ def eval_reaction_penalties(expression_file, model, media,
     input_weights = None
     if input_weights_file:
         if input_weights_file[-3:] == 'mtx':
-            input_weights = scipy.io.mmread(input_weights_file).todense()
+            input_weights = mmread(input_weights_file).todense()
             input_weights = input_weights / input_weights.sum(axis=1,keepdims=1) #normalize the weights so each row sums to 1.
             input_weights = pd.DataFrame(input_weights, index=input_weights.index, columns=input_weights.index)
         else:
