@@ -26,3 +26,4 @@ These pages have guides on how to install and use Compass, including a walkthrou
    settings
    turbo_compass
    notebooks/postprocessing
+   notebooks/pseudobulk
