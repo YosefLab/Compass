@@ -17,7 +17,7 @@ Compass allows users to customize various features:
                [--turbo-increments INC] [--turbo-min-pct MIN_PCT] [--turbo-max-iters MAX_ITERS]
 
 
-Input settings
+Input Settings
 ***************
 
 The input gene expression matrix is specified in one of two ways:
@@ -47,7 +47,7 @@ To view example inputs, use:
    Flag for Compass to list the directory where example inputs can be found.
 
 
-Output settings
+Output Settings
 ****************
    
 **\-\-output-dir** [DIR]
@@ -65,7 +65,7 @@ Output settings
    
 **\-\-list-reactions** [FILE]
    File to output a list of reaction id's and their associated subsystem. This is useful if you'd like to compute Compass scores
-   for only a subset of the reactions in order to cut in computation times (see below, ``--select-reactions`` and ``--select-subsystems``)..
+   for only a subset of the reactions in order to cut in computation times (see below, ``--select-reactions`` and ``--select-subsystems``).
 
 **\-\-select-reactions** [FILE]
    Compute Compass scores only for the reactions listed in the given file. 
