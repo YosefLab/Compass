@@ -32,6 +32,72 @@ Turbo-Compass Settings
 Recommended Settings
 **********************************
 
+Different dataset sizes require the use of different Turbo-Compass parameters to strike the right balance between 
+runtime speedup and accuracy. In this section, we provide some rough guidelines on how to choose the best set of parameters.
+
+**Scenario 1: dataset contains < 1,000 samples**
+
+For smaller datasets, running vanilla Compass without any speedup is usually the best choice. Although Turbo-Compass does 
+yield significant speedups, the accuracy on small dataset is not usually very high. For completeness,
+here is a set of recommended parameters if you would still like to speed up your COMPASS run:
+
+**--turbo 0.7**
+**--turbo-increments 0.1**
+**--turbo-min-pct 0.99**
+**--turbo-max-iters 1**
+
+This set of parameters is chosen based on experiments conducted on the `Th17 dataset 
+<https://github.com/YosefLab/Compass/blob/compass_v2/docs/notebooks/extdata/Th17/linear_gene_expression_matrix.tsv>`__ 
+which contains 290 samples. The runtime and accuracy of various Turbo-Compass parameters are shown here:
+
+.. image:: images/th17_runtime.pdf
+.. image:: images/th17_reaction_scores_spearman.pdf
+
+As shown, the runtime of running Turbo-Compass for 5 iterations is comparable to that of running vanilla Compass. 
+Therefore, we suggest that the user simply run 1 iteration of Turbo-Compass along with a relatively large subset 
+of the matrix, e.g. 10% (--turbo-increments 0.1).
+
+**Scenario 2: dataset contains 1,000 ~ 10,000 samples**
+
+For medium-size datasets, Turbo-Compass yields significant speedups while still achieving relatively high accuracy. 
+The recommended set of parameters to use is:
+
+**--turbo 0.7**
+**--turbo-increments 0.05**
+**--turbo-min-pct 0.99**
+**--turbo-max-iters 1**
+
+This set of parameters is chosen based on experiments conducted on the `glucose dataset 
+<https://github.com/YosefLab/Compass/blob/compass_v2/docs/notebooks/extdata/glucose/normalized_expression.tsv>`__ 
+which contains around 5,000 samples. The runtime and accuracy of various Turbo-Compass parameters are shown here:
+
+.. image:: images/glucose_runtime.pdf
+.. image:: images/glucose_reaction_scores_spearman.pdf
+
+Compared to running on the Th17 dataset, running Turbo-Compass on the glucose dataset yields higher accuracy.
+We suggest that the user start with running 1 iteration of Turbo-Compass on 5% of the matrix (--turbo-increments 0.05), 
+and if runtime permits, crank up the fraction of entries sampled as well as the number of iterations for better 
+reconstruction quality.
+
+**Scenario 3: dataset contains > 10,000 samples**
+
+For large-scale datasets, we suggest that the user perform pseudobulking, i.e. aggregation of the expression values
+from a group of cells with shared characteristics, such as cells from the same patient, replicate, cell type, etc.,
+on the dataset before proceeding to use Compass. Although this process is highly dependent on the experiments 
+performed to generate the dataset, we provide a `tutorial on pseudobulking 
+<https://compass-sc.readthedocs.io/en/latest/notebooks/pseudobulk.html>`__ 
+as reference.
+
+We experimented with some Turbo-Compass parameters for the IBD dataset used in the pseudobulking tutorial. The runtime and 
+accuracy of the various parameters are shown here:
+
+.. image:: images/ibd_runtime.pdf
+.. image:: images/ibd_reaction_scores_spearman.pdf
+
+Notice that even though we are only sampling 0.1% of the matrix, the runtime is already around 36 hours when using 50 
+processors. Although Turbo-Compass still yields significant speedups, the accuracy suffers substantially.
+
+
 Algorithm
 *********
 
