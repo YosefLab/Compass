@@ -50,8 +50,8 @@ This set of parameters is chosen based on experiments conducted on the `Th17 dat
 <https://github.com/YosefLab/Compass/blob/compass_v2/docs/notebooks/extdata/Th17/linear_gene_expression_matrix.tsv>`__ 
 which contains 290 samples. The runtime and accuracy of various Turbo-Compass parameters are shown here:
 
-.. image:: images/th17_runtime.pdf
-.. image:: images/th17_reaction_scores_spearman.pdf
+.. image:: images/th17_runtime.png
+.. image:: images/th17_reaction_scores_spearman.png
 
 As shown, the runtime of running Turbo-Compass for 5 iterations is comparable to that of running vanilla Compass. 
 Therefore, we suggest that the user simply run 1 iteration of Turbo-Compass along with a relatively large subset 
@@ -71,8 +71,8 @@ This set of parameters is chosen based on experiments conducted on the `glucose 
 <https://github.com/YosefLab/Compass/blob/compass_v2/docs/notebooks/extdata/glucose/normalized_expression.tsv>`__ 
 which contains around 5,000 samples. The runtime and accuracy of various Turbo-Compass parameters are shown here:
 
-.. image:: images/glucose_runtime.pdf
-.. image:: images/glucose_reaction_scores_spearman.pdf
+.. image:: images/glucose_runtime.png
+.. image:: images/glucose_reaction_scores_spearman.png
 
 Compared to running on the Th17 dataset, running Turbo-Compass on the glucose dataset yields higher accuracy.
 We suggest that the user start with running 1 iteration of Turbo-Compass on 5% of the matrix (--turbo-increments 0.05), 
@@ -91,8 +91,8 @@ as reference.
 We experimented with some Turbo-Compass parameters for the IBD dataset used in the pseudobulking tutorial. The runtime and 
 accuracy of the various parameters are shown here:
 
-.. image:: images/ibd_runtime.pdf
-.. image:: images/ibd_reaction_scores_spearman.pdf
+.. image:: images/ibd_runtime.png
+.. image:: images/ibd_reaction_scores_spearman.png
 
 Notice that even though we are only sampling 0.1% of the matrix, the runtime is already around 36 hours when using 50 
 processors. Although Turbo-Compass still yields significant speedups, the accuracy suffers substantially.
