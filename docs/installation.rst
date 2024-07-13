@@ -1,7 +1,7 @@
 Installation
 ==================
 
-.. contents:: In this page
+.. contents:: Contents
    :local:
 
 Requirements

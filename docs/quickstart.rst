@@ -1,7 +1,7 @@
 Quickstart
 ============
 
-.. contents:: In this page
+.. contents:: Contents
    :local:
 
 Broadly speaking, Compass takes in a gene expression matrix scaled for library depth (e.g., CPM) 

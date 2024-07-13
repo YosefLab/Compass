@@ -1,7 +1,7 @@
 Turbo-Compass
 ==============
 
-.. contents:: In this page
+.. contents:: Contents
    :local:
 
 Turbo-Compass Settings
