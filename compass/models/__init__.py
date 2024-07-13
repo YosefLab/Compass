@@ -21,6 +21,9 @@ def load_metabolic_model(model_name, species='homo_sapiens', metabolic_model_dir
     Loads the metabolic model from `file_name`, returning a Model object
     """
 
+    # metabolic_model_dir is 'Resources/Metabolic Models' by default
+    # if meta-subsystems are used, then metabolic_model_dir is args['output_dir']/meta_subsystem_models
+
     if model_name.endswith('_mat'):
         model = importMATLAB.load(model_name, species, metabolic_model_dir=metabolic_model_dir)
     else:
