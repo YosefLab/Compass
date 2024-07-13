@@ -3,7 +3,7 @@ import pandas as pd
 import logging
 from .. import utils
 from .. import models
-from ..globals import EXCHANGE_LIMIT, PCA_SEED
+from ..globals import EXCHANGE_LIMIT, PCA_SEED, MODEL_DIR
 from sklearn.neighbors import NearestNeighbors
 from sklearn.decomposition import PCA
 from sklearn.manifold._utils import _binary_search_perplexity
@@ -12,7 +12,7 @@ from scipy import sparse
 from scipy.io import mmread
 
 def eval_reaction_penalties(expression_file, model, media,
-                            species, args):
+                            species, args, metabolic_model_dir=MODEL_DIR):
     """
     Main entry-point for evaluating reaction penalties
 
@@ -70,7 +70,8 @@ def eval_reaction_penalties(expression_file, model, media,
 
     model = models.init_model(model, species=species,
                               exchange_limit=EXCHANGE_LIMIT,
-                              media=media, isoform_summing=isoform_summing)
+                              media=media, isoform_summing=isoform_summing,
+                              metabolic_model_dir=metabolic_model_dir)
 
     # Evaluate reaction penalties
     input_weights = None

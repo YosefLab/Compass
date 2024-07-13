@@ -63,7 +63,7 @@ def sum_wo_nan(vals):
 
 class MetabolicModel(object):
 
-    def __init__(self, name):
+    def __init__(self, name, metabolic_model_dir=MODEL_DIR):
         self.name = name
         self.reactions = {}
         self.species = {}
@@ -71,6 +71,7 @@ class MetabolicModel(object):
         self.objectives = {}
         self._maximum_flux = None
         self.media = 'NoMedia'
+        self.metabolic_model_dir = metabolic_model_dir
 
     def getReactions(self):
         """
@@ -127,6 +128,7 @@ class MetabolicModel(object):
 
         return score_dict
 
+    # Set upper limit of metabolite intake for exchange reactions to be EXCHANGE_LIMIT
     def limitExchangeReactions(self, limit):
         """
         Limits the rate of metabolite exchange.
@@ -194,7 +196,39 @@ class MetabolicModel(object):
                 s_mat[metabolite].append((reaction_id, coefficient))
 
         return s_mat
+    
+    def getSMAT_transposed(self):
+        """
+        Returns a sparse form of the s-matrix
 
+        result is a dict
+            key: reaction_id
+            value: list of 2-tuples (metabolite/species id, coefficient)
+
+        coefficient is positive if metabolite is produced in the reaction,
+            negative if consumed
+        """
+
+        s_mat = {}
+        for reaction_id, rr in self.reactions.items():
+
+            if reaction_id not in s_mat:
+                s_mat[reaction_id] = []
+
+            # reactants
+            for metabolite, coefficient in rr.reactants.items():
+
+                s_mat[reaction_id].append((metabolite, coefficient * -1))
+
+            # products
+            for metabolite, coefficient in rr.products.items():
+
+                s_mat[reaction_id].append((metabolite, coefficient))
+
+        return s_mat
+
+    # NOTE: this also removes reactions that have lb = ub = 0
+    # e.g. 'BIDGLCURr', 'FAOXC11BRC9BRx', 'H8MTer_U', 'PLYSPSer', 'CYOOm2', 'H2CO3Dm', 'L_LACtcm', 'L_LACtm', 'PCLYSOX', 'PIt2m'
     def make_unidirectional(self):
         """
         Splits every reaction into a positive and negative counterpart
@@ -273,13 +307,14 @@ class MetabolicModel(object):
         """
 
         media_file = media_name + '.json'
-        media_file = os.path.join(MODEL_DIR, self.name, 'media', media_file)
+        media_file = os.path.join(self.metabolic_model_dir, self.name, 'media', media_file)
 
         with open(media_file) as fin:
             media = json.load(fin)
 
         for rid, ub in media.items():
-            self.reactions[rid].upper_bound = ub
+            if rid in self.reactions.keys():
+                self.reactions[rid].upper_bound = ub
 
         self.media = media_name
 
@@ -537,7 +572,10 @@ class Association(object):
         Returns all the genes in the association
         """
         if self.type == 'gene':
-            return {self.gene.name} | set(self.gene.alt_symbols)
+            if self.gene.name:
+                return {self.gene.name} | set(self.gene.alt_symbols)
+            else:
+                return {self.gene.id} | set(self.gene.alt_symbols)
 
         else:
             genes = set()

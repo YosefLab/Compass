@@ -90,3 +90,7 @@ ENV/
 
 # Visual Studio Code configuration
 .vscode
+
+tests/test*
+docs/notebooks/compass_results*
+*.ipynb

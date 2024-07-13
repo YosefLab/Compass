@@ -11,7 +11,7 @@ if not os.path.isdir(PREPROCESS_CACHE_DIR):
 _cache = {}
 _new_cache = {}
 
-def load(model, media=None):
+def load(model, media=None, preprocess_cache_dir=PREPROCESS_CACHE_DIR):
     global _cache
 
     if media is None:
@@ -22,7 +22,7 @@ def load(model, media=None):
 
     if (model, media) not in _cache:
 
-        cache_file = os.path.join(PREPROCESS_CACHE_DIR,
+        cache_file = os.path.join(preprocess_cache_dir,
                                   model, media, "preprocess.json")
 
         if os.path.exists(cache_file):
@@ -38,7 +38,7 @@ def load(model, media=None):
     return _cache[(model, media)]
 
 
-def save(model, media=None):
+def save(model, media=None, preprocess_cache_dir=PREPROCESS_CACHE_DIR):
     global _cache
 
     if media is None:
@@ -49,7 +49,7 @@ def save(model, media=None):
 
     cache_data = _cache[(model, media)]
 
-    cache_dir = os.path.join(PREPROCESS_CACHE_DIR, model, media)
+    cache_dir = os.path.join(preprocess_cache_dir, model, media)
 
     if not os.path.isdir(cache_dir):
         os.makedirs(cache_dir)
@@ -71,7 +71,7 @@ def is_new_cache(model, media=None):
     else:
         return False
 
-def clear(model, media=None):
+def clear(model, media=None, preprocess_cache_dir=PREPROCESS_CACHE_DIR):
     global _cache
 
     if media is None:
@@ -82,4 +82,4 @@ def clear(model, media=None):
 
     _cache[(model, media)] = {}
 
-    save(model, media)
+    save(model, media, preprocess_cache_dir=preprocess_cache_dir)

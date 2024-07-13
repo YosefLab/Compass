@@ -16,13 +16,13 @@ from .importCommon import clean_reactions, limit_maximum_flux
 # ----------------------------------------
 
 
-def load_metabolic_model(model_name, species='homo_sapiens'):
+def load_metabolic_model(model_name, species='homo_sapiens', metabolic_model_dir=MODEL_DIR):
     """
     Loads the metabolic model from `file_name`, returning a Model object
     """
 
     if model_name.endswith('_mat'):
-        model = importMATLAB.load(model_name, species)
+        model = importMATLAB.load(model_name, species, metabolic_model_dir=metabolic_model_dir)
     else:
         model_dir = os.path.join(MODEL_DIR, model_name)
         model_file = [x for x in os.listdir(model_dir) if
@@ -59,9 +59,9 @@ def load_metabolic_model(model_name, species='homo_sapiens'):
     return model
 
 
-def init_model(model, species, exchange_limit, media=None, isoform_summing="legacy"):
+def init_model(model, species, exchange_limit, media=None, isoform_summing="legacy", metabolic_model_dir=MODEL_DIR):
 
-    model = load_metabolic_model(model, species)
+    model = load_metabolic_model(model, species, metabolic_model_dir=metabolic_model_dir)
 
     # Limit exchange reactions
     model.limitExchangeReactions(limit=exchange_limit)

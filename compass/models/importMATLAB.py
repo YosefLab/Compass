@@ -9,7 +9,7 @@ from .MetabolicModel import Gene, Species, Reaction, Association, MetabolicModel
 from six import string_types
 
 
-def load(model_name, species):
+def load(model_name, species, metabolic_model_dir=MODEL_DIR):
     """
     model_name: str
         Name of the folder containing the model
@@ -17,8 +17,11 @@ def load(model_name, species):
         Species name.  either 'homo_sapiens' or 'mus_musculus'
     """
 
+    # metabolic_model_dir is 'Resources/Metabolic Models' by default
+    # if custom meta-subsystem models are generated, metabolic_model_dir is args['output_dir']/meta_subsystem_models
+
     # First load Genes
-    top_dir = os.path.join(MODEL_DIR, model_name)
+    top_dir = os.path.join(metabolic_model_dir, model_name)
     model_dir = os.path.join(top_dir, 'model')
 
     with open(os.path.join(model_dir, 'model.genes.json')) as fin:
@@ -152,7 +155,7 @@ def load(model_name, species):
     species = {s.id: s for s in species}
     name = model_name
 
-    model = MetabolicModel(name)
+    model = MetabolicModel(name, metabolic_model_dir=metabolic_model_dir)
     model.reactions = reactions
     model.species = species
 

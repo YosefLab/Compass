@@ -24,8 +24,11 @@ from .compass.torque import submitCompassTorque
 from .compass.algorithm import singleSampleCompass, maximize_reaction_range, maximize_metab_range, initialize_gurobi_model
 from .compass.microclustering import microcluster, pool_matrix_cols, unpool_columns
 from .models import init_model
+from .models.partitionModel import partition_model
 from .compass.penalties import eval_reaction_penalties, compute_knn
 from . import globals
+from .globals import MODEL_DIR
+from .compass.cache import PREPROCESS_CACHE_DIR
 from . import utils
 import compass.global_state as global_state
 from .turbo_compass import turbo_compass_entry
@@ -56,9 +59,9 @@ def parseArgs():
                         metavar="FILE")
 
     parser.add_argument("--model", help="Metabolic Model to Use."
-                        " Currently supporting: RECON1_mat, RECON2_mat, or RECON2.2",
+                        " Currently supporting: RECON1_mat, RECON2_mat, RECON2.2, Human1, or Mouse1",
                         default="RECON2_mat",
-                        choices=["RECON1_mat", "RECON2_mat", "RECON2.2"],
+                        choices=["RECON1_mat", "RECON2_mat", "RECON2.2", "Human1", "Mouse1"],
                         metavar="MODEL")
 
     parser.add_argument("--species",
@@ -201,6 +204,15 @@ def parseArgs():
         help="Compute compass scores only for the subsystems listed in the given file. FILE is expected to be textual, with one line per subsystem. Unrecognized subsystems in FILE are ignored.",
         required=False,
         metavar="FILE")
+
+    parser.add_argument(
+        "--select-meta-subsystems",
+        help="Compute compass scores only for the meta-subsystems listed in the given file. FILE is expected to be textual, with one line per meta-subsystem. "
+             "Each meta-subsystem should be formatted as META_SUBSYSTEM_NAME (META_SUBSYSTEM_ID): [SUBSYSTEMS...] "
+             "with [SUBSYSTEMS...] containing one or more subsystems",
+        required=False,
+        metavar="FILE"
+    )
 
     parser.add_argument("--glucose", type=float,
                         required=False, help=argparse.SUPPRESS)
@@ -635,9 +647,187 @@ def entry():
     #    return 
 
     if args['single_sample'] is not None:
-        args['penalties_file'] = os.path.join(args['temp_dir'], 'penalties.txt.gz')
 
-        # Calculate reaction penalties
+        if args['select_meta_subsystems']:
+
+            meta_subsystem_models_dir, model_names = partition_model(args)
+
+            meta_subsystem_preprocess_cache_dir = os.path.join(args['output_dir'], 'meta_subsystem_cache')
+            if os.path.exists(meta_subsystem_preprocess_cache_dir) == False:
+                os.mkdir(meta_subsystem_preprocess_cache_dir)
+
+            for meta_subsystem_model in model_names:
+
+                meta_subsystem_model_temp_dir = os.path.join(args['temp_dir'], meta_subsystem_model)
+                if os.path.exists(meta_subsystem_model_temp_dir) == False:
+                    os.mkdir(meta_subsystem_model_temp_dir)
+
+                args['penalties_file'] = os.path.join(meta_subsystem_model_temp_dir, 'penalties.txt.gz')
+
+                # Calculate reaction penalties
+                success_token = os.path.join(meta_subsystem_model_temp_dir, 'success_token_penalties')
+                penalties_file = os.path.join(meta_subsystem_model_temp_dir, 'penalties.txt.gz')
+                if os.path.exists(success_token):
+                    logger.info("Reaction Penalties already evaluated")
+                    logger.info("Resuming execution from previous run...")
+                else:
+                    logger.info("Evaluating Reaction Penalties...")
+                    penalties = eval_reaction_penalties(args['data'], meta_subsystem_model,
+                                                        args['media'], args['species'],
+                                                        args, metabolic_model_dir=meta_subsystem_models_dir)
+                    penalties.to_csv(penalties_file, sep='\t', compression='gzip')
+                    with open(success_token, 'w') as fout:
+                        fout.write('Success!')
+
+                # maximize_reaction retrieves v_r^opt if already cached
+                # If args['single_sample'] is given, then cache is not computed
+                # therefore v_r^opt is computed on the fly
+                singleSampleCompass(data=args['data'], model=meta_subsystem_model,
+                                    media=args['media'], directory=meta_subsystem_model_temp_dir,
+                                    sample_index=args['single_sample'], args=args,
+                                    metabolic_model_dir=meta_subsystem_models_dir,
+                                    preprocess_cache_dir=meta_subsystem_preprocess_cache_dir)
+                end_time = datetime.datetime.now()
+                logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+
+            return
+
+
+        else:
+            args['penalties_file'] = os.path.join(args['temp_dir'], 'penalties.txt.gz')
+
+            # Calculate reaction penalties
+            success_token = os.path.join(args['temp_dir'], 'success_token_penalties')
+            penalties_file = os.path.join(args['temp_dir'], 'penalties.txt.gz')
+            if os.path.exists(success_token):
+                logger.info("Reaction Penalties already evaluated")
+                logger.info("Resuming execution from previous run...")
+            else:
+                logger.info("Evaluating Reaction Penalties...")
+                penalties = eval_reaction_penalties(args['data'], args['model'],
+                                                    args['media'], args['species'],
+                                                    args)
+                penalties.to_csv(penalties_file, sep='\t', compression='gzip')
+                with open(success_token, 'w') as fout:
+                    fout.write('Success!')
+
+            # maximize_reaction retrieves v_r^opt if already cached
+            # If args['single_sample'] is given, then cache is not computed
+            # therefore v_r^opt is computed on the fly
+            singleSampleCompass(data=args['data'], model=args['model'],
+                                media=args['media'], directory=args['temp_dir'],
+                                sample_index=args['single_sample'], args=args)
+            end_time = datetime.datetime.now()
+            logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+            return
+
+    if args['collect']:
+        collectCompassResults(args['data'], args['temp_dir'],
+                              args['output_dir'], args)
+        end_time = datetime.datetime.now()
+        logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+        return
+
+    if args['select_meta_subsystems']:
+
+        meta_subsystem_models_dir, model_names = partition_model(args)
+
+        meta_subsystem_preprocess_cache_dir = os.path.join(args['output_dir'], 'meta_subsystem_cache')
+        if os.path.exists(meta_subsystem_preprocess_cache_dir) == False:
+            os.mkdir(meta_subsystem_preprocess_cache_dir)
+
+        for meta_subsystem_model in model_names:
+
+            meta_subsystem_model_temp_dir = os.path.join(args['temp_dir'], meta_subsystem_model)
+            if os.path.exists(meta_subsystem_model_temp_dir) == False:
+                os.mkdir(meta_subsystem_model_temp_dir)
+
+            meta_subsystem_model_output_dir = os.path.join(args['output_dir'], meta_subsystem_model)
+            if os.path.exists(meta_subsystem_model_output_dir) == False:
+                os.mkdir(meta_subsystem_model_output_dir)
+
+            #Check if the cache for (model, media) exists already:
+            size_of_cache = len(cache.load(init_model(model=meta_subsystem_model, species=args['species'],
+                            exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
+                            isoform_summing=args['isoform_summing'],
+                            metabolic_model_dir=meta_subsystem_models_dir), 
+                            args['media'], preprocess_cache_dir=meta_subsystem_preprocess_cache_dir))
+            if size_of_cache == 0 or args['precache']:
+                logger.info("Building up model cache")
+                # Compute v_r^opt for each reaction beforehand
+                precacheCompass(args=args, model_name=meta_subsystem_model, 
+                                metabolic_model_dir=meta_subsystem_models_dir,
+                                preprocess_cache_dir=meta_subsystem_preprocess_cache_dir)
+                end_time = datetime.datetime.now()
+                logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+                if not args['data']:
+                    return
+            else:
+                logger.info("Cache for model and media already built")
+
+            # Time to evaluate the reaction expression
+            success_token = os.path.join(meta_subsystem_model_temp_dir, 'success_token_penalties')
+            penalties_file = os.path.join(meta_subsystem_model_temp_dir, 'penalties.txt.gz')
+            if os.path.exists(success_token):
+                logger.info("Reaction Penalties already evaluated")
+                logger.info("Resuming execution from previous run...")
+            else:
+                logger.info("Evaluating Reaction Penalties...")
+                penalties = eval_reaction_penalties(args['data'], meta_subsystem_model,
+                                                    args['media'], args['species'],
+                                                    args, metabolic_model_dir=meta_subsystem_models_dir)
+                penalties.to_csv(penalties_file, sep='\t', compression='gzip')
+                with open(success_token, 'w') as fout:
+                    fout.write('Success!')
+
+            args['penalties_file'] = penalties_file
+            if args['only_penalties']:
+                return
+
+            # Now run the individual cells through cplex in parallel
+            # This is either done by sending to Torque queue, or running on the
+            # same machine
+            if args['torque_queue'] is not None:
+                logger.info(
+                    "Submitting COMPASS job to Torque queue - {}".format(
+                        args['torque_queue'])
+                )
+                submitCompassTorque(args,
+                                    temp_dir=args['temp_dir'],
+                                    output_dir=args['output_dir'],
+                                    queue=args['torque_queue'])
+                return
+            else:
+                runCompassParallel(args,
+                                   model_name=meta_subsystem_model,
+                                   temp_dir=meta_subsystem_model_temp_dir,
+                                   output_dir=meta_subsystem_model_output_dir,
+                                   metabolic_model_dir=meta_subsystem_models_dir,
+                                   preprocess_cache_dir=meta_subsystem_preprocess_cache_dir)
+                end_time = datetime.datetime.now()
+                logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+
+        return
+
+
+    else:
+
+        #Check if the cache for (model, media) exists already:
+        size_of_cache = len(cache.load(init_model(model=args['model'], species=args['species'],
+                        exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
+                        isoform_summing=args['isoform_summing']), args['media']))
+        if size_of_cache == 0 or args['precache']:
+            logger.info("Building up model cache")
+            # Compute v_r^opt for each reaction beforehand
+            precacheCompass(args=args)
+            end_time = datetime.datetime.now()
+            logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+            if not args['data']:
+                return
+        else:
+            logger.info("Cache for model and media already built")
+
+        # Time to evaluate the reaction expression
         success_token = os.path.join(args['temp_dir'], 'success_token_penalties')
         penalties_file = os.path.join(args['temp_dir'], 'penalties.txt.gz')
         if os.path.exists(success_token):
@@ -652,77 +842,30 @@ def entry():
             with open(success_token, 'w') as fout:
                 fout.write('Success!')
 
-        # maximize_reaction retrieves v_r^opt if already cached
-        # If args['single_sample'] is given, then cache is not computed
-        # therefore v_r^opt is computed on the fly
-        singleSampleCompass(data=args['data'], model=args['model'],
-                            media=args['media'], directory=args['temp_dir'],
-                            sample_index=args['single_sample'], args=args)
-        end_time = datetime.datetime.now()
-        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
-        return
-
-    if args['collect']:
-        collectCompassResults(args['data'], args['temp_dir'],
-                              args['output_dir'], args)
-        end_time = datetime.datetime.now()
-        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
-        return
-
-    #Check if the cache for (model, media) exists already:
-    size_of_cache = len(cache.load(init_model(model=args['model'], species=args['species'],
-                    exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
-                    isoform_summing=args['isoform_summing']), args['media']))
-    if size_of_cache == 0 or args['precache']:
-        logger.info("Building up model cache")
-        # Compute v_r^opt for each reaction beforehand
-        precacheCompass(args=args)
-        end_time = datetime.datetime.now()
-        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
-        if not args['data']:
+        args['penalties_file'] = penalties_file
+        if args['only_penalties']:
             return
-    else:
-        logger.info("Cache for model and media already built")
 
-    # Time to evaluate the reaction expression
-    success_token = os.path.join(args['temp_dir'], 'success_token_penalties')
-    penalties_file = os.path.join(args['temp_dir'], 'penalties.txt.gz')
-    if os.path.exists(success_token):
-        logger.info("Reaction Penalties already evaluated")
-        logger.info("Resuming execution from previous run...")
-    else:
-        logger.info("Evaluating Reaction Penalties...")
-        penalties = eval_reaction_penalties(args['data'], args['model'],
-                                            args['media'], args['species'],
-                                            args)
-        penalties.to_csv(penalties_file, sep='\t', compression='gzip')
-        with open(success_token, 'w') as fout:
-            fout.write('Success!')
+        # Now run the individual cells through cplex in parallel
+        # This is either done by sending to Torque queue, or running on the
+        # same machine
+        if args['torque_queue'] is not None:
+            logger.info(
+                "Submitting COMPASS job to Torque queue - {}".format(
+                    args['torque_queue'])
+            )
+            submitCompassTorque(args,
+                                temp_dir=args['temp_dir'],
+                                output_dir=args['output_dir'],
+                                queue=args['torque_queue'])
+            return
+        else:
+            runCompassParallel(args)
+            end_time = datetime.datetime.now()
+            logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+            return
 
-    args['penalties_file'] = penalties_file
-    if args['only_penalties']:
-        return
-
-    # Now run the individual cells through cplex in parallel
-    # This is either done by sending to Torque queue, or running on the
-    # same machine
-    if args['torque_queue'] is not None:
-        logger.info(
-            "Submitting COMPASS job to Torque queue - {}".format(
-                args['torque_queue'])
-        )
-        submitCompassTorque(args,
-                            temp_dir=args['temp_dir'],
-                            output_dir=args['output_dir'],
-                            queue=args['torque_queue'])
-        return
-    else:
-        runCompassParallel(args)
-        end_time = datetime.datetime.now()
-        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
-        return
-
-def runCompassParallel(args):
+def runCompassParallel(args, model_name=None, temp_dir=None, output_dir=None, metabolic_model_dir=MODEL_DIR, preprocess_cache_dir=PREPROCESS_CACHE_DIR):
 
     logger = logging.getLogger('compass')
 
@@ -737,7 +880,9 @@ def runCompassParallel(args):
     data = utils.read_data(args['data'])
     n_samples = len(data.columns)
 
-    partial_map_fun = partial(_parallel_map_fun, args=args)
+    partial_map_fun = partial(_parallel_map_fun, args=args, model_name=model_name, temp_dir=temp_dir,
+                              metabolic_model_dir=metabolic_model_dir,
+                              preprocess_cache_dir=preprocess_cache_dir)
 
     pool = multiprocessing.Pool(args['num_processes'])
 
@@ -755,18 +900,31 @@ def runCompassParallel(args):
     for _ in pool.imap_unordered(partial_map_fun, range(n_samples)):
         pbar.update()
 
-    collectCompassResults(args['data'], args['temp_dir'],
-                          args['output_dir'], args)
+    if temp_dir is None:
+        temp_dir = args['temp_dir']
+    
+    if output_dir is None:
+        output_dir = args['output_dir']
+
+    collectCompassResults(args['data'], temp_dir,
+                          output_dir, args)
 
     logger.info("COMPASS Completed Successfully")
 
 
-def _parallel_map_fun(i, args):
+def _parallel_map_fun(i, args, model_name=None, temp_dir=None, metabolic_model_dir=MODEL_DIR, preprocess_cache_dir=PREPROCESS_CACHE_DIR):
 
         data = args['data']
-        model = args['model']
+
+        if model_name is None:
+            model = args['model']
+        else:
+            model = model_name
+
         media = args['media']
-        temp_dir = args['temp_dir']
+
+        if temp_dir is None:
+            temp_dir = args['temp_dir']
 
         sample_dir = os.path.join(temp_dir, 'sample' + str(i))
 
@@ -796,7 +954,9 @@ def _parallel_map_fun(i, args):
                 singleSampleCompass(
                     data=data, model=model,
                     media=media, directory=sample_dir,
-                    sample_index=i, args=args
+                    sample_index=i, args=args,
+                    metabolic_model_dir=metabolic_model_dir,
+                    preprocess_cache_dir=preprocess_cache_dir
                 )
             except Exception as e:
                 sys.stdout = stdout_bak
@@ -810,7 +970,7 @@ def _parallel_map_fun(i, args):
                     raise(e)
 
             end_time = datetime.datetime.now()
-            logger.debug("\nElapsed Time: {}".format(end_time-start_time))
+            logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
 
 
 def collectCompassResults(data, temp_dir, out_dir, args):
@@ -941,13 +1101,13 @@ def load_config(args):
 
     args.update(newArgs)
 
-def _parallel_map_precache_reactions(start_stop, args):
-    return maximize_reaction_range(start_stop, args)
+def _parallel_map_precache_reactions(start_stop, args, model_name=None, metabolic_model_dir=MODEL_DIR):
+    return maximize_reaction_range(start_stop, args, model_name=model_name, metabolic_model_dir=metabolic_model_dir)
 
-def _parallel_map_precache_metabs(start_stop, args):
-    return maximize_metab_range(start_stop, args)
+def _parallel_map_precache_metabs(start_stop, args, model_name=None, metabolic_model_dir=MODEL_DIR):
+    return maximize_metab_range(start_stop, args, model_name=model_name, metabolic_model_dir=metabolic_model_dir)
 
-def precacheCompass(args):
+def precacheCompass(args, model_name=None, metabolic_model_dir=MODEL_DIR, preprocess_cache_dir=PREPROCESS_CACHE_DIR):
 
     logger = logging.getLogger('compass')
 
@@ -956,12 +1116,15 @@ def precacheCompass(args):
     if args['num_processes'] > multiprocessing.cpu_count():
         args['num_processes'] = multiprocessing.cpu_count()
 
+    if model_name is None:
+        model_name = args['model']
+
     # Cache is determined by type of model, species, and media used
     # Computes maximal reaction flux v_r^opt for each reaction
     # Maximal flux is agnostic of gene expression level
-    model = init_model(model=args['model'], species=args['species'],
+    model = init_model(model=model_name, species=args['species'],
         exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
-        isoform_summing=args['isoform_summing'])
+        isoform_summing=args['isoform_summing'], metabolic_model_dir=metabolic_model_dir)
 
     n_processes = args['num_processes'] #max(1, args['num_processes'] - 1) #for later multithreading
     n_reactions = len(model.reactions.values())
@@ -969,7 +1132,6 @@ def precacheCompass(args):
     # Not all metabolites in the model are neccesarily involved in reactions
     # This allows for generating the cache only for neccesary metabolites
     # i.e. get_steadystate_constraints only includes metabolites that are associated with reactions in Sv = 0 constraint
-    credentials = utils.parse_gurobi_license_file(os.path.join(globals.LICENSE_DIR, 'gurobi.lic'))
     n_metabs = len(model.species.values())
     
     if n_processes > 1:
@@ -977,7 +1139,7 @@ def precacheCompass(args):
         reaction_chunks = [(i*reaction_chunk_size, min(n_reactions, (i+1)*reaction_chunk_size)) for i in range(n_processes)]
 
         combined_cache = {}
-        partial_map_fun = partial(_parallel_map_precache_reactions, args=args)
+        partial_map_fun = partial(_parallel_map_precache_reactions, args=args, model_name=model_name, metabolic_model_dir=metabolic_model_dir)
         pool = multiprocessing.Pool(n_processes)
         for sub_cache in pool.imap_unordered(partial_map_fun, reaction_chunks):
             combined_cache.update(sub_cache)
@@ -985,25 +1147,25 @@ def precacheCompass(args):
         metab_chunk_size = int(ceil(n_metabs / n_processes))
         metab_chunks = [(i*metab_chunk_size, min(n_metabs, (i+1)*metab_chunk_size)) for i in range(n_processes)]
 
-        partial_map_fun = partial(_parallel_map_precache_metabs, args=args)
+        partial_map_fun = partial(_parallel_map_precache_metabs, args=args, model_name=model_name, metabolic_model_dir=metabolic_model_dir)
         pool = multiprocessing.Pool(n_processes)
         for sub_cache in pool.imap_unordered(partial_map_fun, metab_chunks):
             combined_cache.update(sub_cache)
 
-        cache.clear(model)
-        model_cache = cache.load(model)
+        cache.clear(model, preprocess_cache_dir=preprocess_cache_dir)
+        model_cache = cache.load(model, preprocess_cache_dir=preprocess_cache_dir)
         model_cache.update(combined_cache)
-        cache.save(model) 
+        cache.save(model, preprocess_cache_dir=preprocess_cache_dir) 
 
     else:
         metab_cache = maximize_metab_range((0, n_metabs), args)
         reaction_cache = maximize_reaction_range((0, n_reactions), args)
-        cache.clear(model)
-        model_cache = cache.load(model)
+        cache.clear(model, preprocess_cache_dir=preprocess_cache_dir)
+        model_cache = cache.load(model, preprocess_cache_dir=preprocess_cache_dir)
         # Reaction cache and metabolite cache may have some overlapping reactions
         model_cache.update(reaction_cache)
         model_cache.update(metab_cache)
-        cache.save(model) 
+        cache.save(model, preprocess_cache_dir=preprocess_cache_dir) 
 
 
 

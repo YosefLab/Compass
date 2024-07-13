@@ -93,7 +93,7 @@ def resolve_genes(model):
     else:
         raise Exception("Error: invalid field_type")
 
-    gene_dict = {x[key_field]: x for x in genes}
+    gene_dict = {x[key_field]: x for x in genes if key_field in x.keys()}
 
     # Now, recursively crawl the gene association structure
     #   and update all gene entries

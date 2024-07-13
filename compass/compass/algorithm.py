@@ -14,7 +14,8 @@ import numpy as np
 from .. import utils
 from .. import models
 from . import cache
-from ..globals import BETA, EXCHANGE_LIMIT, LICENSE_DIR
+from ..globals import BETA, EXCHANGE_LIMIT, LICENSE_DIR, MODEL_DIR
+from .cache import PREPROCESS_CACHE_DIR
 import compass.global_state as global_state
 
 import gurobipy as gp
@@ -24,7 +25,7 @@ logger = logging.getLogger("compass")
 
 __all__ = ['singleSampleCompass']
 
-def singleSampleCompass(data, model, media, directory, sample_index, args):
+def singleSampleCompass(data, model, media, directory, sample_index, args, metabolic_model_dir=MODEL_DIR, preprocess_cache_dir=PREPROCESS_CACHE_DIR):
     """
     Run Compass on a single column of data
 
@@ -63,9 +64,9 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     else:
         args['save_argmaxes_dir'] = None
 
-    model = models.init_model(model=args['model'], species=args['species'],
+    model = models.init_model(model=model, species=args['species'],
                        exchange_limit=EXCHANGE_LIMIT, media=args['media'], 
-                       isoform_summing=args['isoform_summing'])
+                       isoform_summing=args['isoform_summing'], metabolic_model_dir=metabolic_model_dir)
 
     logger.info("Running COMPASS on model: %s", model.name)
 
@@ -76,7 +77,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
         perf_log = {c:{} for c in cols}
 
     if args['generate_cache']:
-        cache.clear(model) #TBD add media specifier here too
+        cache.clear(model, preprocess_cache_dir=preprocess_cache_dir) #TBD add media specifier here too
 
     # Build model into Gurobi model
     credentials = utils.parse_gurobi_license_file(os.path.join(LICENSE_DIR, 'gurobi.lic'))
@@ -113,7 +114,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
         logger.info("Evaluating Reaction Scores...")
         reaction_scores = compass_reactions(
             model, gp_model, reaction_penalties,
-            perf_log=perf_log, args=args)
+            perf_log=perf_log, args=args, preprocess_cache_dir=preprocess_cache_dir)
     react_elapsed = time.process_time() - react_start
 
     #if user wants to calc reaction scores, but doesn't want to calc metabolite scores, calc only the exchange reactions
@@ -122,7 +123,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
     uptake_scores, secretion_scores, exchange_rxns = compass_exchange(
         model, gp_model, reaction_penalties,
         only_exchange=(not args['no_reactions']) and not args['calc_metabolites'],
-        perf_log=perf_log, args=args)
+        perf_log=perf_log, args=args, preprocess_cache_dir=preprocess_cache_dir)
     exchange_elapsed = time.process_time() - exchange_start
 
     # Copy valid uptake/secretion reaction fluxes from uptake/secretion
@@ -154,7 +155,7 @@ def singleSampleCompass(data, model, media, directory, sample_index, args):
             'Saving cache file for Model: {}, Media: {}'.format(
                 model.name, model.media)
         )
-        cache.save(model)
+        cache.save(model, preprocess_cache_dir=preprocess_cache_dir)
 
     # write success token
     with open(os.path.join(directory, 'success_token'), 'w') as fout:
@@ -194,7 +195,7 @@ def read_selected_reactions(select_reactions, select_subsystems, model):
     return [str(s) for s in selected_reaction_ids]
 
 
-def compass_exchange(model, gp_model, reaction_penalties, only_exchange=False, perf_log=None, args = None):
+def compass_exchange(model, gp_model, reaction_penalties, only_exchange=False, perf_log=None, args = None, preprocess_cache_dir=PREPROCESS_CACHE_DIR):
     """
     Iterates through metabolites, finding each's max
     uptake and secretion potentials. If only_exchange=True, does so only for exchange reactions.
@@ -357,7 +358,7 @@ def compass_exchange(model, gp_model, reaction_penalties, only_exchange=False, p
             rxn_var.setAttr('ub', max(old_lb, 0))
 
         # Get max of secretion reaction
-        secretion_max = maximize_reaction(model, gp_model, secretion_rxn, perf_log=perf_log)
+        secretion_max = maximize_reaction(model, gp_model, secretion_rxn, perf_log=perf_log, preprocess_cache_dir=preprocess_cache_dir)
 
         # Set contraint of max secretion to BETA*max
         secretion_var = gp_model.getVarByName(secretion_rxn)
@@ -421,7 +422,7 @@ def compass_exchange(model, gp_model, reaction_penalties, only_exchange=False, p
             rxn_var.setAttr('ub', max(old_lb, 0))
 
         # Get max of uptake reaction
-        uptake_max = maximize_reaction(model, gp_model, uptake_rxn, perf_log=perf_log)
+        uptake_max = maximize_reaction(model, gp_model, uptake_rxn, perf_log=perf_log, preprocess_cache_dir=preprocess_cache_dir)
 
         # Set contraint of max uptake with BETA*max
         uptake_var = gp_model.getVarByName(uptake_rxn)
@@ -481,7 +482,7 @@ def compass_exchange(model, gp_model, reaction_penalties, only_exchange=False, p
 
 
 
-def compass_reactions(model, gp_model, reaction_penalties, perf_log=None, args = None):
+def compass_reactions(model, gp_model, reaction_penalties, perf_log=None, args = None, preprocess_cache_dir=PREPROCESS_CACHE_DIR):
 
     """
     Iterates through reactions, holding each near
@@ -530,7 +531,7 @@ def compass_reactions(model, gp_model, reaction_penalties, perf_log=None, args =
             old_partner_lb = partner_var.lb
             partner_var.setAttr('ub', max(old_partner_lb, 0))
         
-        r_max = maximize_reaction(model, gp_model, reaction.id, perf_log=perf_log)
+        r_max = maximize_reaction(model, gp_model, reaction.id, perf_log=perf_log, preprocess_cache_dir=preprocess_cache_dir)
 
         # If Reaction can't carry flux anyways (v_r^opt = 0), just continue
         if r_max == 0:
@@ -681,7 +682,7 @@ def initialize_gurobi_model(model, credentials, num_threads=1, lpmethod=-1, adv=
     return gp_model
 
 
-def maximize_reaction(model, gp_model, rxn, use_cache=True, perf_log=None):
+def maximize_reaction(model, gp_model, rxn, use_cache=True, perf_log=None, preprocess_cache_dir=PREPROCESS_CACHE_DIR):
 
     """Maximizes the current reaction in the problem
     Attempts to retrieve the value from cache if its in cache
@@ -693,7 +694,7 @@ def maximize_reaction(model, gp_model, rxn, use_cache=True, perf_log=None):
 
     # Load from cache if it exists and return
     if use_cache:
-        model_cache = cache.load(model)
+        model_cache = cache.load(model, preprocess_cache_dir=preprocess_cache_dir)
         if rxn in model_cache:
             if perf_log is not None:
                 perf_log['cached'][rxn] = True
@@ -711,7 +712,7 @@ def maximize_reaction(model, gp_model, rxn, use_cache=True, perf_log=None):
     rxn_max = optimize_model_wrapper(gp_model)
 
     # Save the result
-    model_cache = cache.load(model)
+    model_cache = cache.load(model, preprocess_cache_dir=preprocess_cache_dir)
     model_cache[rxn] = rxn_max
 
     if perf_log is not None:
@@ -723,7 +724,7 @@ def maximize_reaction(model, gp_model, rxn, use_cache=True, perf_log=None):
 
     return rxn_max
 
-def maximize_reaction_range(start_stop, args):
+def maximize_reaction_range(start_stop, args, model_name=None, metabolic_model_dir=MODEL_DIR):
     """
     Maximizes a range of reactions from start_stop=(start, stop).
     args must be a dict with keys 'model', 'species', 'media'
@@ -738,11 +739,15 @@ def maximize_reaction_range(start_stop, args):
         key : reaction id
         value : maximum flux for reaction
     """
+
+    if model_name is None:
+        model_name = args['model']
+
     #make a sub cache for each thread to write into
     sub_cache = {}
-    model = models.init_model(model=args['model'], species=args['species'],
+    model = models.init_model(model=model_name, species=args['species'],
                        exchange_limit=EXCHANGE_LIMIT, media=args['media'], 
-                       isoform_summing=args['isoform_summing'])
+                       isoform_summing=args['isoform_summing'], metabolic_model_dir=metabolic_model_dir)
     credentials = utils.parse_gurobi_license_file(os.path.join(LICENSE_DIR, 'gurobi.lic'))
     gp_model = initialize_gurobi_model(model, credentials, args['num_threads'], args['lpmethod'])
 
@@ -781,7 +786,7 @@ def maximize_reaction_range(start_stop, args):
 
     return sub_cache
 
-def maximize_metab_range(start_stop, args):
+def maximize_metab_range(start_stop, args, model_name=None, metabolic_model_dir=MODEL_DIR):
     """
     For precaching the maxmimum feasible exchange values of metabolites
 
@@ -791,10 +796,14 @@ def maximize_metab_range(start_stop, args):
         key: species_id
         value: maximum flux
     """
+
+    if model_name is None:
+        model_name=args['model']
+
     sub_cache = {}
-    model = models.init_model(model=args['model'], species=args['species'],
+    model = models.init_model(model=model_name, species=args['species'],
                        exchange_limit=EXCHANGE_LIMIT, media=args['media'], 
-                       isoform_summing=args['isoform_summing'])
+                       isoform_summing=args['isoform_summing'], metabolic_model_dir=metabolic_model_dir)
     credentials = utils.parse_gurobi_license_file(os.path.join(LICENSE_DIR, 'gurobi.lic'))
     gp_model = initialize_gurobi_model(model, credentials, args['num_threads'], args['lpmethod'])
 
@@ -920,6 +929,8 @@ def maximize_metab_range(start_stop, args):
             old_lb = rxn_var.lb
             rxn_var.setAttr('ub', max(old_lb, 0))
 
+        gp_model.update()
+
         # Get max of secretion reaction
         #secretion_max = maximize_reaction(model, problem, secretion_rxn)
         utils.reset_objective(gp_model)
@@ -941,6 +952,8 @@ def maximize_metab_range(start_stop, args):
         for rxn_id, old_ub in old_secretion_upper.items():
             secretion_var = gp_model.getVarByName(rxn_id)
             secretion_var.setAttr('ub', old_ub)
+
+        gp_model.update()
 
         # -----------------
         # Optimal Uptake
@@ -964,6 +977,8 @@ def maximize_metab_range(start_stop, args):
             old_lb = rxn_var.lb
             rxn_var.setAttr('ub', max(old_lb, 0))
 
+        gp_model.update()
+
         # Get max of uptake reaction
         #uptake_max = maximize_reaction(model, problem, uptake_rxn)
         utils.reset_objective(gp_model)
@@ -986,6 +1001,8 @@ def maximize_metab_range(start_stop, args):
             secretion_var = gp_model.getVarByName(rxn_id)
             secretion_var.setAttr('ub', old_ub)
 
+        gp_model.update()
+
         # Remove added uptake and secretion reactions
         if added_uptake:
             uptake_var = gp_model.getVarByName(uptake_rxn)
@@ -994,6 +1011,8 @@ def maximize_metab_range(start_stop, args):
         if added_secretion:
             secretion_var = gp_model.getVarByName(secretion_rxn)
             gp_model.remove(secretion_var)
+
+        gp_model.update()
             
     return sub_cache
 
