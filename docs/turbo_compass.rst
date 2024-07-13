@@ -1,6 +1,9 @@
 Turbo-Compass
 ==============
 
+.. contents:: In this page
+   :local:
+
 Turbo-Compass Settings
 **********************
 
@@ -24,8 +27,9 @@ Turbo-Compass Settings
 
 **\-\-turbo-max-iters** [MAX_ITERS]
     Maximum number of iterative matrix completion steps. During each iteration, INC percent of the reaction score matrix
-    will be sampled and used to impute the reaction score matrix. If MIN_PCT of entries achieve a Spearman R2 that is
-    higher than MIN_SR2, then Turbo-Compass will move on to the imputation of the final reaction score matrix without
+    will be sampled and used to impute the remaining entries of the reaction score matrix. 
+    If MIN_PCT of entries achieve a Spearman R2 that is higher than MIN_SR2, 
+    then Turbo-Compass will move on to the imputation of the final reaction score matrix without
     completing all MAX_ITERS iterations.
 
 
@@ -35,16 +39,16 @@ Recommended Settings
 Different dataset sizes require the use of different Turbo-Compass parameters to strike the right balance between 
 runtime speedup and accuracy. In this section, we provide some rough guidelines on how to choose the best set of parameters.
 
-**Scenario 1: dataset contains < 1,000 samples**
+**Scenario 1: dataset contains < 1,000 libraries**
 
 For smaller datasets, running vanilla Compass without any speedup is usually the best choice. Although Turbo-Compass does 
-yield significant speedups, the accuracy on small dataset is not usually very high. For completeness,
+yield significant speedups, the accuracy on small dataset is usually not very high. For completeness,
 here is a set of recommended parameters if you would still like to speed up your COMPASS run:
 
-**--turbo 0.7**
-**--turbo-increments 0.1**
-**--turbo-min-pct 0.99**
-**--turbo-max-iters 1**
+**\-\-turbo 0.7**
+**\-\-turbo-increments 0.1**
+**\-\-turbo-min-pct 0.99**
+**\-\-turbo-max-iters 1**
 
 This set of parameters is chosen based on experiments conducted on the `Th17 dataset 
 <https://github.com/YosefLab/Compass/blob/compass_v2/docs/notebooks/extdata/Th17/linear_gene_expression_matrix.tsv>`__ 
@@ -55,17 +59,17 @@ which contains 290 samples. The runtime and accuracy of various Turbo-Compass pa
 
 As shown, the runtime of running Turbo-Compass for 5 iterations is comparable to that of running vanilla Compass. 
 Therefore, we suggest that the user simply run 1 iteration of Turbo-Compass along with a relatively large subset 
-of the matrix, e.g. 10% (--turbo-increments 0.1).
+of the matrix, e.g. 10% (\-\-turbo-increments 0.1).
 
-**Scenario 2: dataset contains 1,000 ~ 10,000 samples**
+**Scenario 2: dataset contains 1,000 ~ 10,000 libraries**
 
 For medium-size datasets, Turbo-Compass yields significant speedups while still achieving relatively high accuracy. 
 The recommended set of parameters to use is:
 
-**--turbo 0.7**
-**--turbo-increments 0.05**
-**--turbo-min-pct 0.99**
-**--turbo-max-iters 1**
+**\-\-turbo 0.7**
+**\-\-turbo-increments 0.05**
+**\-\-turbo-min-pct 0.99**
+**\-\-turbo-max-iters 1**
 
 This set of parameters is chosen based on experiments conducted on the `glucose dataset 
 <https://github.com/YosefLab/Compass/blob/compass_v2/docs/notebooks/extdata/glucose/normalized_expression.tsv>`__ 
@@ -75,13 +79,13 @@ which contains around 5,000 samples. The runtime and accuracy of various Turbo-C
 .. image:: images/glucose_reaction_scores_spearman.png
 
 Compared to running on the Th17 dataset, running Turbo-Compass on the glucose dataset yields higher accuracy.
-We suggest that the user start with running 1 iteration of Turbo-Compass on 5% of the matrix (--turbo-increments 0.05), 
+We suggest that the user start with running 1 iteration of Turbo-Compass on 5% of the matrix (\-\-turbo-increments 0.05), 
 and if runtime permits, crank up the fraction of entries sampled as well as the number of iterations for better 
 reconstruction quality.
 
-**Scenario 3: dataset contains > 10,000 samples**
+**Scenario 3: dataset contains > 10,000 libraries**
 
-For large-scale datasets, we suggest that the user perform pseudobulking, i.e. aggregation of the expression values
+For large-scale datasets, we suggest that the user perform **pseudobulking**, i.e. aggregation of the expression values
 from a group of cells with shared characteristics, such as cells from the same patient, replicate, cell type, etc.,
 on the dataset before proceeding to use Compass. Although this process is highly dependent on the experiments 
 performed to generate the dataset, we provide a `tutorial on pseudobulking 

@@ -212,7 +212,7 @@ Microcluster Settings
 
 .. warning::
 
-   Microclustering is currently deprecated for this version of Compass. We still provide the relevant arguments, but please 
+   Microclustering is deprecated for this version of Compass. We still provide the relevant arguments, but please 
    note that the code is no longer maintained and we do not provide any guarantee on the correctness or validity of the results.
    
    To reduce runtime, we recommend that the user perform pseudobulking on the data, i.e. aggregation of the expression values
