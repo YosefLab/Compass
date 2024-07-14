@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning][].
 
 - Added Module-Compass
 - Added [Turbo-Compass](https://compass-sc.readthedocs.io/en/latest/turbo_compass.html)
-- Added pseuobulking tutorial
+- Added pseudobulking tutorial
 - Added support for Human1 and Mouse1 GEMs
 - Added list of core RECON2 reactions for faster computation
 
@@ -27,3 +27,6 @@ and this project adheres to [Semantic Versioning][].
 ### Deprecated
 - Deprecated microclustering
 - Deprecated torque queue
+
+### Removed
+- Removed COMPASS transposed

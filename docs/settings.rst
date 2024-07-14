@@ -222,8 +222,9 @@ Microcluster Settings
    
    To reduce runtime, we recommend that the user perform pseudobulking on the data, i.e. aggregation of the expression values
    from a group of cells with shared characteristics, such as cells from the same patient, replicate, cell type, etc. 
-   As this process is highly dependent on the experiments performed to generate the dataset, 
-   we leave this to the discretion of the user.
+   We provide a `tutorial on pseudobulking <https://compass-sc.readthedocs.io/en/latest/notebooks/pseudobulk.html>`__  
+   but keep in mind that this process is highly dependent on the experiments performed to generate the dataset 
+   and we ultimately leave this to the discretion of the user.
 
 **\-\-microcluster-size** [C]
    A target number of cells per `microcluster <https://yoseflab.github.io/Compass/micropooling.html>`__. Compass will aggregate similar cells into clusters and compute reaction penalties for the clusters (using the mean of the cluster).
