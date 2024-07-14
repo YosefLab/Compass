@@ -185,7 +185,7 @@ def partition_model(args):
         for rxn in cur_meta_subsystem_rxns:
             smat_row = recon2_smat_transposed[rxn]
             for met, coef in smat_row:
-                assert met.endswith('[m]') or met.endswith('[c]') or met.endwith('[e]')
+                assert met[-3:] == '[m]' or met[-3:] == '[c]' or met[-3:] == '[e]'
                 cur_meta_subsystem_mets.append(met)
         cur_meta_subsystem_mets = list(set(cur_meta_subsystem_mets))
         cur_meta_subsystem_mets.sort()
@@ -399,7 +399,7 @@ def partition_model(args):
             
                 associated_smat_transpose_row = recon2_smat_transposed[rxn]
                 for met, coef in associated_smat_transpose_row:
-                    assert met.endswith('[m]') or met.endswith('[c]') or met.endswith('[e]')
+                    assert met[-3:] == '[m]' or met[-3:] == '[c]' or met[-3:] == '[e]'
                     if met in meta_subsystem_mets[meta_subsystem]:
                         continue
                     new_mets.add(met)

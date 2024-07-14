@@ -204,7 +204,7 @@ def eval_reaction_penalties_shared(model, expression,
         else:
             weights = weights.values
     
-    #Only worsk for dense matrices: neighborhood_reaction_expression = reaction_expression.dot(weights.T). 
+    #Only works for dense matrices: neighborhood_reaction_expression = reaction_expression.dot(weights.T). 
     #Pandas unsuccesfully tries to cast the sparse weights with np.asarry()
     neighborhood_reaction_expression = weights.dot(reaction_expression.T).T 
     neighborhood_reaction_expression = pd.DataFrame(neighborhood_reaction_expression, index=reaction_expression.index, columns=reaction_expression.columns)

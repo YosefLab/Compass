@@ -30,7 +30,6 @@ dependencies = [
     'leidenalg>=0.8.2',
     'anndata',
     'gurobipy>=11.0.0',
-    'scikit-surprise',
     # for debug logging (referenced from the issue template)
     "session-info",
 ]
