@@ -12,4 +12,18 @@ and this project adheres to [Semantic Versioning][].
 
 ### Added
 
--   Created documentation
+- Added Module-Compass
+- Added [Turbo-Compass](https://compass-sc.readthedocs.io/en/latest/turbo_compass.html)
+- Added pseuobulking tutorial
+- Added support for Human1 and Mouse1 GEMs
+- Added list of core RECON2 reactions for faster computation
+
+### Changed
+- Documentation now supported by `Read the Docs`
+- Updated cache computation for deterministic results
+- Updated postprocessing notebook to use reproducible COMPASS output
+- Replaced CPLEX with Gurobi Linear Solver
+
+### Deprecated
+- Deprecated microclustering
+- Deprecated torque queue
