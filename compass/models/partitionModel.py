@@ -13,8 +13,8 @@ from compass.models import load_metabolic_model, init_model
 # with the current meta-subsystem. For each metabolite, associated reactions that are not part of the current subsystem
 # are also included
 
-PATH_2_RECON_CORE_MAT = '/home/eecs/charleschien101/Compass/compass/Resources/Metabolic Models/RECON2_core_mat'
-model_dir = os.path.join(PATH_2_RECON_CORE_MAT, 'model')
+PATH_2_RECON_2_MAT = '/home/eecs/charleschien101/Compass/compass/Resources/Metabolic Models/RECON2_mat'
+model_dir = os.path.join(PATH_2_RECON_2_MAT, 'model')
 
 def smat_cmp(a, b):
     if a[1] > b[1]:
@@ -110,6 +110,11 @@ def partition_model(args):
     recon2_smat = recon2_model.getSMAT()
     recon2_smat_transposed = recon2_model.getSMAT_transposed()
 
+    # Read in core reactions
+    with open('/home/eecs/charleschien101/Compass/compass/Resources/Metabolic Models/RECON2_mat/model/core_reactions.txt') as f:
+        core_reactions = f.readlines()
+    core_reactions = [r.strip() for r in core_reactions]
+
     model_dirs = []
 
     # Reaction-level information for each meta-subsystem
@@ -140,8 +145,6 @@ def partition_model(args):
         # Select current meta subsystem
         cur_meta_subsystem = selected_meta_subsystems[i]
 
-        cur_meta_subsystem_name = selected_meta_subsystem_names[i]
-
         # Specify output directory for current meta subsystem
         output_dir = os.path.join(meta_subsystem_models_dir, f'{cur_meta_subsystem}_mat')
         model_dirs.append(output_dir)
@@ -149,6 +152,9 @@ def partition_model(args):
         # Compute rxns
         cur_meta_subsystem_rxns = []
         for rxn, subSystem in zip(recon2_rxns, recon2_subSystems):
+            if rxn not in core_reactions:
+                continue
+
             if subSystem in meta_subsystems[cur_meta_subsystem]:
                 cur_meta_subsystem_rxns.append(rxn)
         cur_meta_subsystem_rxns.sort()
@@ -179,6 +185,7 @@ def partition_model(args):
         for rxn in cur_meta_subsystem_rxns:
             smat_row = recon2_smat_transposed[rxn]
             for met, coef in smat_row:
+                assert met.endswith('[m]') or met.endswith('[c]') or met.endwith('[e]')
                 cur_meta_subsystem_mets.append(met)
         cur_meta_subsystem_mets = list(set(cur_meta_subsystem_mets))
         cur_meta_subsystem_mets.sort()
@@ -223,7 +230,7 @@ def partition_model(args):
         meta_subsystem_mets[cur_meta_subsystem] = cur_meta_subsystem_mets
 
         rxnMeta = pd.read_csv(os.path.join(model_dir, 'rxnMeta.txt'), delimiter='\t', quoting=csv.QUOTE_NONE)
-        cur_meta_subsystem_rxnMeta = rxnMeta[rxnMeta['subsystem'].isin(meta_subsystems[cur_meta_subsystem])].reset_index(drop=True).sort_values('id')
+        cur_meta_subsystem_rxnMeta = rxnMeta[rxnMeta['id'].isin(cur_meta_subsystem_rxns)].reset_index(drop=True).sort_values('id')
         meta_subsystem_rxnMetas[cur_meta_subsystem] = cur_meta_subsystem_rxnMeta
         assert len(cur_meta_subsystem_rxnMeta) == len(cur_meta_subsystem_rxns)
 
@@ -282,11 +289,11 @@ def partition_model(args):
         cur_meta_subsystem_metMeta.to_csv(os.path.join(output_dir, 'model', 'metMeta.txt'), sep='\t', index=False)
 
         shutil.copy(os.path.join(model_dir, 'model.genes.json'), os.path.join(output_dir, 'model', 'model.genes.json'))
-        shutil.copy(os.path.join(PATH_2_RECON_CORE_MAT, 'media', f'{media}.json'), os.path.join(output_dir, 'media', f'{media}.json'))
+        shutil.copy(os.path.join(PATH_2_RECON_2_MAT, 'media', f'{media}.json'), os.path.join(output_dir, 'media', f'{media}.json'))
 
         gene_filenames = ['mouseSynonyms', 'non2uniqueEntrez', 'uniqueEntrez2Non', 'uniqueHumanEntrez', 'uniqueHumanGeneSymbol', 'uniqueMouseGeneSymbol_all', 'uniqueMouseGeneSymbol']
         for filename in gene_filenames:
-            shutil.copy(os.path.join(PATH_2_RECON_CORE_MAT, f'{filename}.json'), os.path.join(output_dir, f'{filename}.json'))
+            shutil.copy(os.path.join(PATH_2_RECON_2_MAT, f'{filename}.json'), os.path.join(output_dir, f'{filename}.json'))
 
     # **********************************************************************
 
@@ -383,12 +390,16 @@ def partition_model(args):
             associated_smat_row = recon2_smat[met]
 
             for rxn, coef in associated_smat_row:
+                if rxn not in core_reactions:
+                    continue
                 if rxn in meta_subsystem_rxns[meta_subsystem]:
                     continue
+
                 new_rxns.add(rxn)
             
                 associated_smat_transpose_row = recon2_smat_transposed[rxn]
                 for met, coef in associated_smat_transpose_row:
+                    assert met.endswith('[m]') or met.endswith('[c]') or met.endswith('[e]')
                     if met in meta_subsystem_mets[meta_subsystem]:
                         continue
                     new_mets.add(met)
@@ -549,11 +560,11 @@ def partition_model(args):
         meta_subsystem_metMetas[meta_subsystem].to_csv(os.path.join(output_dir, 'model', 'metMeta.txt'), sep='\t', index=False)
 
         shutil.copy(os.path.join(model_dir, 'model.genes.json'), os.path.join(output_dir, 'model', 'model.genes.json'))
-        shutil.copy(os.path.join(PATH_2_RECON_CORE_MAT, 'media', f'{media}.json'), os.path.join(output_dir, 'media', f'{media}.json'))
+        shutil.copy(os.path.join(PATH_2_RECON_2_MAT, 'media', f'{media}.json'), os.path.join(output_dir, 'media', f'{media}.json'))
 
         gene_filenames = ['mouseSynonyms', 'non2uniqueEntrez', 'uniqueEntrez2Non', 'uniqueHumanEntrez', 'uniqueHumanGeneSymbol', 'uniqueMouseGeneSymbol_all', 'uniqueMouseGeneSymbol']
         for filename in gene_filenames:
-            shutil.copy(os.path.join(PATH_2_RECON_CORE_MAT, f'{filename}.json'), os.path.join(output_dir, f'{filename}.json'))
+            shutil.copy(os.path.join(PATH_2_RECON_2_MAT, f'{filename}.json'), os.path.join(output_dir, f'{filename}.json'))
 
     # **********************************************************************
 
