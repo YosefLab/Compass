@@ -1,7 +1,7 @@
 Transport, extracellular 398
 Fatty acid oxidation 335
 Nucleotide interconversion 117
-Transport, mitochondrial 111
+Transport, mitochondrial 108
 Tyrosine metabolism 48
 Folate metabolism 41
 Tryptophan metabolism 37
@@ -15,8 +15,8 @@ Glycine, serine, alanine and threonine metabolism 22
 Arginine and Proline Metabolism 22
 Pentose phosphate pathway 21
 Starch and sucrose metabolism 19
-Urea cycle 18
 Aminosugar metabolism 18
+Urea cycle 18
 Pyrimidine catabolism 17
 Methionine and cysteine metabolism 17
 Citric acid cycle 16
@@ -25,51 +25,51 @@ Fructose and mannose metabolism 15
 Steroid metabolism 14
 Sphingolipid metabolism 13
 Triacylglycerol synthesis 12
-Lysine metabolism 11
-Bile acid synthesis 11
-Glutamate metabolism 11
 Histidine metabolism 11
+Glutamate metabolism 11
 Cytochrome metabolism 11
-Galactose metabolism 10
+Bile acid synthesis 11
+Lysine metabolism 10
 Cholesterol metabolism 10
 N-glycan synthesis 10
 Eicosanoid metabolism 10
 Glutathione metabolism 10
+Galactose metabolism 10
 Glyoxylate and dicarboxylate metabolism 9
-Vitamin A metabolism 9
 Pyrimidine synthesis 9
+Vitamin A metabolism 9
 beta-Alanine metabolism 9
-Selenoamino acid metabolism 9
-Purine synthesis 9
 Purine catabolism 9
-Alanine and aspartate metabolism 8
-Oxidative phosphorylation 8
+Purine synthesis 9
+Selenoamino acid metabolism 9
 Heme synthesis 8
-Vitamin D metabolism 7
+Alanine and aspartate metabolism 8
+Oxidative phosphorylation 7
 Biotin metabolism 7
+Vitamin D metabolism 7
 Propanoate metabolism 7
 Phenylalanine metabolism 6
 Vitamin B6 metabolism 6
 Vitamin B2 metabolism 6
 CoA synthesis 6
-Miscellaneous 6
-Squalene and cholesterol synthesis 5
 Tetrahydrobiopterin metabolism 5
-Ubiquinone synthesis 5
 N-glycan degradation 5
-ROS detoxification 4
+Squalene and cholesterol synthesis 5
+Miscellaneous 5
+Ubiquinone synthesis 5
 Limonene and pinene degradation 4
+ROS detoxification 4
 C5-branched dibasic acid metabolism 4
-Nucleotide salvage pathway 3
 Vitamin C metabolism 3
-Taurine and hypotaurine metabolism 3
+Nucleotide salvage pathway 3
 Phosphatidylinositol phosphate metabolism 3
+Taurine and hypotaurine metabolism 3
 Butanoate metabolism 3
-Hyaluronan metabolism 2
 Heme degradation 2
+Hyaluronan metabolism 2
 Thiamine metabolism 2
-Keratan sulfate degradation 1
 Alkaloid synthesis 1
+Keratan sulfate degradation 1
 Vitamin B12 metabolism 1
 CoA catabolism 1
 Stilbene, coumarine and lignin synthesis 1
