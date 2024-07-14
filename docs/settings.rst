@@ -189,6 +189,11 @@ Penalty Settings
 Computing Settings
 ******************
 
+.. note::
+
+   It is generally better to increase the number of processes than the number of threads for better performance, unless the number of processes is greater than the number of samples. 
+   This is because it is generally better to have multiple optimization problems being solved at once rather than solving a single optimization problem with multiple threads.
+
 **\-\-num-processes** [N]
    Number of processes for Compass to use, each of which handles a single sample. Must be a positive integer and defaults to the number of processors on machine (using Python's :code:`multiprocessing.cpu_count()`). Ignored
    when submitting job onto a queue
@@ -196,10 +201,10 @@ Computing Settings
 **\-\-num-threads** [N]
    Number of threads to use per sample for solving the flux balance optimization problems. Default is 1. 
 
-.. note::
+.. warning::
 
-   It is generally better to increase the number of processes than the number of threads for better performance, unless the number of processes is greater than the number of samples. 
-   This is because it is generally better to have multiple optimization problems being solved at once rather than solving a single optimization problem with multiple threads.
+   Torque queue is deprecated for this version of Compass. We still provide the relevant arguments, but please 
+   note that the code is no longer maintained and we do not provide any guarantee on the correctness or validity of the results.
 
 **\-\-torque-queue** [QUEUE]
    Name of the torque queue to submit to
