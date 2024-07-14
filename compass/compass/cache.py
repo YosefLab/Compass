@@ -56,6 +56,8 @@ def save(model, media=None, preprocess_cache_dir=PREPROCESS_CACHE_DIR):
 
     cache_file = os.path.join(cache_dir, 'preprocess.json')
 
+    cache_data = {rxn: cache_data[rxn] for rxn in sorted(cache_data.keys())}
+
     with open(cache_file, 'w') as fout:
         json.dump(cache_data, fout, indent=1)
 
