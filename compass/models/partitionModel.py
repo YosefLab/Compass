@@ -5,7 +5,7 @@ import csv
 from functools import cmp_to_key
 import shutil
 
-from compass.globals import EXCHANGE_LIMIT
+from compass.globals import EXCHANGE_LIMIT, MODEL_DIR
 from compass.models import load_metabolic_model, init_model
 
 # NOTE: this script generates models for user-defined meta-subsystems based on the RECON2 format
@@ -13,7 +13,10 @@ from compass.models import load_metabolic_model, init_model
 # with the current meta-subsystem. For each metabolite, associated reactions that are not part of the current subsystem
 # are also included
 
-PATH_2_RECON_2_MAT = '/home/eecs/charleschien101/Compass/compass/Resources/Metabolic Models/RECON2_mat'
+PATH_2_RECON_2_MAT = os.path.join(MODEL_DIR, 'RECON2_mat')
+PATH_2_CORE_RXNS = os.path.join(MODEL_DIR, 'RECON2_mat', 'model', 'core_reactions.txt')
+PATH_2_CURRENCY_METS = os.path.join(MODEL_DIR, 'RECON2_mat', 'model', 'currency_mets.txt')
+
 model_dir = os.path.join(PATH_2_RECON_2_MAT, 'model')
 
 def smat_cmp(a, b):
@@ -111,7 +114,7 @@ def partition_model(args):
     recon2_smat_transposed = recon2_model.getSMAT_transposed()
 
     # Read in core reactions
-    with open('/home/eecs/charleschien101/Compass/compass/Resources/Metabolic Models/RECON2_mat/model/core_reactions.txt') as f:
+    with open(PATH_2_CORE_RXNS) as f:
         core_reactions = f.readlines()
     core_reactions = [r.strip() for r in core_reactions]
 
@@ -370,7 +373,7 @@ def partition_model(args):
     # For each non-currency metabolite in the meta-subsystem, add all associated reactions
     # Also add exchange reactions for newly added metabolites
 
-    with open('/home/eecs/charleschien101/Compass/compass/Resources/Metabolic Models/currency_mets.txt') as file:
+    with open(PATH_2_CURRENCY_METS) as file:
         currency_mets = file.readlines()
     currency_mets = [m.strip() for m in currency_mets]
 
