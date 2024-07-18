@@ -72,14 +72,6 @@ Output Settings
    For a detailed explanation of Module-Compass, please refer to 
    `this section <https://compass-sc.readthedocs.io/en/latest/module_compass.html>`__ of the tutorial.
 
-.. note::
-
-   Note that ``\-\-select-reactions`` and ``\-\-select-subsystems`` fundamentally differ from ``\-\-select-meta-subsystems`` in the 
-   way the underlying network is constructed. If you are only interested in certain subsystems, we strongly recommend 
-   you use Module-Compass instead of ``\-\-select-reactions`` or ``\-\-select-subsystems``. Please refer to the 
-   `Module-Compass <https://compass-sc.readthedocs.io/en/latest/module_compass.html>`__ section of the tutorial for 
-   an in-depth explanation.
-
 **\-\-select-reactions** [FILE]
    Compute Compass scores only for the reactions listed in the given file. 
    FILE is expected to be textual, with one line per reaction 
@@ -90,6 +82,14 @@ Output Settings
    Compute Compass scores only for the subsystems listed in the given file. 
    FILE is expected to be textual, with one line per subsystem.
    Unrecognized subsystems in FILE are ignored.
+
+.. note::
+
+   Note that ``\-\-select-reactions`` and ``\-\-select-subsystems`` fundamentally differ from ``\-\-select-meta-subsystems`` in the 
+   way the underlying network is constructed. If you are only interested in certain subsystems, we strongly recommend 
+   you use Module-Compass instead of ``\-\-select-reactions`` or ``\-\-select-subsystems``. Please refer to the 
+   `Module-Compass <https://compass-sc.readthedocs.io/en/latest/module_compass.html>`__ section of the tutorial for 
+   an in-depth explanation.
 
 
 Metabolic Model Settings

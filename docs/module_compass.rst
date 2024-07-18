@@ -33,7 +33,7 @@ the subsystems contained in each meta-subsystem should be separated by semicolon
 A list of subsystems supported by Module-Compass can be found 
 `here <https://github.com/YosefLab/Compass/blob/compass_v2/compass/Resources/Metabolic%20Models/RECON2_mat/model/core_reactions_subsystems.txt>`__.
 
-A list of reaction supported by Module-Compass can be found
+A list of reactions supported by Module-Compass can be found
 `here <https://github.com/YosefLab/Compass/blob/compass_v2/compass/Resources/Metabolic%20Models/RECON2_mat/model/core_reactions_md.csv>`__.
 
 
@@ -52,9 +52,9 @@ necessary context to the meta-subsystem to ensure a reasonable output, while the
 treat the constructed network as one that is able to interface with the surrounding environment 
 and uptake/secrete metabolites.
 
-One thing to note is that the ``\-\-select-reactions`` and ``\-\-select-subsystems`` flags also allow users to specify 
+One thing to note is that the ``--select-reactions`` and ``--select-subsystems`` flags also allow users to specify 
 a list of reactions and subsystems to compute COMPASS on. However, Module-Compass differs fundamentally from these 
-methods. ``\-\-select-reactions`` and ``\-\-select-subsystems`` both operate on the entire metabolic network, meaning that the 
+methods. ``--select-reactions`` and ``--select-subsystems`` both operate on the entire metabolic network, meaning that the 
 computation of each reaction score is still constrained by all reactions in the entire metabolic network. This requires 
 the linear solver to optimize for all variables (reactions). On the other hand, Module-Compass treats meta-subsystems as 
 standalone networks, drastically reducing the number of variables in the linear optimization problem and therefore 
