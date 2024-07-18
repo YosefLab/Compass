@@ -5,7 +5,7 @@ Module-Compass
    :local:
 
 Module-Compass Settings
-**********************
+*************************
 
 COMPASS computes reaction scores for each reaction in the entire metabolic network, 
 but in many cases users may only be interested in a given collection of subsystems (by which we refer to 
@@ -38,7 +38,7 @@ A list of reaction supported by Module-Compass can be found
 
 
 Module-Compass Explained
-***********************
+**************************
 
 To support running COMPASS on a subset of the network, we hereby provide Module-Compass, an algorithm
 that treats user-defined meta-subsystems as individual networks but still provides the necessary context 
