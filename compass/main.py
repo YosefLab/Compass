@@ -217,6 +217,9 @@ def parseArgs():
     parser.add_argument("--glucose", type=float,
                         required=False, help=argparse.SUPPRESS)
 
+    parser.add_argument("--close-oxygen", action="store_true",
+                        help="Set lower bound of oxygen exchange reaction to 0")
+
     # Hidden argument.  Used for batch jobs
     parser.add_argument("--collect", action="store_true",
                         help=argparse.SUPPRESS)
@@ -617,7 +620,8 @@ def entry():
         args['data'] = [pooled_data_file]
         args['pools_file'] = pools_file
         
-    if args['glucose']:
+    # NOTE: for meta subsystems, lower bound of glucose secretion reactions are modified in partitionModel.py
+    if args['glucose'] and not args['select_meta_subsystems']:
         if not args['media']:
             fname = "_glucose_"+str(args['glucose'])
             glucose_media_file = os.path.join(globals.MODEL_DIR, args['model'], 'media', fname+".json")
@@ -907,7 +911,8 @@ def runCompassParallel(args, model_name=None, temp_dir=None, output_dir=None, me
         output_dir = args['output_dir']
 
     collectCompassResults(args['data'], temp_dir,
-                          output_dir, args)
+                          output_dir, args,
+                          model_name=model_name, metabolic_model_dir=metabolic_model_dir)
 
     logger.info("COMPASS Completed Successfully")
 
@@ -973,7 +978,7 @@ def _parallel_map_fun(i, args, model_name=None, temp_dir=None, metabolic_model_d
             logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
 
 
-def collectCompassResults(data, temp_dir, out_dir, args):
+def collectCompassResults(data, temp_dir, out_dir, args, model_name=None, metabolic_model_dir=MODEL_DIR):
     """
     Collects results for individual samples in temp_dir
     and aggregates into out_dir
@@ -992,6 +997,9 @@ def collectCompassResults(data, temp_dir, out_dir, args):
     args : dict
         Other arguments
     """
+
+    if model_name is None:
+        model_name = args['model']
 
     if not os.path.isdir(out_dir):
         os.makedirs(out_dir)
@@ -1066,9 +1074,10 @@ def collectCompassResults(data, temp_dir, out_dir, args):
         utils.write_output(uptake_all,os.path.join(out_dir, 'uptake'), args)
 
     # Output a JSON version of the model
-    model = init_model(model=args['model'], species=args['species'],
+    model = init_model(model=model_name, species=args['species'],
                        exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
-                       isoform_summing=args['isoform_summing'])
+                       isoform_summing=args['isoform_summing'],
+                       metabolic_model_dir=metabolic_model_dir)
 
     model_file = os.path.join(out_dir, 'model.json.gz')
 

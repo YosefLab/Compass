@@ -8,6 +8,9 @@ import shutil
 from compass.globals import EXCHANGE_LIMIT, MODEL_DIR
 from compass.models import load_metabolic_model, init_model
 
+import logging
+logger = logging.getLogger('compass')
+
 # NOTE: this script generates models for user-defined meta-subsystems based on the RECON2 format
 # For each defined meta-subsystem, exchange reactions are added for all (non-currency) metabolites associated
 # with the current meta-subsystem. For each metabolite, associated reactions that are not part of the current subsystem
@@ -340,6 +343,8 @@ def partition_model(args):
 
             # smat
             met_idx = meta_subsystem_mets[meta_subsystem].index(met) + 1
+            # NOTE: exchange reactions have coefficient = -1, meaning that the positive direction is a secretion reaction
+            # reactants have negative coefficients while products have positive coefficients
             exchange_smat = [met_idx, rxn_idx, -1.0]
             rxn_idx += 1
 
@@ -568,6 +573,70 @@ def partition_model(args):
         gene_filenames = ['mouseSynonyms', 'non2uniqueEntrez', 'uniqueEntrez2Non', 'uniqueHumanEntrez', 'uniqueHumanGeneSymbol', 'uniqueMouseGeneSymbol_all', 'uniqueMouseGeneSymbol']
         for filename in gene_filenames:
             shutil.copy(os.path.join(PATH_2_RECON_2_MAT, f'{filename}.json'), os.path.join(output_dir, f'{filename}.json'))
+
+    # **********************************************************************
+
+    if args['glucose']:
+
+        fname = media + '_glucose_' + str(args['glucose'])
+        args['media'] = fname
+
+        for meta_subsystem in selected_meta_subsystems:
+            logger.info(f'Modifying glucose exchange reaction bounds for {meta_subsystem}')
+
+            output_dir = os.path.join(meta_subsystem_models_dir, f'{meta_subsystem}_mat')
+            media_file = media + '.json'
+            media_file = os.path.join(output_dir, 'media', media_file)
+            with open(media_file) as fin:
+                media_file_json = json.load(fin)
+
+            if f'glc_D[e]_EXCHANGE_{meta_subsystem}' in meta_subsystem_rxns[meta_subsystem]:
+                logger.info(f'Added glc_D[e] for {meta_subsystem}')
+                glucose_e_rxn = f'glc_D[e]_EXCHANGE_{meta_subsystem}_neg'
+                media_file_json.update({glucose_e_rxn: float(args['glucose'])})
+            if f'glc_D[c]_EXCHANGE_{meta_subsystem}' in meta_subsystem_rxns[meta_subsystem]:
+                logger.info(f'Added glc_D[c] for {meta_subsystem}')
+                glucose_c_rxn = f'glc_D[c]_EXCHANGE_{meta_subsystem}_neg'
+                media_file_json.update({glucose_c_rxn: float(args['glucose'])})
+
+            glucose_media_file = os.path.join(output_dir, 'media', fname + '.json')
+            if not os.path.exists(glucose_media_file):
+                fout = open(glucose_media_file, 'w')
+                json.dump(media_file_json, fout)
+                fout.close()
+
+    if args['close_oxygen']:
+
+        fname = media + '_close_oxygen'
+        args['media'] = fname
+
+        for meta_subsystem in selected_meta_subsystems:
+            logger.info(f'Closing oxygen exchange reaction for {meta_subsystem}')
+
+            output_dir = os.path.join(meta_subsystem_models_dir, f'{meta_subsystem}_mat')
+            media_file = media + '.json'
+            media_file = os.path.join(output_dir, 'media', media_file)
+            with open(media_file) as fin:
+                media_file_json = json.load(fin)
+
+            if f'o2[c]_EXCHANGE_{meta_subsystem}' in meta_subsystem_rxns[meta_subsystem]:
+                logger.info(f'Added o2[c] for {meta_subsystem}')
+                o2_c_rxn = f'o2[c]_EXCHANGE_{meta_subsystem}_neg'
+                media_file_json.update({o2_c_rxn: 0.0})
+            if f'o2[e]_EXCHANGE_{meta_subsystem}' in meta_subsystem_rxns[meta_subsystem]:
+                logger.info(f'Added o2[e] for {meta_subsystem}')
+                o2_e_rxn = f'o2[e]_EXCHANGE_{meta_subsystem}_neg'
+                media_file_json.update({o2_e_rxn: 0.0})
+            if f'o2[m]_EXCHANGE_{meta_subsystem}' in meta_subsystem_rxns[meta_subsystem]:
+                logger.info(f'Added o2[m] for {meta_subsystem}')
+                o2_m_rxn = f'o2[m]_EXCHANGE_{meta_subsystem}_neg'
+                media_file_json.update({o2_m_rxn: 0.0})
+
+            oxygen_media_file = os.path.join(output_dir, 'media', fname + '.json')
+            if not os.path.exists(oxygen_media_file):
+                fout = open(oxygen_media_file, 'w')
+                json.dump(media_file_json, fout)
+                fout.close()
 
     # **********************************************************************
 

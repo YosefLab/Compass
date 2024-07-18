@@ -232,6 +232,8 @@ def eval_reaction_expression_single(model, expression_data, and_function):
                                     name=expression_data.name)
 
     reaction_expression[pd.isnull(reaction_expression)] = 0
+
+    # log-transform normalized gene expression
     reaction_expression = np.log2(reaction_expression + 1)
 
     return reaction_expression
