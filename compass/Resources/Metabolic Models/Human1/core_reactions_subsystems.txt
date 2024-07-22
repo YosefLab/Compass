@@ -1,0 +1,124 @@
+Transport reactions 2156
+Fatty acid oxidation 231
+Bile acid biosynthesis 131
+Isolated 112
+Phenylalanine, tyrosine and tryptophan biosynthesis 110
+Carnitine shuttle (mitochondrial) 108
+Xenobiotics metabolism 94
+Purine metabolism 92
+Drug metabolism 90
+Glycerophospholipid metabolism 80
+Leukotriene metabolism 78
+Arachidonic acid metabolism 77
+Arginine and proline metabolism 77
+Glycerolipid metabolism 74
+Nucleotide metabolism 70
+Pyrimidine metabolism 68
+Fatty acid activation (cytosolic) 67
+Acyl-CoA hydrolysis 64
+Beta oxidation of even-chain fatty acids (mitochondrial) 57
+Carnitine shuttle (cytosolic) 55
+Inositol phosphate metabolism 55
+Folate metabolism 54
+Glycine, serine and threonine metabolism 52
+Steroid metabolism 48
+Miscellaneous 47
+Glycosphingolipid biosynthesis-lacto and neolacto series 47
+Sphingolipid metabolism 45
+Omega-3 fatty acid metabolism 44
+Valine, leucine, and isoleucine metabolism 43
+Retinol metabolism 41
+Tyrosine metabolism 40
+Glycolysis / Gluconeogenesis 39
+Glycosphingolipid biosynthesis-ganglio series 37
+Alanine, aspartate and glutamate metabolism 37
+Cysteine and methionine metabolism 37
+Omega-6 fatty acid metabolism 37
+Estrogen metabolism 36
+Beta oxidation of odd-chain fatty acids (mitochondrial) 36
+Fatty acid biosynthesis 36
+Starch and sucrose metabolism 36
+Pyruvate metabolism 33
+Fatty acid biosynthesis (unsaturated) 32
+Bile acid recycling 32
+Fatty acid biosynthesis (even-chain) 32
+Nicotinate and nicotinamide metabolism 31
+Fatty acid biosynthesis (odd-chain) 29
+Tricarboxylic acid cycle and glyoxylate/dicarboxylate metabolism 28
+Cholesterol biosynthesis 1 (Bloch pathway) 27
+Vitamin D metabolism 25
+Vitamin E metabolism 25
+Prostaglandin biosynthesis 24
+Lysine metabolism 23
+Amino sugar and nucleotide sugar metabolism 23
+Beta oxidation of poly-unsaturated fatty acids (mitochondrial) 22
+Androgen metabolism 22
+Beta oxidation of unsaturated fatty acids (n-9) (mitochondrial) 21
+Aminoacyl-tRNA biosynthesis 21
+Acylglycerides metabolism 21
+Fructose and mannose metabolism 20
+Fatty acid elongation (even-chain) 20
+Eicosanoid metabolism 20
+Pentose phosphate pathway 19
+Histidine metabolism 19
+Porphyrin metabolism 19
+Pantothenate and CoA metabolism 18
+N-glycan metabolism 18
+Beta oxidation of di-unsaturated fatty acids (n-6) (mitochondrial) 18
+Glutathione metabolism 17
+Galactose metabolism 17
+Beta oxidation of unsaturated fatty acids (n-7) (mitochondrial) 17
+Propanoate metabolism 17
+Biopterin metabolism 16
+Serotonin and melatonin biosynthesis 16
+Cholesterol biosynthesis 3 (Kandustch-Russell pathway) 16
+Fatty acid metabolism 14
+Terpenoid backbone biosynthesis 14
+Beta-alanine metabolism 14
+Metabolism of other amino acids 14
+Beta oxidation of branched-chain fatty acids (mitochondrial) 13
+Protein assembly 13
+Fatty acid elongation (odd-chain) 12
+Pentose and glucuronate interconversions 12
+Fatty acid desaturation (even-chain) 12
+Tryptophan metabolism 12
+Ether lipid metabolism 12
+Cholesterol metabolism 11
+Vitamin B6 metabolism 11
+Linoleate metabolism 11
+Glycosphingolipid biosynthesis-globo series 10
+Glucocorticoid biosynthesis 9
+Carnitine shuttle (endoplasmic reticular) 9
+Butanoate metabolism 8
+C5-branched dibasic acid metabolism 7
+Biotin metabolism 7
+Thiamine metabolism 6
+Sulfur metabolism 6
+Riboflavin metabolism 5
+Glycosphingolipid metabolism 5
+ROS detoxification 5
+Pool reactions 4
+Glycosylphosphatidylinositol (GPI)-anchor biosynthesis 4
+Protein modification 4
+Cholesterol biosynthesis 2 4
+Lipoic acid metabolism 4
+Oxidative phosphorylation 3
+Vitamin A metabolism 3
+Phosphatidylinositol phosphate metabolism 3
+Ascorbate and aldarate metabolism 3
+Ubiquinone synthesis 3
+Vitamin B2 metabolism 2
+Toluene degradation 2
+Protein degradation 2
+Fatty acid desaturation (odd-chain) 2
+Vitamin B12 metabolism 2
+Phenylalanine metabolism 2
+Pentose Phosphate Pathway 1
+Fatty acid degradation 1
+Insect hormone biosynthesis 1
+Heme degradation 1
+octane oxidation 1
+Beta oxidation of phytanic acid (peroxisomal) 1
+Vitamin C metabolism 1
+Keratan sulfate degradation 1
+Ubiquinone and other terpenoid-quinone biosynthesis 1

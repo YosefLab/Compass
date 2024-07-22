@@ -32,7 +32,7 @@ def detect_type(model):
         all_genes |= set(reaction.list_genes())
 
     # Test N genes for their type
-    N = 100
+    N = min(100, int(len(all_genes) / 10))
     test_genes = random.sample(all_genes, N)
 
     ens_re = re.compile("ENSG\d+")

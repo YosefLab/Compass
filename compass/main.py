@@ -736,6 +736,9 @@ def entry():
 
         meta_subsystem_models_dir, model_names = partition_model(args)
 
+        if meta_subsystem_models_dir == None:
+            return
+
         meta_subsystem_preprocess_cache_dir = os.path.join(args['output_dir'], 'meta_subsystem_cache')
         if os.path.exists(meta_subsystem_preprocess_cache_dir) == False:
             os.mkdir(meta_subsystem_preprocess_cache_dir)

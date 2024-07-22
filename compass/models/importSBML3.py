@@ -2,11 +2,13 @@ from __future__ import print_function, division, absolute_import
 
 from .MetabolicModel import (MetabolicModel, Reaction, Compartment,
                      Species, Association, Gene)
+from ..globals import MODEL_DIR
+
 from six import string_types
 import libsbml
 
 
-def load(model_name, sbml_document):
+def load(model_name, sbml_document, metabolic_model_dir=MODEL_DIR):
 
     xml_model = sbml_document.model
 
@@ -17,7 +19,7 @@ def load(model_name, sbml_document):
         val = pp.getValue()
         xml_params[key] = val
 
-    modelx = MetabolicModel(model_name)
+    modelx = MetabolicModel(model_name, metabolic_model_dir=metabolic_model_dir)
 
     # Add reactions
     for rr in xml_model.getListOfReactions():
@@ -144,6 +146,8 @@ def gene_from_xml(xml_node):
 
     gene.id = xml_node.getId()
     gene.name = xml_node.getName().upper()
+    if len(gene.name) == 0:
+        gene.name = xml_node.getLabel().upper()
     gene.alt_symbols = []
 
     return gene

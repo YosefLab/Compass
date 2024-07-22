@@ -27,7 +27,7 @@ def load_metabolic_model(model_name, species='homo_sapiens', metabolic_model_dir
     if model_name.endswith('_mat'):
         model = importMATLAB.load(model_name, species, metabolic_model_dir=metabolic_model_dir)
     else:
-        model_dir = os.path.join(MODEL_DIR, model_name)
+        model_dir = os.path.join(metabolic_model_dir, model_name)
         model_file = [x for x in os.listdir(model_dir) if
                       x.lower().endswith('.xml') or
                       x.lower().endswith('.xml.gz')]
@@ -45,7 +45,7 @@ def load_metabolic_model(model_name, species='homo_sapiens', metabolic_model_dir
         level = sbmlDocument.getLevel()
 
         if level == 3:
-            model = importSBML3.load(model_name, sbmlDocument)
+            model = importSBML3.load(model_name, sbmlDocument, metabolic_model_dir=metabolic_model_dir)
         elif level == 2:
             model = importSBML2.load(model_name, sbmlDocument)
         else:

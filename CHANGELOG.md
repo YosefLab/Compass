@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning][].
 
 ### Added
 
-- Added Module-Compass
+- Added [Module-Compass](https://compass-sc.readthedocs.io/en/latest/module_compass.html)
 - Added [Turbo-Compass](https://compass-sc.readthedocs.io/en/latest/turbo_compass.html)
 - Added [pseudobulking tutorial](https://compass-sc.readthedocs.io/en/latest/notebooks/pseudobulk.html)
 - Added support for Human1 and Mouse1 GEMs
