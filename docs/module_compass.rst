@@ -30,9 +30,13 @@ Each line in the file defines a meta-subsystem which should be formatted as:
 Note that the meta-subsystem IDs should not contain spaces and should be formatted in parentheses. Also note that 
 the subsystems contained in each meta-subsystem should be separated by semicolons. 
 
-A list of subsystems supported by Module-Compass can be found 
-`here <https://github.com/YosefLab/Compass/blob/compass_v2/compass/Resources/Metabolic%20Models/RECON2_mat/model/core_reactions_subsystems.txt>`__.
+If you are using Human1, a list of subsystems supported by Module-Compass can be found 
+`here <https://github.com/YosefLab/Compass/blob/compass_v2/compass/Resources/Metabolic%20Models/Human1/core_reactions_subsystems.txt>`__.
+A list of reactions supported by Module-Compass can be found
+`here <https://github.com/YosefLab/Compass/blob/compass_v2/compass/Resources/Metabolic%20Models/Human1/core_reactions_md.csv>`__.
 
+If you are using RECON2, a list of subsystems supported by Module-Compass can be found 
+`here <https://github.com/YosefLab/Compass/blob/compass_v2/compass/Resources/Metabolic%20Models/RECON2_mat/model/core_reactions_subsystems.txt>`__.
 A list of reactions supported by Module-Compass can be found
 `here <https://github.com/YosefLab/Compass/blob/compass_v2/compass/Resources/Metabolic%20Models/RECON2_mat/model/core_reactions_md.csv>`__.
 
