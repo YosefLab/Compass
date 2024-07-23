@@ -7,8 +7,7 @@ Module-Compass
 Module-Compass Settings
 *************************
 
-**\-\-select-meta-subsystems** [FILE]
-
+**\-\-select-meta-subsystems [FILE]**
     Invokes Module-Compass and computes Compass scores only for the meta-subsystems listed in the given file.
 
 
