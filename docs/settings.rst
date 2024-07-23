@@ -67,11 +67,6 @@ Output Settings
    File to output a list of reaction id's and their associated subsystem. This is useful if you'd like to compute Compass scores
    for only a subset of the reactions in order to cut in computation times (see below, ``--select-reactions`` and ``--select-subsystems``).
 
-**\-\-select-meta-subsystems** [FILE]
-   Invoke Module-Compass and compute Compass scores only for the meta-subsystem listed in the given file.
-   For a detailed explanation of Module-Compass, please refer to 
-   `this section <https://compass-sc.readthedocs.io/en/latest/module_compass.html>`__ of the tutorial.
-
 **\-\-select-reactions** [FILE]
    Compute Compass scores only for the reactions listed in the given file. 
    FILE is expected to be textual, with one line per reaction 
@@ -85,12 +80,19 @@ Output Settings
 
 .. note::
 
-   Note that ``--select-reactions`` and ``--select-subsystems`` fundamentally differ from ``--select-meta-subsystems`` in the 
-   way the underlying network is constructed. If you are only interested in certain subsystems, we strongly recommend 
-   you use Module-Compass instead of ``--select-reactions`` or ``--select-subsystems``. Please refer to the 
-   `Module-Compass <https://compass-sc.readthedocs.io/en/latest/module_compass.html>`__ section of the tutorial for 
-   an in-depth explanation.
+   Note that ``--select-reactions`` and ``--select-subsystems`` fundamentally differ from **Module-Compass** in the 
+   way the underlying network is constructed. **If you are only interested in certain subsystems, we strongly recommend 
+   you use Module-Compass** instead of ``--select-reactions`` or ``--select-subsystems``. Please refer to 
+   `this section <https://compass-sc.readthedocs.io/en/latest/module_compass.html>`__ of the documentation to learn more.
 
+Module-Compass Settings
+************************
+
+To support running COMPASS on a subset of the network, we hereby provide Module-Compass, 
+an algorithm that treats user-defined meta-subsystems as individual networks 
+but still provides the necessary context to ensure that this simplification of the network is reasonable.
+If you would like to use Module-Compass, please refer to `this section <https://compass-sc.readthedocs.io/en/latest/module_compass.html>`__ 
+of the documentation.
 
 Metabolic Model Settings
 *************************

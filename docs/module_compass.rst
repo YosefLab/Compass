@@ -7,12 +7,16 @@ Module-Compass
 Module-Compass Settings
 *************************
 
+**\-\-select-meta-subsystems** [FILE]
+
+    Invokes Module-Compass and computes Compass scores only for the meta-subsystems listed in the given file.
+
+
 COMPASS computes reaction scores for each reaction in the entire metabolic network, 
 but in many cases users may only be interested in a given collection of subsystems (by which we refer to 
-in this documentation as **meta-subsystems**) within the network. To invoke Module-Compass, 
-run COMPASS with the flag ``--select-meta-subsystems [PATH_TO_META_SUBSYSTEMS_FILE]``.
+in this documentation as **meta-subsystems**) within the network.
 
-Meta-subsystems are defined in the user-provided textual file. An example input file is provided below:
+Meta-subsystems are defined in the user-provided textual file. An example input file for RECON2 is provided below:
 
 .. code:: bash
 
