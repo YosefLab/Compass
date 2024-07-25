@@ -745,6 +745,9 @@ def entry():
 
         for meta_subsystem_model in model_names:
 
+            # Set '--select-reactions' flag to only compute reactions that belong to meta-subsystem
+            args['select_reactions'] = os.path.join(meta_subsystem_models_dir, meta_subsystem_model, f'{meta_subsystem_model}_rxns.txt')
+
             meta_subsystem_model_temp_dir = os.path.join(args['temp_dir'], meta_subsystem_model)
             if os.path.exists(meta_subsystem_model_temp_dir) == False:
                 os.mkdir(meta_subsystem_model_temp_dir)

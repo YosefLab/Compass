@@ -7,10 +7,10 @@ from libsbml import SBMLDocument, SBMLNamespaces
 from compass.globals import EXCHANGE_LIMIT, MODEL_DIR
 from compass.models import load_metabolic_model, init_model
 
-PATH_2_HUMAN_1 = os.path.join(MODEL_DIR, 'Human1')
-PATH_2_CORE_RXNS = os.path.join(MODEL_DIR, 'Human1', 'core_reactions.txt')
-PATH_2_CORE_RXNS_META = os.path.join(MODEL_DIR, 'Human1', 'core_reactions_md.csv')
-PATH_2_CURRENCY_METS = os.path.join(MODEL_DIR, 'Human1', 'currency_mets.txt')
+PATH_2_MOUSE_1 = os.path.join(MODEL_DIR, 'Mouse1')
+PATH_2_CORE_RXNS = os.path.join(MODEL_DIR, 'Mouse1', 'core_reactions.txt')
+PATH_2_CORE_RXNS_META = os.path.join(MODEL_DIR, 'Mouse1', 'core_reactions_md.csv')
+PATH_2_CURRENCY_METS = os.path.join(MODEL_DIR, 'Mouse1', 'currency_mets.txt')
 
 
 def partition_model(args):
@@ -55,12 +55,12 @@ def partition_model(args):
     # *****************************************************************************
 
     # Select reactions that belong to subsystem
-    human1_model = load_metabolic_model('Human1', 'homo_sapiens')
-    # Read in Human1 SMAT
-    human1_smat = human1_model.getSMAT()
-    human1_smat_transposed = human1_model.getSMAT_transposed()
+    mouse1_model = load_metabolic_model('Mouse1', 'mus_musculus')
+    # Read in Mouse1 SMAT
+    mouse1_smat = mouse1_model.getSMAT()
+    mouse1_smat_transposed = mouse1_model.getSMAT_transposed()
 
-    sbmlDocument = libsbml.readSBMLFromFile(os.path.join(PATH_2_HUMAN_1, 'Human-GEM.xml'))
+    sbmlDocument = libsbml.readSBMLFromFile(os.path.join(PATH_2_MOUSE_1, 'Mouse-GEM.xml'))
     xml_model = sbmlDocument.model
     
     with open(PATH_2_CORE_RXNS) as f:
@@ -101,16 +101,16 @@ def partition_model(args):
 
         for rxn_id in cur_meta_subsystem_rxn_ids:
 
-            rxn = human1_model.reactions[rxn_id]
+            rxn = mouse1_model.reactions[rxn_id]
 
             # reactants
             for met_id, coefficient in rxn.reactants.items():
-                metabolite = human1_model.species[met_id]
+                metabolite = mouse1_model.species[met_id]
                 assert metabolite.compartment in ['c', 'e', 'm']
 
             # products
             for met_id, coefficient in rxn.products.items():
-                metabolite = human1_model.species[met_id]
+                metabolite = mouse1_model.species[met_id]
                 assert metabolite.compartment in ['c', 'e', 'm']
 
             cur_meta_subsystem_met_ids.append(met_id)
@@ -174,14 +174,14 @@ def partition_model(args):
         # Temporarily save model
         libsbml.writeSBMLToFile(sbmlDoc, os.path.join(output_dir, f'{cur_meta_subsystem}_model.xml'))
 
-        shutil.copy(os.path.join(PATH_2_HUMAN_1, 'media', f'{media}.json'), os.path.join(output_dir, 'media', f'{media}.json'))
+        shutil.copy(os.path.join(PATH_2_MOUSE_1, 'media', f'{media}.json'), os.path.join(output_dir, 'media', f'{media}.json'))
 
     # **********************************************************************
 
     # Add exchange reaction for all metabolites associated with subsystem
 
     for meta_subsystem in selected_meta_subsystems:
-        meta_subsystem_model = init_model(meta_subsystem, species='homo_sapiens', exchange_limit=EXCHANGE_LIMIT, media=args['media'],
+        meta_subsystem_model = init_model(meta_subsystem, species='mus_musculus', exchange_limit=EXCHANGE_LIMIT, media=args['media'],
                                     metabolic_model_dir=meta_subsystem_models_dir)
         
         meta_subsystem_xml_model = meta_subsystem_sbml_doc[meta_subsystem].model
@@ -248,7 +248,7 @@ def partition_model(args):
             if met_id in currency_mets:
                 continue
 
-            associated_smat_row = human1_smat[met_id]
+            associated_smat_row = mouse1_smat[met_id]
 
             for rxn_id, coef in associated_smat_row:
                 if rxn_id not in core_rxns:
@@ -258,9 +258,9 @@ def partition_model(args):
 
                 new_rxn_ids.add(rxn_id)
             
-                associated_smat_transpose_row = human1_smat_transposed[rxn_id]
+                associated_smat_transpose_row = mouse1_smat_transposed[rxn_id]
                 for new_met_id, coef in associated_smat_transpose_row:
-                    metabolite = human1_model.species[new_met_id]
+                    metabolite = mouse1_model.species[new_met_id]
                     assert metabolite.compartment in ['c', 'e', 'm']
                     if new_met_id in meta_subsystem_met_ids[meta_subsystem]:
                         continue
@@ -304,7 +304,7 @@ def partition_model(args):
         libsbml.writeSBMLToFile(meta_subsystem_sbml_doc[meta_subsystem], os.path.join(output_dir, f'{meta_subsystem}_model.xml'))
         
         # Save media file
-        shutil.copy(os.path.join(PATH_2_HUMAN_1, 'media', f'{media}.json'), os.path.join(output_dir, 'media', f'{media}.json'))
+        shutil.copy(os.path.join(PATH_2_MOUSE_1, 'media', f'{media}.json'), os.path.join(output_dir, 'media', f'{media}.json'))
 
         # Save metadata file
         cur_meta_subsystem_rxn_meta = core_rxn_meta[core_rxn_meta['ID'].isin(meta_subsystem_rxn_ids[meta_subsystem])].reset_index(drop=True).sort_values('ID')

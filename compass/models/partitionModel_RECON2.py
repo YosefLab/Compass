@@ -373,6 +373,15 @@ def partition_model(args):
                 meta_subsystem_rxnNames[meta_subsystem][idx]
             ]
 
+        # Specify output directory for current meta subsystem
+        output_dir = os.path.join(meta_subsystem_models_dir, f'{meta_subsystem}_mat')
+
+        # Save list of reactions to run COMPASS on
+        # One-hop neighbor reactions and additional exchange reactions do not need to be computed
+        with open(os.path.join(output_dir, f'{meta_subsystem}_mat_rxns.txt'), 'w') as f:
+            for rxn_id in meta_subsystem_rxns[meta_subsystem]:
+                f.write(f'{rxn_id}\n')
+
     # **********************************************************************
 
     # For each non-currency metabolite in the meta-subsystem, add all associated reactions
