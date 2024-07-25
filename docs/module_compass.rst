@@ -38,6 +38,11 @@ If you are using Human1, a list of subsystems supported by Module-Compass can be
 A list of reactions supported by Module-Compass can be found
 `here <https://github.com/YosefLab/Compass/blob/compass_v2/compass/Resources/Metabolic%20Models/Human1/core_reactions_md.csv>`__.
 
+If you are using Mouse1, a list of subsystems supported by Module-Compass can be found 
+`here <https://github.com/YosefLab/Compass/blob/compass_v2/compass/Resources/Metabolic%20Models/Mouse1/core_reactions_subsystems.txt>`__.
+A list of reactions supported by Module-Compass can be found
+`here <https://github.com/YosefLab/Compass/blob/compass_v2/compass/Resources/Metabolic%20Models/Mouse1/core_reactions_md.csv>`__.
+
 If you are using RECON2, a list of subsystems supported by Module-Compass can be found 
 `here <https://github.com/YosefLab/Compass/blob/compass_v2/compass/Resources/Metabolic%20Models/RECON2_mat/model/core_reactions_subsystems.txt>`__.
 A list of reactions supported by Module-Compass can be found
