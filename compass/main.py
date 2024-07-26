@@ -678,10 +678,14 @@ def entry():
                     logger.info("Evaluating Reaction Penalties...")
                     penalties = eval_reaction_penalties(args['data'], meta_subsystem_model,
                                                         args['media'], args['species'],
-                                                        args, metabolic_model_dir=meta_subsystem_models_dir)
+                                                        args, metabolic_model_dir=meta_subsystem_models_dir,
+                                                        temp_dir=meta_subsystem_model_temp_dir)
                     penalties.to_csv(penalties_file, sep='\t', compression='gzip')
                     with open(success_token, 'w') as fout:
                         fout.write('Success!')
+
+                    end_time = datetime.datetime.now()
+                    logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
 
                 # maximize_reaction retrieves v_r^opt if already cached
                 # If args['single_sample'] is given, then cache is not computed
@@ -714,6 +718,9 @@ def entry():
                 penalties.to_csv(penalties_file, sep='\t', compression='gzip')
                 with open(success_token, 'w') as fout:
                     fout.write('Success!')
+
+                end_time = datetime.datetime.now()
+                logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
 
             # maximize_reaction retrieves v_r^opt if already cached
             # If args['single_sample'] is given, then cache is not computed
@@ -785,10 +792,14 @@ def entry():
                 logger.info("Evaluating Reaction Penalties...")
                 penalties = eval_reaction_penalties(args['data'], meta_subsystem_model,
                                                     args['media'], args['species'],
-                                                    args, metabolic_model_dir=meta_subsystem_models_dir)
+                                                    args, metabolic_model_dir=meta_subsystem_models_dir,
+                                                    temp_dir=meta_subsystem_model_temp_dir)
                 penalties.to_csv(penalties_file, sep='\t', compression='gzip')
                 with open(success_token, 'w') as fout:
                     fout.write('Success!')
+
+                end_time = datetime.datetime.now()
+                logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
 
             args['penalties_file'] = penalties_file
             if args['only_penalties']:
@@ -851,6 +862,9 @@ def entry():
             penalties.to_csv(penalties_file, sep='\t', compression='gzip')
             with open(success_token, 'w') as fout:
                 fout.write('Success!')
+
+            end_time = datetime.datetime.now()
+            logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
 
         args['penalties_file'] = penalties_file
         if args['only_penalties']:

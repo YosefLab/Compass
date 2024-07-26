@@ -10,7 +10,7 @@ from typing import List, Tuple
 from unittest.mock import patch
 
 from .compass import cache
-from . import globals
+from . import globals, utils
 
 from .turbo_mc.iterative_models.matrix_oracle import MatrixOracle
 from .turbo_mc.models.exclude_constant_columns_model_wrapper import ExcludeConstantColumnsModelWrapper
@@ -46,7 +46,7 @@ class CompassResourceManager():
         Returns the list of cell names on which Compass is being run.
         """
         logger.info("CompassResourceManager getting cell names ...")
-        data = pd.read_csv(self.compass_parsed_args['data'][0], sep='\t', nrows=0, index_col=0)
+        data = utils.read_data(self.compass_parsed_args['data'])
         if "--single-sample" in self.compass_args:
             sample_number = int(self.compass_parsed_args['single_sample'])
             return [data.columns[sample_number]]
@@ -356,6 +356,7 @@ def turbo_compass_entry() -> None:
     # Initialization creates a CompassOracle object
     # CompassOracle gets cell names by reading input count matrix, cell names are stored in turbo_compass_cache/cell_names.txt
     # CompassOracle get reaction IDs by running Compass on a single sample, reaction IDs are stored in turbo_compass_cache/reaction_ids.txt
+    # compass_matrix_oracle has shape (# of cells, # of reactions)
     compass_matrix_oracle = CompassOracle(compass_args[:])
 
     model =\

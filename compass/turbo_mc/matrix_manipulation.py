@@ -108,6 +108,8 @@ def get_list_of_random_matrix_indices(
         Recommended to set to True (is False by default for backwards compatibility).
     :return res: list of indices (r, c)
     """
+
+    # We sample 'sampling_density' fraction of cells per reactions
     total_entries_sampled = int(nrows * ncols * sampling_density)
     total_entries_sampled_per_column = int(total_entries_sampled / ncols)
     if total_entries_sampled_per_column == 0:

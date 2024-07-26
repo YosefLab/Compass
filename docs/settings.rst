@@ -109,6 +109,8 @@ Metabolic Model Settings
    - RECON1_mat 
    - RECON2_mat (default)
    - RECON2.2
+   - Human1
+   - Mouse1
 
 **\-\-media** [MEDIA]
    The media to simulate the model with. This is a placeholder for future algorithmic extensions.

@@ -11,8 +11,15 @@ from sklearn.manifold._utils import _binary_search_perplexity
 from scipy import sparse
 from scipy.io import mmread
 
+import multiprocessing
+from functools import partial
+from tqdm import tqdm
+import os
+import math
+
+
 def eval_reaction_penalties(expression_file, model, media,
-                            species, args, metabolic_model_dir=MODEL_DIR):
+                            species, args, metabolic_model_dir=MODEL_DIR, temp_dir=None):
     """
     Main entry-point for evaluating reaction penalties
 
@@ -96,23 +103,28 @@ def eval_reaction_penalties(expression_file, model, media,
             .loc[:, expression.columns]
 
     reaction_penalties = eval_reaction_penalties_shared(
-        model, expression, lambda_,
+        args, model, expression, lambda_,
         num_neighbors=num_neighbors, symmetric_kernel=symmetric_kernel,
         and_function=and_function,
         penalty_diffusion_mode=penalty_diffusion_mode,
         input_weights=input_weights, 
-        input_knn=input_knn, output_knn=output_knn, latent_input=latent_input)
+        input_knn=input_knn, output_knn=output_knn, latent_input=latent_input,
+        temp_dir=temp_dir)
+    
+    logger = logging.getLogger('compass')
+    logger.info("Reaction Penalty Computation Completed Successfully")
 
     return reaction_penalties
 
 
-def eval_reaction_penalties_shared(model, expression,
+def eval_reaction_penalties_shared(args, model, expression,
                                    lambda_, num_neighbors,
                                    symmetric_kernel, and_function,
                                    penalty_diffusion_mode,
                                    input_weights=None, 
                                    input_knn=None, output_knn=None,
-                                   latent_input=None):
+                                   latent_input=None,
+                                   temp_dir=None):
     """
     Determines reaction penalties, on the given model, for
     the given expression data
@@ -154,15 +166,14 @@ def eval_reaction_penalties_shared(model, expression,
 
     assert lambda_ >= 0 and lambda_ <= 1
 
-    # Compute reaction expression for each sample
+    if temp_dir is None:
+        temp_dir = args['temp_dir']
 
-    reaction_expression = []
-    for name, expression_data in expression.items():
-        reaction_expression.append(
-            eval_reaction_expression_single(
-                model, expression_data, and_function
-            )
-        )
+    # Compute reaction expression for each sample
+    sample_names = list(expression.columns)
+
+    reaction_expression = computeReactionExpressionParallel(args, model, expression, and_function,
+                                                            sample_names, temp_dir=temp_dir)
 
     reaction_expression = pd.concat(reaction_expression, axis=1)
 
@@ -214,6 +225,119 @@ def eval_reaction_penalties_shared(model, expression,
     result.index.name = "Reaction"
 
     return result
+
+
+def computeReactionExpressionParallel(args, model, expression, and_function, sample_names, temp_dir=None):
+
+    # Divide sample names into chunks for each processor to compute
+
+    logger = logging.getLogger('compass')
+
+    # If we're here, then run compass on this machine with N processes
+    if args['num_processes'] is None:
+        args['num_processes'] = multiprocessing.cpu_count()
+
+    if args['num_processes'] > multiprocessing.cpu_count():
+        args['num_processes'] = multiprocessing.cpu_count()
+
+    n_samples = len(sample_names)
+
+    samples_per_process = math.floor(n_samples / args['num_processes'])
+
+    sample_names_chunks = []
+
+    for i in range(args['num_processes']):
+        sample_names_chunks.append(sample_names[i * samples_per_process: (i + 1) * samples_per_process])
+    
+    if n_samples % args['num_processes'] != 0:
+        sample_names_chunks[args['num_processes'] - 1] += sample_names[args['num_processes'] * samples_per_process : ]
+
+    partial_map_fun = partial(_reaction_expression_parallel_map_fun, args=args, model=model,
+                              expression=expression, and_function=and_function,
+                              sample_names_chunks=sample_names_chunks, temp_dir=temp_dir)
+
+    pool = multiprocessing.Pool(args['num_processes'])
+
+    logger.info(
+        "Computing penalties using {} processes"
+        .format(args['num_processes'])
+    )
+
+    logger.info(
+        "Progress bar will update once the first sample is finished"
+    )
+
+    pbar = tqdm(total=args['num_processes'])
+
+    for _ in pool.imap_unordered(partial_map_fun, range(args['num_processes'])):
+        pbar.update()
+
+    if temp_dir is None:
+        temp_dir = args['temp_dir']
+
+    reaction_expression = collectReactionExpressionResults(args, temp_dir)
+
+    logger.info("Reaction Expression Computation Completed Successfully")
+
+    return reaction_expression
+
+
+def _reaction_expression_parallel_map_fun(i, args, model, expression, and_function, sample_names_chunks, temp_dir=None):
+
+    if temp_dir is None:
+        temp_dir = args['temp_dir']
+
+    processor_dir = os.path.join(temp_dir, 'penalties_tmp', 'process' + str(i))
+
+    if not os.path.isdir(processor_dir):
+        os.makedirs(processor_dir)
+
+    sample_names = sample_names_chunks[i]
+
+    reaction_expression = []
+    for sample_name in sample_names:
+
+        expression_data = expression[sample_name]
+        sample_reaction_expression = eval_reaction_expression_single(
+            model, expression_data, and_function
+        )
+        reaction_expression.append(sample_reaction_expression)
+
+    reaction_expression = pd.concat(reaction_expression, axis=1)
+    reaction_expression.to_csv(os.path.join(processor_dir, 'reaction_expression.txt'),
+                            sep="\t", header=True)
+
+
+def collectReactionExpressionResults(args, temp_dir):
+    """
+    Collects reaction expression computed by each processor in temp_dir
+
+    Parameters
+    ==========
+    args : dict
+        Other arguments
+
+    sample_names : list
+        List of sample names
+
+    temp_dir : str
+        Directory - where to look for sample results.
+    """
+
+    reaction_expression = []
+
+    # Gather all the results
+    for i in range(args['num_processes']):
+
+        processor_dir = os.path.join(temp_dir, 'penalties_tmp', 'process' + str(i))
+
+        sample_reaction_expression = pd.read_csv(
+            os.path.join(processor_dir, 'reaction_expression.txt'),
+            sep='\t', index_col=0)
+
+        reaction_expression.append(sample_reaction_expression)
+
+    return reaction_expression
 
 
 def eval_reaction_expression_single(model, expression_data, and_function):
