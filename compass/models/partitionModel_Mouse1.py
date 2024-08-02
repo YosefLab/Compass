@@ -108,12 +108,14 @@ def partition_model(args):
                 metabolite = mouse1_model.species[met_id]
                 assert metabolite.compartment in ['c', 'e', 'm']
 
+                cur_meta_subsystem_met_ids.append(met_id)
+
             # products
             for met_id, coefficient in rxn.products.items():
                 metabolite = mouse1_model.species[met_id]
                 assert metabolite.compartment in ['c', 'e', 'm']
 
-            cur_meta_subsystem_met_ids.append(met_id)
+                cur_meta_subsystem_met_ids.append(met_id)
 
         cur_meta_subsystem_met_ids = list(set(cur_meta_subsystem_met_ids))
         cur_meta_subsystem_met_ids.sort()
@@ -300,6 +302,8 @@ def partition_model(args):
             exchange_rxn.getPlugin('fbc').setUpperFluxBound('FB3N1000')
             exchange_rxn.getPlugin('fbc').setLowerFluxBound('FB1N1000')
 
+            meta_subsystem_rxn_ids[meta_subsystem].append(f'{new_met_id}_EXCHANGE_{meta_subsystem}')
+
         # Save final model
         libsbml.writeSBMLToFile(meta_subsystem_sbml_doc[meta_subsystem], os.path.join(output_dir, f'{meta_subsystem}_model.xml'))
         
@@ -309,6 +313,15 @@ def partition_model(args):
         # Save metadata file
         cur_meta_subsystem_rxn_meta = core_rxn_meta[core_rxn_meta['ID'].isin(meta_subsystem_rxn_ids[meta_subsystem])].reset_index(drop=True).sort_values('ID')
         cur_meta_subsystem_rxn_meta.to_csv(os.path.join(output_dir, f'{meta_subsystem}_rxn_meta.csv'), index=False)
+
+        # Save all reactions and metabolites associated with meta-subsystem
+        with open(os.path.join(output_dir, f'{meta_subsystem}_all_rxns.txt'), 'w') as f:
+            for rxn_id in meta_subsystem_rxn_ids[meta_subsystem]:
+                f.write(f'{rxn_id}\n')
+
+        with open(os.path.join(output_dir, f'{meta_subsystem}_all_mets.txt'), 'w') as f:
+            for met_id in meta_subsystem_met_ids[meta_subsystem]:
+                f.write(f'{met_id}\n')
 
     # **********************************************************************
 
