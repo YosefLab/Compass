@@ -54,16 +54,12 @@ def partition_model(args):
         entries.append(newline)
 
     selected_meta_subsystems = []
-    selected_meta_subsystem_names = []
     meta_subsystems = {}
 
     for entry in entries:
-        ms = entry[0]
-        meta_subsystem_rxn = ms[ms.find("(") + 1 : ms.find(")")]
-        meta_subsystem_name = ms[:ms.find("(") - 1]
-        selected_meta_subsystems.append(meta_subsystem_rxn)
-        selected_meta_subsystem_names.append(meta_subsystem_name)
-        meta_subsystems[meta_subsystem_rxn] = entry[1:]
+        meta_subsystem_id = entry[0]
+        selected_meta_subsystems.append(meta_subsystem_id)
+        meta_subsystems[meta_subsystem_id] = entry[1:]
 
     # Create directories for meta subsystem models
     meta_subsystem_models_dir = os.path.join(args['output_dir'], 'meta_subsystem_models')
@@ -144,6 +140,9 @@ def partition_model(args):
     # Metadata
     meta_subsystem_rxnMetas = {}
     meta_subsystem_metMetas = {}
+
+    recon2_rxn_meta = pd.read_csv(os.path.join(PATH_2_RECON_2_MAT, 'model', 'rxnMeta.txt'), delimiter='\t', quoting=csv.QUOTE_NONE)
+    recon2_met_meta = pd.read_csv(os.path.join(PATH_2_RECON_2_MAT, 'model', 'metMeta.txt'), delimiter='\t', quoting=csv.QUOTE_NONE)
 
     # Generate model for each meta subsystem
     for i in range(len(selected_meta_subsystems)):
@@ -235,15 +234,13 @@ def partition_model(args):
         meta_subsystem_metNames[cur_meta_subsystem] = cur_meta_subsystem_metNames
         meta_subsystem_mets[cur_meta_subsystem] = cur_meta_subsystem_mets
 
-        rxnMeta = pd.read_csv(os.path.join(model_dir, 'rxnMeta.txt'), delimiter='\t', quoting=csv.QUOTE_NONE)
-        cur_meta_subsystem_rxnMeta = rxnMeta[rxnMeta['id'].isin(cur_meta_subsystem_rxns)].reset_index(drop=True).sort_values('id')
+        cur_meta_subsystem_rxnMeta = recon2_rxn_meta[recon2_rxn_meta['id'].isin(cur_meta_subsystem_rxns)].reset_index(drop=True).sort_values('id')
         meta_subsystem_rxnMetas[cur_meta_subsystem] = cur_meta_subsystem_rxnMeta
-        assert len(cur_meta_subsystem_rxnMeta) == len(cur_meta_subsystem_rxns)
+        assert len(meta_subsystem_rxnMetas[cur_meta_subsystem]) == len(meta_subsystem_rxns[cur_meta_subsystem])
 
-        metMeta = pd.read_csv(os.path.join(model_dir, 'metMeta.txt'), delimiter='\t', quoting=csv.QUOTE_NONE)
-        cur_meta_subsystem_metMeta = metMeta[metMeta['id'].isin(cur_meta_subsystem_mets)].reset_index(drop=True).sort_values('id')
-        meta_subsystem_rxnMetas[cur_meta_subsystem] = cur_meta_subsystem_rxnMeta
-        assert len(cur_meta_subsystem_metMeta) == len(cur_meta_subsystem_mets)
+        cur_meta_subsystem_metMeta = recon2_met_meta[recon2_met_meta['id'].isin(cur_meta_subsystem_mets)].reset_index(drop=True).sort_values('id')
+        meta_subsystem_metMetas[cur_meta_subsystem] = cur_meta_subsystem_metMeta
+        assert len(meta_subsystem_metMetas[cur_meta_subsystem]) == len(meta_subsystem_mets[cur_meta_subsystem])
 
         # Temporarily save .json files
         # Intermediary outputs are used to construct model to determine uptake/secretion metabolites
@@ -290,10 +287,7 @@ def partition_model(args):
         formatted_json_str = custom_json_dump(cur_meta_subsystem_smat)
         with open(os.path.join(output_dir, 'model', f'model.S.json'), 'w') as file:
             file.write(formatted_json_str)
-
-        cur_meta_subsystem_rxnMeta.to_csv(os.path.join(output_dir, 'model', 'rxnMeta.txt'), sep='\t', index=False)
-        cur_meta_subsystem_metMeta.to_csv(os.path.join(output_dir, 'model', 'metMeta.txt'), sep='\t', index=False)
-
+            
         shutil.copy(os.path.join(model_dir, 'model.genes.json'), os.path.join(output_dir, 'model', 'model.genes.json'))
         shutil.copy(os.path.join(PATH_2_RECON_2_MAT, 'media', f'{media}.json'), os.path.join(output_dir, 'media', f'{media}.json'))
 
@@ -312,6 +306,10 @@ def partition_model(args):
         meta_subsystem_model_smat = meta_subsystem_model.getSMAT()
         
         rxn_idx = len(meta_subsystem_rxns[meta_subsystem]) + 1
+
+        new_rxn_meta_dict = {}
+        for colname in recon2_rxn_meta.columns:
+            new_rxn_meta_dict[colname] = []
 
         for met in meta_subsystem_mets[meta_subsystem]:
 
@@ -359,19 +357,16 @@ def partition_model(args):
             meta_subsystem_ubs[meta_subsystem].append(exchange_ub)
             meta_subsystem_smat[meta_subsystem].append(exchange_smat)
 
-            idx = len(meta_subsystem_rxnMetas[meta_subsystem])
-            meta_subsystem_rxnMetas[meta_subsystem].loc[idx] = [
-                meta_subsystem_rxns[meta_subsystem][idx],
-                meta_subsystem_subSystems[meta_subsystem][idx],
-                meta_subsystem_rxnNames[meta_subsystem][idx],
-                meta_subsystem_rxnKeggIDs[meta_subsystem][idx],
-                '',
-                0.0,
-                0.0,
-                'NA',
-                meta_subsystem_rxnECNumbers[meta_subsystem][idx],
-                meta_subsystem_rxnNames[meta_subsystem][idx]
-            ]
+            for colname in new_rxn_meta_dict.keys():
+                if colname == 'id' or colname == 'name':
+                    new_rxn_meta_dict[colname].append(f'{met}_EXCHANGE_{meta_subsystem}')
+                elif colname == 'subsystem':
+                    new_rxn_meta_dict[colname].append(meta_subsystem)
+                else:
+                    new_rxn_meta_dict[colname].append('')
+
+        meta_subsystem_rxnMetas[meta_subsystem] = pd.concat((meta_subsystem_rxnMetas[meta_subsystem], pd.DataFrame.from_dict(new_rxn_meta_dict)))
+        assert len(meta_subsystem_rxnMetas[meta_subsystem]) == len(meta_subsystem_rxns[meta_subsystem])
 
         # Specify output directory for current meta subsystem
         output_dir = os.path.join(meta_subsystem_models_dir, f'{meta_subsystem}_mat')
@@ -461,19 +456,12 @@ def partition_model(args):
             smat_cmp_key = cmp_to_key(smat_cmp)
             meta_subsystem_smat[meta_subsystem].sort(key=smat_cmp_key)
 
-            meta_idx = len(meta_subsystem_rxnMetas[meta_subsystem])
-            meta_subsystem_rxnMetas[meta_subsystem].loc[meta_idx] = [
-                meta_subsystem_rxns[meta_subsystem][meta_idx],
-                meta_subsystem_subSystems[meta_subsystem][meta_idx],
-                meta_subsystem_rxnNames[meta_subsystem][meta_idx],
-                meta_subsystem_rxnKeggIDs[meta_subsystem][meta_idx],
-                '',
-                0.0,
-                0.0,
-                'NA',
-                meta_subsystem_rxnECNumbers[meta_subsystem][meta_idx],
-                meta_subsystem_rxnNames[meta_subsystem][meta_idx]
-            ]
+        meta_subsystem_rxnMetas[meta_subsystem] = pd.concat((meta_subsystem_rxnMetas[meta_subsystem], recon2_rxn_meta[recon2_rxn_meta['id'].isin(new_rxns)].sort_values('id')))
+        assert len(meta_subsystem_rxnMetas[meta_subsystem]) == len(meta_subsystem_rxns[meta_subsystem])
+
+        new_rxn_meta_dict = {}
+        for colname in recon2_rxn_meta.columns:
+            new_rxn_meta_dict[colname] = []
 
         # Add exchange reactions for new metabolites
         # No need to consider existing exchange reactions since it is impossible for
@@ -508,20 +496,16 @@ def partition_model(args):
             meta_subsystem_ubs[meta_subsystem].append(exchange_ub)
             meta_subsystem_smat[meta_subsystem].append(exchange_smat)
 
-            idx = len(meta_subsystem_rxnMetas[meta_subsystem])
-            meta_subsystem_rxnMetas[meta_subsystem].loc[idx] = [
-                meta_subsystem_rxns[meta_subsystem][idx],
-                meta_subsystem_subSystems[meta_subsystem][idx],
-                meta_subsystem_rxnNames[meta_subsystem][idx],
-                meta_subsystem_rxnKeggIDs[meta_subsystem][idx],
-                '',
-                0.0,
-                0.0,
-                'NA',
-                meta_subsystem_rxnECNumbers[meta_subsystem][idx],
-                meta_subsystem_rxnNames[meta_subsystem][idx]
-            ]
+            for colname in new_rxn_meta_dict.keys():
+                if colname == 'id' or colname == 'name':
+                    new_rxn_meta_dict[colname].append(f'{new_met}_EXCHANGE_{meta_subsystem}')
+                elif colname == 'subsystem':
+                    new_rxn_meta_dict[colname].append(meta_subsystem)
+                else:
+                    new_rxn_meta_dict[colname].append('')
 
+
+        meta_subsystem_rxnMetas[meta_subsystem] = pd.concat((meta_subsystem_rxnMetas[meta_subsystem], pd.DataFrame.from_dict(new_rxn_meta_dict)))
         assert len(meta_subsystem_rxnMetas[meta_subsystem]) == len(meta_subsystem_rxns[meta_subsystem])
 
         metMeta = pd.read_csv(os.path.join(model_dir, 'metMeta.txt'), delimiter='\t', quoting=csv.QUOTE_NONE)
@@ -585,7 +569,7 @@ def partition_model(args):
 
     # **********************************************************************
 
-    if args['glucose']:
+    if args['glucose'] is not None:
 
         fname = media + '_glucose_' + str(args['glucose'])
         args['media'] = fname

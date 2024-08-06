@@ -7,6 +7,11 @@ Quickstart
 Broadly speaking, Compass takes in a gene expression matrix scaled for library depth (e.g., CPM) 
 and outputs a reaction score matrix, where higher scores correspond to a reaction being **less** likely.
 
+.. note::
+
+   **Reaction scores are only comparable across different samples for a given reaction.** Please note that the magnitude of reaction scores
+   differs significantly between reactions, therefore one should not compare reaction scores between reactions for a given sample.
+
 Input Data
 ***********
 
