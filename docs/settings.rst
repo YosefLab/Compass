@@ -23,12 +23,16 @@ Input Settings
 The input gene expression matrix is specified in one of two ways:
 
 **\-\-data** [FILE]
-   File with input gene expression data with rows as genes and columns as samples. 
-   The input should be a single tab-delimited file with row and column labels:
+   Either a ``.tsv`` file with input gene expression data with rows as genes and columns as samples, or an AnnData object
+   with **normalized counts** in the ``adata.X`` slot. 
 
    .. code:: bash
 
       --data expression.tsv
+
+   .. code:: bash
+
+      --data anndata_object.h5ad
 
 **\-\-data-mtx** [--data-mtx FILE [FILE ...]]
    File with input gene expression data with rows as genes and columns as samples in market matrix format (mtx).
@@ -36,12 +40,12 @@ The input gene expression matrix is specified in one of two ways:
 
    .. code:: bash
 
-      --data expression.mtx genes.tsv sample_names.tsv
+      --data-mtx expression.mtx genes.tsv sample_names.tsv
 
    If the column names file is omitted the samples will be labelled by index.
 
 
-To view example inputs, use:
+To view example ``.tsv`` or ``.mtx`` inputs, use:
 
 **\-\-example-inputs**
    Flag for Compass to list the directory where example inputs can be found.

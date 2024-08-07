@@ -15,11 +15,13 @@ and outputs a reaction score matrix, where higher scores correspond to a reactio
 Input Data
 ***********
 
-The input gene expression matrix can be either a tab-delimited text file (tsv) or a matrix market format (mtx) 
+The input gene expression matrix can be a tab-delimited text file (tsv) or a matrix market format (mtx) 
 containing gene expression estimates (CPM, TPM, or similar scaled units) with one row per gene, one column per sample.
+We also support AnnData objects as input.
 
 Tab-delimited files need row and column labels corresponding to genes and sample names. 
-Market matrix formats need a separate tab delimited file of of gene names and optionally a tab delimited file of cell names.
+Market matrix formats need a separate tab delimited file of gene names and optionally a tab delimited file of cell names.
+AnnData objects should contain **normalized counts** in the ``adata.X`` slot.
 
 Example Input
 --------------
@@ -38,7 +40,7 @@ Human or mouse species makes no difference for this command.
 Running Compass
 ***************
 
-After opening a command line in a directory with an input file “expression.tsv”, 
+After opening a command line in a directory with an input file ``expression.tsv``, 
 you can run Compass on the data with the following command, which will limit the number of processes used to 10:
 
 .. code:: bash
@@ -46,11 +48,17 @@ you can run Compass on the data with the following command, which will limit the
     compass --data expression.tsv --num-processes 10 --species homo_sapiens
 
 
-And to run Compass on mtx formatted data use the following:
+To run Compass on mtx formatted data, use the following command:
 
 .. code:: bash
 
     compass --data-mtx expression.mtx genes.tsv sample_names.tsv --num-processes 10 --species homo_sapiens
+
+To run Compass on AnnData objects, use the following command:
+
+.. code:: bash
+
+    compass --data anndata_object.h5ad --num-processes 10 --species homo_sapiens
 
 Though the sample names file can be omitted, in which case the samples will be labelled by index.
 
@@ -86,9 +94,12 @@ Below is an example of the output matrix:
 
 .. image:: images/output_ex.png
 
-To get more context on what the reaction identifiers are, you can visit `virtual metabolic human <https://www.vmh.life/#home>`__ 
+
+To get more context on what the RECON2 reaction identifiers are, you can visit `virtual metabolic human <https://www.vmh.life/#home>`__ 
 or the `resources directory <https://github.com/YosefLab/Compass/tree/compass_v2/compass/Resources/Recon2_export>`__ 
 of Compass where there are several .csv files which include information on the reactions in Recon2.
+
+If you are using Human1 or Mouse1, you can visit `Metabolic Atlas <https://metabolicatlas.org/>`__ to view the metabolic network.
 
 .. note::
     While Compass is running, it will store partial results for each sample in the _tmp directory 

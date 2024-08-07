@@ -321,10 +321,10 @@ def partition_model(args):
             rxn_obj = xml_model.getReaction(new_rxn_id)
             meta_subsystem_xml_model.addReaction(rxn_obj)
 
-        meta_subsystem_rxnMetas[meta_subsystem] = pd.concat((meta_subsystem_rxnMetas[meta_subsystem], mouse1_rxn_meta[mouse1_rxn_meta['ID'].isin(new_rxn_ids)]))
+        meta_subsystem_rxnMetas[meta_subsystem] = pd.concat((meta_subsystem_rxnMetas[meta_subsystem], mouse1_rxn_meta[mouse1_rxn_meta['ID'].isin(new_rxn_ids)].sort_values('ID')))
         assert len(meta_subsystem_rxnMetas[meta_subsystem]) == len(meta_subsystem_rxn_ids[meta_subsystem])
 
-        meta_subsystem_metMetas[meta_subsystem] = pd.concat((meta_subsystem_metMetas[meta_subsystem], mouse1_met_meta[mouse1_met_meta['id'].isin(new_met_ids)]))
+        meta_subsystem_metMetas[meta_subsystem] = pd.concat((meta_subsystem_metMetas[meta_subsystem], mouse1_met_meta[mouse1_met_meta['id'].isin(new_met_ids)].sort_values('id')))
         assert len(meta_subsystem_metMetas[meta_subsystem]) == len(meta_subsystem_met_ids[meta_subsystem])
 
         # Add exchange reactions for new metabolites
