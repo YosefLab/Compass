@@ -4,18 +4,20 @@ Module-Compass
 .. contents:: Contents
    :local:
 
-Module-Compass Settings
+Module-Compass Quickstart
 *************************
 
-**\-\-select-meta-subsystems** [FILE]
-    Invokes Module-Compass and computes Compass scores only for the meta-subsystems listed in the given file.
+.. code:: bash
+
+    compass --data expression.tsv --model Human1 --species homo_sapiens --select-meta-subsystems meta_subsystems.txt --num-processes 10
 
 
 COMPASS computes reaction scores for each reaction in the entire metabolic network, 
 but in many cases users may only be interested in a given collection of subsystems (by which we refer to 
 in this documentation as **meta-subsystems**) within the network.
 
-Meta-subsystems are defined in the user-provided textual file. An example input file for Human1 is provided below:
+The ``--select-meta-subsystems`` flag invokes Module-Compass and computes reaction scores on the 
+meta-subsystems defined in a user-provided textual file. An example input file for Human1 is provided below:
 
 .. code:: bash
 
