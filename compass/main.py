@@ -174,6 +174,27 @@ def parseArgs():
                         default=1000000,  # Infinity
                         metavar="MAX_ITERS")
 
+    parser.add_argument("--turbo-meta-subsystem-preprocess-cache-dir",
+                        help="Specifying cache directory to avoid repeated cache computation for Turbo-Module",
+                        required=False,
+                        metavar="DIR")  # Not part of public API
+    
+    parser.add_argument("--turbo-meta-subsystem-models-dir",
+                        help="Specifying meta subsystem model directory to avoid repeated model partitioning for Turbo-Module",
+                        required=False,
+                        metavar="DIR")  # Not part of public API
+    
+    parser.add_argument("--turbo-meta-subsystem-model",
+                        help="Specifying meta subsystem model to avoid repeated reaction score computation for other "
+                             "meta subsystems in Turbo-Module",
+                        required=False,
+                        metavar="MODEL")  # Not part of public API
+    
+    parser.add_argument("--turbo-meta-subsystem-model-temp-dir",
+                        help="Specifying temp directory to avoid repeated penalty computation for Turbo-Module",
+                        required=False,
+                        metavar="DIR")  # Not part of public API
+
     parser.add_argument(
         "--and-function",
         help="Which function used to aggregate AND associations",
@@ -215,6 +236,9 @@ def parseArgs():
     )
 
     parser.add_argument("--glucose", type=float,
+                        required=False, help=argparse.SUPPRESS)
+    
+    parser.add_argument("--oxygen", type=float,
                         required=False, help=argparse.SUPPRESS)
 
     parser.add_argument("--close-oxygen", action="store_true",
@@ -554,7 +578,72 @@ def entry():
     # Parse arguments and decide what course of action to take
 
     if args['turbo'] < 1.0:
-        turbo_compass_entry()
+
+        # If Module-Compass is enabled then partition network, build cache, and compute penalties
+        if args['select_meta_subsystems']:
+
+            meta_subsystem_models_dir, model_names = partition_model(args)
+
+            if meta_subsystem_models_dir == None:
+                return
+
+            meta_subsystem_preprocess_cache_dir = os.path.join(args['output_dir'], 'meta_subsystem_cache')
+            if os.path.exists(meta_subsystem_preprocess_cache_dir) == False:
+                os.mkdir(meta_subsystem_preprocess_cache_dir)
+
+            for meta_subsystem_model in model_names:
+
+                meta_subsystem_model_temp_dir = os.path.join(args['temp_dir'], meta_subsystem_model)
+                if os.path.exists(meta_subsystem_model_temp_dir) == False:
+                    os.mkdir(meta_subsystem_model_temp_dir)
+
+                meta_subsystem_model_output_dir = os.path.join(args['output_dir'], meta_subsystem_model)
+                if os.path.exists(meta_subsystem_model_output_dir) == False:
+                    os.mkdir(meta_subsystem_model_output_dir)
+
+                #Check if the cache for (model, media) exists already:
+                size_of_cache = len(cache.load(init_model(model=meta_subsystem_model, species=args['species'],
+                                exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
+                                isoform_summing=args['isoform_summing'],
+                                metabolic_model_dir=meta_subsystem_models_dir), 
+                                args['media'], preprocess_cache_dir=meta_subsystem_preprocess_cache_dir))
+                if size_of_cache == 0 or args['precache']:
+                    logger.info("Building up model cache")
+                    # Compute v_r^opt for each reaction beforehand
+                    precacheCompass(args=args, model_name=meta_subsystem_model, 
+                                    metabolic_model_dir=meta_subsystem_models_dir,
+                                    preprocess_cache_dir=meta_subsystem_preprocess_cache_dir)
+                    end_time = datetime.datetime.now()
+                    logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+                    if not args['data']:
+                        return
+                else:
+                    logger.info("Cache for model and media already built")
+                
+                # Time to evaluate the reaction expression
+                success_token = os.path.join(meta_subsystem_model_temp_dir, 'success_token_penalties')
+                penalties_file = os.path.join(meta_subsystem_model_temp_dir, 'penalties.txt.gz')
+                if os.path.exists(success_token):
+                    logger.info("Reaction Penalties already evaluated")
+                    logger.info("Resuming execution from previous run...")
+                else:
+                    logger.info("Evaluating Reaction Penalties...")
+                    penalties = eval_reaction_penalties(args['data'], meta_subsystem_model,
+                                                        args['media'], args['species'],
+                                                        args, metabolic_model_dir=meta_subsystem_models_dir,
+                                                        temp_dir=meta_subsystem_model_temp_dir)
+                    penalties.to_csv(penalties_file, sep='\t', compression='gzip')
+                    with open(success_token, 'w') as fout:
+                        fout.write('Success!')
+
+                    end_time = datetime.datetime.now()
+                    logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+
+            turbo_compass_entry(meta_subsystem_models_dir=meta_subsystem_models_dir, model_names=model_names)
+
+        else:
+            turbo_compass_entry()
+
         return
 
     # args.get returns None if the key 'selected_reactions_for_each_cell' does not exist
@@ -621,7 +710,7 @@ def entry():
         args['pools_file'] = pools_file
         
     # NOTE: for meta subsystems, lower bound of glucose secretion reactions are modified in partitionModel.py
-    if args['glucose'] and not args['select_meta_subsystems']:
+    if args['glucose'] is not None and not args['select_meta_subsystems']:
         if not args['media']:
             fname = "_glucose_"+str(args['glucose'])
             glucose_media_file = os.path.join(globals.MODEL_DIR, args['model'], 'media', fname+".json")
@@ -645,6 +734,32 @@ def entry():
                 fout.close()
             args['media'] = fname
 
+
+    if args['close_oxygen'] and not args['select_meta_subsystems']:
+        if not args['media']:
+            fname = "_oxygen_closed"
+            oxygen_media_file = os.path.join(globals.MODEL_DIR, args['model'], 'media', fname+".json")
+            if not os.path.exists(oxygen_media_file):
+                fout = open(oxygen_media_file, 'w')
+                json.dump({'MAR09048_pos':0}, fout)
+                fout.close()
+            args['media'] = fname
+        else:
+            media_file = args['media'] + '.json'
+            media_file = os.path.join(globals.MODEL_DIR, args['model'], 'media', media_file)
+            with open(media_file) as fin:
+                media = json.load(fin)
+            media.update({'MAR09048_pos':0})
+
+            fname = args['media']+"_oxygen_closed"
+            oxygen_media_file = os.path.join(globals.MODEL_DIR, args['model'], 'media', fname+".json")
+            if not os.path.exists(oxygen_media_file):
+                fout = open(oxygen_media_file, 'w')
+                json.dump(media, fout)
+                fout.close()
+            args['media'] = fname
+
+
     #if args['output_knn']:
     #    compute_knn(args)
     #    logger.info("Compass computed knn succesfully")
@@ -654,23 +769,28 @@ def entry():
 
         if args['select_meta_subsystems']:
 
-            meta_subsystem_models_dir, model_names = partition_model(args)
+            # Turbo-Module: run Module-Compass on selected meta subsystem
+            # This if statement is accessed by Turbo-Module to retrieve reaction IDs
+            # meta_subsystem_models_dir, meta_subsystem_preprocess_cache_dir, meta_subsystem_model_temp_dir,
+            # and penalties_file are set to be the same as the one computed before entering Turbo-Compass
 
-            meta_subsystem_preprocess_cache_dir = os.path.join(args['output_dir'], 'meta_subsystem_cache')
-            if os.path.exists(meta_subsystem_preprocess_cache_dir) == False:
-                os.mkdir(meta_subsystem_preprocess_cache_dir)
+            if args['turbo_meta_subsystem_model'] is not None:
+                
+                meta_subsystem_models_dir = args['turbo_meta_subsystem_models_dir']
+                meta_subsystem_preprocess_cache_dir = args['turbo_meta_subsystem_preprocess_cache_dir']
+                meta_subsystem_model = args['turbo_meta_subsystem_model']
 
-            for meta_subsystem_model in model_names:
+                # Set '--select-reactions' flag to only compute reactions that belong to meta-subsystem
+                args['select_reactions'] = os.path.join(meta_subsystem_models_dir, meta_subsystem_model, f'{meta_subsystem_model}_rxns.txt')
 
-                meta_subsystem_model_temp_dir = os.path.join(args['temp_dir'], meta_subsystem_model)
-                if os.path.exists(meta_subsystem_model_temp_dir) == False:
-                    os.mkdir(meta_subsystem_model_temp_dir)
+                meta_subsystem_model_temp_dir = args['turbo_meta_subsystem_model_temp_dir']
 
                 args['penalties_file'] = os.path.join(meta_subsystem_model_temp_dir, 'penalties.txt.gz')
 
                 # Calculate reaction penalties
                 success_token = os.path.join(meta_subsystem_model_temp_dir, 'success_token_penalties')
                 penalties_file = os.path.join(meta_subsystem_model_temp_dir, 'penalties.txt.gz')
+
                 if os.path.exists(success_token):
                     logger.info("Reaction Penalties already evaluated")
                     logger.info("Resuming execution from previous run...")
@@ -691,12 +811,65 @@ def entry():
                 # If args['single_sample'] is given, then cache is not computed
                 # therefore v_r^opt is computed on the fly
                 singleSampleCompass(data=args['data'], model=meta_subsystem_model,
-                                    media=args['media'], directory=meta_subsystem_model_temp_dir,
+                                    media=args['media'], directory=os.path.join(args['temp_dir'], meta_subsystem_model),
                                     sample_index=args['single_sample'], args=args,
                                     metabolic_model_dir=meta_subsystem_models_dir,
                                     preprocess_cache_dir=meta_subsystem_preprocess_cache_dir)
                 end_time = datetime.datetime.now()
                 logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+
+            # Normal Module-Compass
+            else:
+
+                meta_subsystem_models_dir, model_names = partition_model(args)
+
+                if meta_subsystem_models_dir == None:
+                    return
+
+                meta_subsystem_preprocess_cache_dir = os.path.join(args['output_dir'], 'meta_subsystem_cache')
+                if os.path.exists(meta_subsystem_preprocess_cache_dir) == False:
+                    os.mkdir(meta_subsystem_preprocess_cache_dir)
+
+                for meta_subsystem_model in model_names:
+
+                    # Set '--select-reactions' flag to only compute reactions that belong to meta-subsystem
+                    args['select_reactions'] = os.path.join(meta_subsystem_models_dir, meta_subsystem_model, f'{meta_subsystem_model}_rxns.txt')
+
+                    meta_subsystem_model_temp_dir = os.path.join(args['temp_dir'], meta_subsystem_model)
+                    if os.path.exists(meta_subsystem_model_temp_dir) == False:
+                        os.mkdir(meta_subsystem_model_temp_dir)
+
+                    args['penalties_file'] = os.path.join(meta_subsystem_model_temp_dir, 'penalties.txt.gz')
+
+                    # Calculate reaction penalties
+                    success_token = os.path.join(meta_subsystem_model_temp_dir, 'success_token_penalties')
+                    penalties_file = os.path.join(meta_subsystem_model_temp_dir, 'penalties.txt.gz')
+                    if os.path.exists(success_token):
+                        logger.info("Reaction Penalties already evaluated")
+                        logger.info("Resuming execution from previous run...")
+                    else:
+                        logger.info("Evaluating Reaction Penalties...")
+                        penalties = eval_reaction_penalties(args['data'], meta_subsystem_model,
+                                                            args['media'], args['species'],
+                                                            args, metabolic_model_dir=meta_subsystem_models_dir,
+                                                            temp_dir=meta_subsystem_model_temp_dir)
+                        penalties.to_csv(penalties_file, sep='\t', compression='gzip')
+                        with open(success_token, 'w') as fout:
+                            fout.write('Success!')
+
+                        end_time = datetime.datetime.now()
+                        logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+
+                    # maximize_reaction retrieves v_r^opt if already cached
+                    # If args['single_sample'] is given, then cache is not computed
+                    # therefore v_r^opt is computed on the fly
+                    singleSampleCompass(data=args['data'], model=meta_subsystem_model,
+                                        media=args['media'], directory=meta_subsystem_model_temp_dir,
+                                        sample_index=args['single_sample'], args=args,
+                                        metabolic_model_dir=meta_subsystem_models_dir,
+                                        preprocess_cache_dir=meta_subsystem_preprocess_cache_dir)
+                    end_time = datetime.datetime.now()
+                    logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
 
             return
 
@@ -741,50 +914,30 @@ def entry():
 
     if args['select_meta_subsystems']:
 
-        meta_subsystem_models_dir, model_names = partition_model(args)
+        # Turbo-Module: run Module-Compass on selected meta subsystem
+        # This if statement is accessed by Turbo-Module to observe entries for a given meta subsystem model
+        # meta_subsystem_models_dir, meta_subsystem_preprocess_cache_dir, meta_subsystem_model_temp_dir,
+        # and penalties_file are set to be the same as the one computed before entering Turbo-Compass
 
-        if meta_subsystem_models_dir == None:
-            return
+        if args['turbo_meta_subsystem_model'] is not None:
 
-        meta_subsystem_preprocess_cache_dir = os.path.join(args['output_dir'], 'meta_subsystem_cache')
-        if os.path.exists(meta_subsystem_preprocess_cache_dir) == False:
-            os.mkdir(meta_subsystem_preprocess_cache_dir)
-
-        for meta_subsystem_model in model_names:
+            meta_subsystem_models_dir = args['turbo_meta_subsystem_models_dir']
+            meta_subsystem_preprocess_cache_dir = args['turbo_meta_subsystem_preprocess_cache_dir']
+            meta_subsystem_model = args['turbo_meta_subsystem_model']
 
             # Set '--select-reactions' flag to only compute reactions that belong to meta-subsystem
             args['select_reactions'] = os.path.join(meta_subsystem_models_dir, meta_subsystem_model, f'{meta_subsystem_model}_rxns.txt')
 
-            meta_subsystem_model_temp_dir = os.path.join(args['temp_dir'], meta_subsystem_model)
-            if os.path.exists(meta_subsystem_model_temp_dir) == False:
-                os.mkdir(meta_subsystem_model_temp_dir)
+            meta_subsystem_model_temp_dir = args['turbo_meta_subsystem_model_temp_dir']
 
-            meta_subsystem_model_output_dir = os.path.join(args['output_dir'], meta_subsystem_model)
-            if os.path.exists(meta_subsystem_model_output_dir) == False:
-                os.mkdir(meta_subsystem_model_output_dir)
+            meta_subsystem_model_output_dir = args['output_dir']
 
-            #Check if the cache for (model, media) exists already:
-            size_of_cache = len(cache.load(init_model(model=meta_subsystem_model, species=args['species'],
-                            exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
-                            isoform_summing=args['isoform_summing'],
-                            metabolic_model_dir=meta_subsystem_models_dir), 
-                            args['media'], preprocess_cache_dir=meta_subsystem_preprocess_cache_dir))
-            if size_of_cache == 0 or args['precache']:
-                logger.info("Building up model cache")
-                # Compute v_r^opt for each reaction beforehand
-                precacheCompass(args=args, model_name=meta_subsystem_model, 
-                                metabolic_model_dir=meta_subsystem_models_dir,
-                                preprocess_cache_dir=meta_subsystem_preprocess_cache_dir)
-                end_time = datetime.datetime.now()
-                logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
-                if not args['data']:
-                    return
-            else:
-                logger.info("Cache for model and media already built")
+            args['penalties_file'] = os.path.join(meta_subsystem_model_temp_dir, 'penalties.txt.gz')
 
-            # Time to evaluate the reaction expression
+            # Calculate reaction penalties
             success_token = os.path.join(meta_subsystem_model_temp_dir, 'success_token_penalties')
             penalties_file = os.path.join(meta_subsystem_model_temp_dir, 'penalties.txt.gz')
+
             if os.path.exists(success_token):
                 logger.info("Reaction Penalties already evaluated")
                 logger.info("Resuming execution from previous run...")
@@ -802,8 +955,6 @@ def entry():
                 logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
 
             args['penalties_file'] = penalties_file
-            if args['only_penalties']:
-                return
 
             # Now run the individual cells through cplex in parallel
             # This is either done by sending to Torque queue, or running on the
@@ -820,13 +971,103 @@ def entry():
                 return
             else:
                 runCompassParallel(args,
-                                   model_name=meta_subsystem_model,
-                                   temp_dir=meta_subsystem_model_temp_dir,
-                                   output_dir=meta_subsystem_model_output_dir,
-                                   metabolic_model_dir=meta_subsystem_models_dir,
-                                   preprocess_cache_dir=meta_subsystem_preprocess_cache_dir)
+                                model_name=meta_subsystem_model,
+                                temp_dir=args['temp_dir'],
+                                output_dir=meta_subsystem_model_output_dir,
+                                metabolic_model_dir=meta_subsystem_models_dir,
+                                preprocess_cache_dir=meta_subsystem_preprocess_cache_dir)
                 end_time = datetime.datetime.now()
                 logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+
+
+        # Normal Module-Compass
+        else:
+            meta_subsystem_models_dir, model_names = partition_model(args)
+
+            if meta_subsystem_models_dir == None:
+                return
+
+            meta_subsystem_preprocess_cache_dir = os.path.join(args['output_dir'], 'meta_subsystem_cache')
+            if os.path.exists(meta_subsystem_preprocess_cache_dir) == False:
+                os.mkdir(meta_subsystem_preprocess_cache_dir)
+
+            for meta_subsystem_model in model_names:
+
+                # Set '--select-reactions' flag to only compute reactions that belong to meta-subsystem
+                args['select_reactions'] = os.path.join(meta_subsystem_models_dir, meta_subsystem_model, f'{meta_subsystem_model}_rxns.txt')
+
+                meta_subsystem_model_temp_dir = os.path.join(args['temp_dir'], meta_subsystem_model)
+                if os.path.exists(meta_subsystem_model_temp_dir) == False:
+                    os.mkdir(meta_subsystem_model_temp_dir)
+
+                meta_subsystem_model_output_dir = os.path.join(args['output_dir'], meta_subsystem_model)
+                if os.path.exists(meta_subsystem_model_output_dir) == False:
+                    os.mkdir(meta_subsystem_model_output_dir)
+
+                #Check if the cache for (model, media) exists already:
+                size_of_cache = len(cache.load(init_model(model=meta_subsystem_model, species=args['species'],
+                                exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
+                                isoform_summing=args['isoform_summing'],
+                                metabolic_model_dir=meta_subsystem_models_dir), 
+                                args['media'], preprocess_cache_dir=meta_subsystem_preprocess_cache_dir))
+                if size_of_cache == 0 or args['precache']:
+                    logger.info("Building up model cache")
+                    # Compute v_r^opt for each reaction beforehand
+                    precacheCompass(args=args, model_name=meta_subsystem_model, 
+                                    metabolic_model_dir=meta_subsystem_models_dir,
+                                    preprocess_cache_dir=meta_subsystem_preprocess_cache_dir)
+                    end_time = datetime.datetime.now()
+                    logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+                    if not args['data']:
+                        return
+                else:
+                    logger.info("Cache for model and media already built")
+
+                # Time to evaluate the reaction expression
+                success_token = os.path.join(meta_subsystem_model_temp_dir, 'success_token_penalties')
+                penalties_file = os.path.join(meta_subsystem_model_temp_dir, 'penalties.txt.gz')
+                if os.path.exists(success_token):
+                    logger.info("Reaction Penalties already evaluated")
+                    logger.info("Resuming execution from previous run...")
+                else:
+                    logger.info("Evaluating Reaction Penalties...")
+                    penalties = eval_reaction_penalties(args['data'], meta_subsystem_model,
+                                                        args['media'], args['species'],
+                                                        args, metabolic_model_dir=meta_subsystem_models_dir,
+                                                        temp_dir=meta_subsystem_model_temp_dir)
+                    penalties.to_csv(penalties_file, sep='\t', compression='gzip')
+                    with open(success_token, 'w') as fout:
+                        fout.write('Success!')
+
+                    end_time = datetime.datetime.now()
+                    logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+
+                args['penalties_file'] = penalties_file
+                if args['only_penalties']:
+                    return
+
+                # Now run the individual cells through cplex in parallel
+                # This is either done by sending to Torque queue, or running on the
+                # same machine
+                if args['torque_queue'] is not None:
+                    logger.info(
+                        "Submitting COMPASS job to Torque queue - {}".format(
+                            args['torque_queue'])
+                    )
+                    submitCompassTorque(args,
+                                        temp_dir=args['temp_dir'],
+                                        output_dir=args['output_dir'],
+                                        queue=args['torque_queue'])
+                    return
+                else:
+                    runCompassParallel(args,
+                                    model_name=meta_subsystem_model,
+                                    temp_dir=meta_subsystem_model_temp_dir,
+                                    output_dir=meta_subsystem_model_output_dir,
+                                    metabolic_model_dir=meta_subsystem_models_dir,
+                                    preprocess_cache_dir=meta_subsystem_preprocess_cache_dir)
+                    end_time = datetime.datetime.now()
+                    logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
 
         return
 
