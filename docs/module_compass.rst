@@ -53,6 +53,53 @@ A list of reactions supported by Module-Compass can be found
 `here <https://github.com/YosefLab/Compass/blob/compass_v2/compass/Resources/Metabolic%20Models/RECON2_mat/model/core_reactions_md.csv>`__.
 
 
+Module-Compass Output
+***********************
+
+The output of Module-Compass should be similar to the following:
+
+.. code:: bash
+
+    |-- <output-dir>
+    |   |-- <temp-dir>
+    |   |   |-- <META_SUBSYSTEM_ID_1>
+    |   |   |-- <META_SUBSYSTEM_ID_2>
+    |   |-- <META_SUBSYSTEM_ID_1>
+    |   |-- <META_SUBSYSTEM_ID_2>
+    |   |-- compass.log
+    |   |-- meta_subsystem_cache
+    |   |   |-- <META_SUBSYSTEM_ID_1>
+    |   |   |-- <META_SUBSYSTEM_ID_2>
+    |   |-- meta_subsystem_models
+    |   |   |-- <META_SUBSYSTEM_ID_1>
+    |   |   |-- <META_SUBSYSTEM_ID_2>
+
+``<temp-dir>`` contains the intermediate results for each meta-subsystem, similar to a regular Compass run.
+
+``<META_SUBSYSTEM_ID>`` folders contain the ``reactions.tsv`` file that contains reactions scores for reactions 
+in each meta-subsystem.
+
+``meta_subsystem_cache`` contains the optimal reaction flux for each reaction. Optimal fluxes are computed agnostic of gene expression
+and are only based on the connectivity of reactions within the metabolic network. Please refer to the manuscript for a 
+detailed treatment of the inner workings of Compass.
+
+``meta_subsystem_models`` contains the reactions directly associated with the meta-subsystem, their one-hop neighbors, and 
+relevant exchange reactions. The format may differ between various choices of metabolic model (e.g. RECON2 or Human1), 
+but should be similar to the corresponding comprehensive model under the 
+`Metabolic Models <https://github.com/YosefLab/Compass/blob/compass_v2/compass/Resources/Metabolic%20Models>`__
+directory.
+
+An example ``reactions.tsv`` output file is shown below:
+
+.. image:: images/example_module_output.png
+
+For each meta-subsystem, Module-Compass computes reaction scores for two types of reactions: those that are directly 
+associated with the meta-subsystem, as well as exchange reactions for metabolites associated with these reactions. 
+The former are labeled based on their reaction IDs in the metabolic model, while the latter are formatted as 
+``<MET_ID>_EXCHANGE_<META_SUBSYSTEM_ID>``. The metadata for these reactions can be found under the corresponding folder 
+for the meta-subsystem of interest within the ``meta_subsystem_models`` directory.
+
+
 Module-Compass Explained
 **************************
 
