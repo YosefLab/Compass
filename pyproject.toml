@@ -1,10 +1,10 @@
 [build-system]
-build-backend = "hatchling.build"
-requires = ["hatchling"]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "compass-sc"
-version = "1.0.0"
+dynamic = ["version"]
 description = "In-Silico Modeling of Metabolic Heterogeneity using Single-Cell Transcriptomes"
 readme = "README.md"
 requires-python = ">=3.10"
