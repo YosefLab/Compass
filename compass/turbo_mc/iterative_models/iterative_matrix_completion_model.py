@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 import copy
 from dataclasses import dataclass
 import logging
-import matplotlib.pyplot as plt
 import numpy as np
 from typing import List, Optional, Tuple, Union, Callable
 
@@ -186,6 +185,8 @@ class IterativeMCMWithGuaranteedSpearmanR2(IterativeMatrixCompletionModel):
 
     def fit(self, matrix_oracle: MatrixOracle, Z: Optional[np.array] = None):
         fit_start_time = time.time()
+        # R: # of cells
+        # C: # of reactions
         R, C = matrix_oracle.shape()
         sampling_density = self.sampling_density
         X_observed = matrix_oracle.observed_matrix()
@@ -199,6 +200,8 @@ class IterativeMCMWithGuaranteedSpearmanR2(IterativeMatrixCompletionModel):
                         R=R,
                         C=C,
                         sampled_density=sampling_density * (iteration + 1)))
+
+            # for each reaction, choose which cells to observe entry
             if iteration == 0:
                 # First round of fitting!
                 if np.all(np.isnan(X_observed)):

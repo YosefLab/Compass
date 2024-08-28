@@ -6,7 +6,7 @@ Installation
 
 Requirements
 ************
- - python >= 2.7
+ - python >= 3.10
  - gurobipy >= 11.0.0
  - numpy >= 1.12
  - pandas >= 0.20
@@ -30,11 +30,15 @@ This needs to be installed before the other requirements because a C extension n
    It is otherwise identical to just using pip. Using sudo can also invoke a different version of python 
    depending on your environment.
 
+.. warning::
+
+   Installing from the ``compass_v2`` branch is temporary and will be fixed as all changes are merged into ``master``.
+
 Then simplest way to install Compass is using pip to install from the github repository. This can be done with the following command in the terminal:
 
 .. code:: bash
 
-   python -m pip install git+https://github.com/yoseflab/Compass.git --upgrade
+   python -m pip install git+https://github.com/yoseflab/Compass.git@compass_v2 --upgrade
 
 This command will also update Compass to the newest version. Alternatively, you can clone the Compass repository and run setup.py.
 
