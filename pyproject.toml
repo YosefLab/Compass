@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "compass-sc"
-dynamic = ["version"]
+version = "1.0.0"
 description = "In-Silico Modeling of Metabolic Heterogeneity using Single-Cell Transcriptomes"
 readme = "README.md"
 requires-python = ">=3.10"
