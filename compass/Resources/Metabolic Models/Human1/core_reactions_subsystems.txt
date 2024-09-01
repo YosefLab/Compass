@@ -1,3 +1,6 @@
+Core reactions are defined as reactions associated with only mitochondrial, cytosolic, or extracellular metabolites
+Subsystem Name | # of Associated Reactions
+
 Transport reactions 2156
 Fatty acid oxidation 231
 Bile acid biosynthesis 131
@@ -59,7 +62,7 @@ Acylglycerides metabolism 21
 Fructose and mannose metabolism 20
 Fatty acid elongation (even-chain) 20
 Eicosanoid metabolism 20
-Pentose phosphate pathway 19
+Pentose phosphate pathway 20
 Histidine metabolism 19
 Porphyrin metabolism 19
 Pantothenate and CoA metabolism 18
@@ -113,7 +116,6 @@ Protein degradation 2
 Fatty acid desaturation (odd-chain) 2
 Vitamin B12 metabolism 2
 Phenylalanine metabolism 2
-Pentose Phosphate Pathway 1
 Fatty acid degradation 1
 Insect hormone biosynthesis 1
 Heme degradation 1

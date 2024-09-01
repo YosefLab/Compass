@@ -1,3 +1,5 @@
+Subsystem Name | # of Associated Reactions
+
 Transport reactions 4157
 Exchange/demand reactions 1658
 Drug metabolism 572
@@ -9,7 +11,7 @@ Leukotriene metabolism 170
 Isolated 158
 Xenobiotics metabolism 158
 Phenylalanine, tyrosine and tryptophan biosynthesis 157
-Arachidonic acid metabolism 136
+Arachidonic acid metabolism 138
 Carnitine shuttle (endoplasmic reticular) 131
 Sphingolipid metabolism 131
 Nucleotide metabolism 125
@@ -75,7 +77,7 @@ Fatty acid biosynthesis (odd-chain) 29
 Porphyrin metabolism 28
 Biopterin metabolism 27
 Cholesterol biosynthesis 1 (Bloch pathway) 27
-Pentose phosphate pathway 26
+Pentose phosphate pathway 27
 Glycosphingolipid metabolism 25
 Propanoate metabolism 25
 Pantothenate and CoA metabolism 25
@@ -133,7 +135,6 @@ Cholesterol biosynthesis 2 4
 Heme degradation 3
 Insect hormone biosynthesis 2
 Toluene degradation 2
-	Arachidonic acid metabolism 2
 octane oxidation 2
 Alkaloids biosynthesis 2
 Hippurate metabolism 2
@@ -145,4 +146,3 @@ Triacylglycerol synthesis 1
 Urea cycle 1
 Glyoxylate and dicarboxylate metabolism 1
 Fatty acid degradation 1
-Pentose Phosphate Pathway 1

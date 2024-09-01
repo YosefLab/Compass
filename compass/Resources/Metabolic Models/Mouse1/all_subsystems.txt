@@ -1,3 +1,5 @@
+Subsystem Name | # of Associated Reactions
+
 Transport reactions 4154
 Exchange/demand reactions 1656
 Drug metabolism 572
@@ -75,7 +77,7 @@ Fatty acid biosynthesis (odd-chain) 29
 Porphyrin metabolism 28
 Biopterin metabolism 27
 Cholesterol biosynthesis 1 (Bloch pathway) 27
-Pentose phosphate pathway 26
+Pentose phosphate pathway 27
 Pantothenate and CoA metabolism 25
 Glycosphingolipid metabolism 25
 Protein assembly 24
@@ -147,5 +149,4 @@ Amine sulfotransferase 1
 Beta oxidation of odd-chain fatty acids (peroxisomal) 1
 Triacylglycerol synthesis 1
 Fatty acid degradation 1
-Pentose Phosphate Pathway 1
 Glyoxylate and dicarboxylate metabolism 1

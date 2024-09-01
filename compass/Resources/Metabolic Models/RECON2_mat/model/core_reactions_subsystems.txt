@@ -1,3 +1,6 @@
+Core reactions are defined as reactions associated with only mitochondrial, cytosolic, or extracellular metabolites
+Subsystem Name | # of Associated Reactions
+
 Transport, extracellular 398
 Fatty acid oxidation 335
 Nucleotide interconversion 117

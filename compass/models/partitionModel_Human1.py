@@ -3,9 +3,13 @@ import pandas as pd
 import shutil
 import libsbml
 from libsbml import SBMLDocument, SBMLNamespaces
+import json
 
 from compass.globals import EXCHANGE_LIMIT, MODEL_DIR
 from compass.models import load_metabolic_model, init_model
+
+import logging
+logger = logging.getLogger('compass')
 
 PATH_2_HUMAN_1 = os.path.join(MODEL_DIR, 'Human1')
 PATH_2_CORE_RXNS = os.path.join(MODEL_DIR, 'Human1', 'core_reactions.txt')
@@ -377,6 +381,41 @@ def partition_model(args):
         with open(os.path.join(output_dir, f'{meta_subsystem}_all_mets.txt'), 'w') as f:
             for met_id in meta_subsystem_met_ids[meta_subsystem]:
                 f.write(f'{met_id}\n')
+
+    # **********************************************************************
+
+    if args['oxygen'] is not None:
+
+        fname = media + '_oxygen_' + str(args['oxygen'])
+        args['media'] = fname
+
+        for meta_subsystem in selected_meta_subsystems:
+            logger.info(f'Modifying oxygen uptake reaction bounds for {meta_subsystem}')
+
+            output_dir = os.path.join(meta_subsystem_models_dir, meta_subsystem)
+            media_file = media + '.json'
+            media_file = os.path.join(output_dir, 'media', media_file)
+            with open(media_file) as fin:
+                media_file_json = json.load(fin)
+
+            if f'MAM02630c_EXCHANGE_{meta_subsystem}' in meta_subsystem_rxn_ids[meta_subsystem]:
+                logger.info(f'Added MAM02630c for {meta_subsystem}')
+                oxygen_c_rxn = f'MAM02630c_EXCHANGE_{meta_subsystem}_neg'
+                media_file_json.update({oxygen_c_rxn: float(args['oxygen'])})
+            if f'MAM02630m_EXCHANGE_{meta_subsystem}' in meta_subsystem_rxn_ids[meta_subsystem]:
+                logger.info(f'Added MAM02630m for {meta_subsystem}')
+                oxygen_m_rxn = f'MAM02630m_EXCHANGE_{meta_subsystem}_neg'
+                media_file_json.update({oxygen_m_rxn: float(args['oxygen'])})
+            if f'MAM02630e_EXCHANGE_{meta_subsystem}' in meta_subsystem_rxn_ids[meta_subsystem]:
+                logger.info(f'Added MAM02630e for {meta_subsystem}')
+                oxygen_e_rxn = f'MAM02630e_EXCHANGE_{meta_subsystem}_neg'
+                media_file_json.update({oxygen_e_rxn: float(args['oxygen'])})
+
+            oxygen_media_file = os.path.join(output_dir, 'media', fname + '.json')
+            if not os.path.exists(oxygen_media_file):
+                fout = open(oxygen_media_file, 'w')
+                json.dump(media_file_json, fout)
+                fout.close()
 
     # **********************************************************************
 
