@@ -242,18 +242,24 @@ def computeReactionExpressionParallel(args, model, expression, and_function, sam
 
     n_samples = len(sample_names)
 
+    old_num_processes = None
+    # Corner case of more samples than processors used
+    if n_samples < args['num_processes']:
+        old_num_processes = args['num_processes']
+        args['num_processes'] = 1
+
     samples_per_process = math.floor(n_samples / args['num_processes'])
 
     sample_names_chunks = []
 
     for i in range(args['num_processes']):
-        sample_names_chunks.append(sample_names[i * samples_per_process: (i + 1) * samples_per_process])
+        sample_names_chunks.append(sample_names[i * samples_per_process : (i + 1) * samples_per_process])
     
     if n_samples % args['num_processes'] != 0:
         sample_names_chunks[args['num_processes'] - 1] += sample_names[args['num_processes'] * samples_per_process : ]
 
-    partial_map_fun = partial(_reaction_expression_parallel_map_fun, args=args, model=model,
-                              expression=expression, and_function=and_function,
+    partial_map_fun = partial(_reaction_expression_parallel_map_fun, args=args,
+                              model=model, and_function=and_function,
                               sample_names_chunks=sample_names_chunks, temp_dir=temp_dir)
 
     pool = multiprocessing.Pool(args['num_processes'])
@@ -264,30 +270,39 @@ def computeReactionExpressionParallel(args, model, expression, and_function, sam
     )
 
     logger.info(
-        "Progress bar will update once the first sample is finished"
+        "Progress bar will update once the first process is finished"
     )
 
     pbar = tqdm(total=args['num_processes'])
 
-    for _ in pool.imap_unordered(partial_map_fun, range(args['num_processes'])):
-        pbar.update()
+    arguments = [(i, expression[sample_names_chunks[i]]) for i in range(args['num_processes'])]
+
+    for argument in arguments:
+        pool.apply_async(partial_map_fun, args=argument, callback=lambda _: pbar.update())
+
+    pool.close()
+    pool.join()
 
     if temp_dir is None:
         temp_dir = args['temp_dir']
 
     reaction_expression = collectReactionExpressionResults(args, temp_dir)
 
+    # Corner case of more samples than processors used
+    if old_num_processes is not None:
+        args['num_processes'] = old_num_processes
+
     logger.info("Reaction Expression Computation Completed Successfully")
 
     return reaction_expression
 
 
-def _reaction_expression_parallel_map_fun(i, args, model, expression, and_function, sample_names_chunks, temp_dir=None):
+def _reaction_expression_parallel_map_fun(i, expression, args, model, and_function, sample_names_chunks, temp_dir=None):
 
     if temp_dir is None:
         temp_dir = args['temp_dir']
 
-    processor_dir = os.path.join(temp_dir, 'penalties_tmp', 'process' + str(i))
+    processor_dir = os.path.join(temp_dir, 'penalties_tmp', 'reaction_expression', 'process' + str(i))
 
     if not os.path.isdir(processor_dir):
         os.makedirs(processor_dir)
@@ -329,7 +344,7 @@ def collectReactionExpressionResults(args, temp_dir):
     # Gather all the results
     for i in range(args['num_processes']):
 
-        processor_dir = os.path.join(temp_dir, 'penalties_tmp', 'process' + str(i))
+        processor_dir = os.path.join(temp_dir, 'penalties_tmp', 'reaction_expression', 'process' + str(i))
 
         sample_reaction_expression = pd.read_csv(
             os.path.join(processor_dir, 'reaction_expression.txt'),

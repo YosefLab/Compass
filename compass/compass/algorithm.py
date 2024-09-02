@@ -25,7 +25,7 @@ logger = logging.getLogger("compass")
 
 __all__ = ['singleSampleCompass']
 
-def singleSampleCompass(data, model, media, directory, sample_index, args, metabolic_model_dir=MODEL_DIR, preprocess_cache_dir=PREPROCESS_CACHE_DIR):
+def singleSampleCompass(data, model, media, directory, sample_name, sample_index, args, metabolic_model_dir=MODEL_DIR, preprocess_cache_dir=PREPROCESS_CACHE_DIR):
     """
     Run Compass on a single column of data
 
@@ -82,32 +82,16 @@ def singleSampleCompass(data, model, media, directory, sample_index, args, metab
     # Build model into Gurobi model
     credentials = utils.parse_gurobi_license_file(os.path.join(LICENSE_DIR, 'gurobi.lic'))
     gp_model = initialize_gurobi_model(model, credentials, args['num_threads'], args['lpmethod'], args['advance'])
-
-    # Only read this to get the number of samples and the sample name
-    # Use nrows=1 so this is fast
-    samples = utils.read_sample_names(data)
-    if samples is None:
-        sample_name = 'sample_'+str(sample_index)
-        logger.info("Processing Sample %i: %s", sample_index, sample_name)
-    else:
-        sample_name = str(samples[sample_index])
-        logger.info("Processing Sample %i/%i: %s", sample_index,
-            len(samples), sample_name)
+    
+    logger.info(f'Processing Sample {sample_index}: {sample_name}')
     global_state.set_current_cell_name(sample_name)
 
     # Run core compass algorithm
 
-    # Evaluate reaction penalties
-    # Actual time spent on evaluating reaction penalties is not calculated
-    # Logger actually records time used to read already computed reaction penalties
-    penalty_start = time.process_time()
-    logger.info("Evaluating Reaction Penalties...")
+    # Read in reaction penalties
+    logger.info("Reading Reaction Penalties...")
     reaction_penalties = pd.read_csv(
-        args['penalties_file'], sep="\t", header=0,
-        usecols=[0, sample_index + 1]) #0 is the Reaction column,
-
-    reaction_penalties = reaction_penalties.set_index("Reaction").iloc[:, 0]
-    penalty_elapsed = time.process_time() - penalty_start
+        os.path.join(args['penalties_dir'], f'sample{sample_index}', 'penalties.txt.gz'), index_col=0, sep='\t').iloc[:, 0]
 
     react_start = time.process_time()
     if not args['no_reactions']:
@@ -161,7 +145,6 @@ def singleSampleCompass(data, model, media, directory, sample_index, args, metab
     with open(os.path.join(directory, 'success_token'), 'w') as fout:
         fout.write('Success!')
 
-    logger.info("Compass Penalty Time: "+str(penalty_elapsed))
     if not args['no_reactions']:
         logger.info("Compass Reaction Time: "+str(react_elapsed))
         logger.info("Processed "+str(len(reaction_scores))+" reactions")

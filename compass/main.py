@@ -174,6 +174,11 @@ def parseArgs():
                         default=1000000,  # Infinity
                         metavar="MAX_ITERS")
 
+    parser.add_argument("--turbo-temp-dir",
+                        help="Specifying temp directory to avoid repeated penalty computation for Turbo-Compass",
+                        required=False,
+                        metavar="DIR")  # Not part of public API
+
     parser.add_argument("--turbo-meta-subsystem-preprocess-cache-dir",
                         help="Specifying cache directory to avoid repeated cache computation for Turbo-Module",
                         required=False,
@@ -338,6 +343,12 @@ def parseArgs():
 
     #Hidden argument for testing purposes.
     parser.add_argument("--penalties-file",
+                        help=argparse.SUPPRESS,
+                        default='')
+
+    #Hidden argument for specifying directory that contains penalties for every sample
+    #Used to reduce overhead of loading penalties in singleSampleCompass
+    parser.add_argument("--penalties-dir",
                         help=argparse.SUPPRESS,
                         default='')
 
@@ -623,8 +634,9 @@ def entry():
                 # Time to evaluate the reaction expression
                 success_token = os.path.join(meta_subsystem_model_temp_dir, 'success_token_penalties')
                 penalties_file = os.path.join(meta_subsystem_model_temp_dir, 'penalties.txt.gz')
+
                 if os.path.exists(success_token):
-                    logger.info("Reaction Penalties already evaluated")
+                    logger.info("Reaction Penalties already evaluated for Turbo-Module")
                     logger.info("Resuming execution from previous run...")
                 else:
                     logger.info("Evaluating Reaction Penalties...")
@@ -632,7 +644,31 @@ def entry():
                                                         args['media'], args['species'],
                                                         args, metabolic_model_dir=meta_subsystem_models_dir,
                                                         temp_dir=meta_subsystem_model_temp_dir)
+
+                    logger.info('Saving Reaction Penalties file')
                     penalties.to_csv(penalties_file, sep='\t', compression='gzip')
+
+                    # Save penalties for each sample in a separate .csv file to reduce overhead of reading penalties in singleSampleCompass
+                    logger.info('Saving Reaction Penalties for individual samples')
+                    penalties_dir = os.path.join(meta_subsystem_model_temp_dir, 'penalties_tmp', 'penalties')
+
+                    if os.path.exists(penalties_dir) == False:
+                        os.mkdir(penalties_dir)
+                    
+                    n_samples = penalties.shape[1]
+
+                    pool = multiprocessing.Pool(args['num_processes'])
+
+                    pbar = tqdm(total=n_samples)
+
+                    arguments = [(i, meta_subsystem_model_temp_dir, penalties.iloc[:, i]) for i in range(n_samples)]
+
+                    for argument in arguments:
+                        pool.apply_async(save_single_sample_penalties, args=argument, callback=lambda _: pbar.update())
+
+                    pool.close()
+                    pool.join()
+
                     with open(success_token, 'w') as fout:
                         fout.write('Success!')
 
@@ -641,7 +677,56 @@ def entry():
 
             turbo_compass_entry(meta_subsystem_models_dir=meta_subsystem_models_dir, model_names=model_names)
 
+        # If we are using regular Turbo-Compass, then compute penalties beforehand to reuse for future iterations
         else:
+
+            # Time to evaluate the reaction expression
+            success_token = os.path.join(args['temp_dir'], 'success_token_penalties')
+            penalties_file = os.path.join(args['temp_dir'], 'penalties.txt.gz')
+
+            if os.path.exists(success_token):
+                logger.info("Reaction Penalties already evaluated for Turbo-Compass")
+                logger.info("Resuming execution from previous run...")
+            else:
+                logger.info("Evaluating Reaction Penalties...")
+                penalties = eval_reaction_penalties(args['data'], args['model'],
+                                                    args['media'], args['species'],
+                                                    args)
+
+                logger.info('Saving Reaction Penalties file')
+                penalties.to_csv(penalties_file, sep='\t', compression='gzip')
+
+                # Save penalties for each sample in a separate .csv file to reduce overhead of reading penalties in singleSampleCompass
+                penalties_dir = os.path.join(args['temp_dir'], 'penalties_tmp', 'penalties')
+
+                if os.path.exists(penalties_dir) == False:
+                    os.mkdir(penalties_dir)
+                
+                n_samples = penalties.shape[1]
+                pool = multiprocessing.Pool(args['num_processes'])
+
+                logger.info('Saving Reaction Penalties for individual samples')
+                pbar = tqdm(total=n_samples)
+
+                arguments = [(i, args['temp_dir'], penalties.iloc[:, i]) for i in range(n_samples)]
+
+                for argument in arguments:
+                    pool.apply_async(save_single_sample_penalties, args=argument, callback=lambda _: pbar.update())
+
+                pool.close()
+                pool.join()
+
+                with open(success_token, 'w') as fout:
+                    fout.write('Success!')
+
+                end_time = datetime.datetime.now()
+                logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+
+            args['penalties_file'] = penalties_file
+
+            penalties_dir = os.path.join(args['temp_dir'], 'penalties_tmp', 'penalties')
+            args['penalties_dir'] = penalties_dir
+
             turbo_compass_entry()
 
         return
@@ -792,26 +877,29 @@ def entry():
                 penalties_file = os.path.join(meta_subsystem_model_temp_dir, 'penalties.txt.gz')
 
                 if os.path.exists(success_token):
-                    logger.info("Reaction Penalties already evaluated")
+                    logger.info("Reaction Penalties already evaluated for Turbo-Module (single sample)")
                     logger.info("Resuming execution from previous run...")
                 else:
-                    logger.info("Evaluating Reaction Penalties...")
-                    penalties = eval_reaction_penalties(args['data'], meta_subsystem_model,
-                                                        args['media'], args['species'],
-                                                        args, metabolic_model_dir=meta_subsystem_models_dir,
-                                                        temp_dir=meta_subsystem_model_temp_dir)
-                    penalties.to_csv(penalties_file, sep='\t', compression='gzip')
-                    with open(success_token, 'w') as fout:
-                        fout.write('Success!')
+                    # NOTE: if run correctly this branch should not be accessed
+                    logger.info("Penalties file is corrupted. Please start a new Turbo-Module run to re-compute reaction penalties."
+                                "You may need to all files in the output directory.")
+                    return
 
-                    end_time = datetime.datetime.now()
-                    logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+                # Specify penalties directory
+                penalties_dir = os.path.join(meta_subsystem_model_temp_dir, 'penalties_tmp', 'penalties')
+                args['penalties_dir'] = penalties_dir
+
+                # Read sample names here to reduce runtime overhead in singleSampleCompass
+                data = utils.read_data(args['data'])
+                sample_names = list(data.columns)
+                sample_name = sample_names[int(args['single_sample'])]
 
                 # maximize_reaction retrieves v_r^opt if already cached
                 # If args['single_sample'] is given, then cache is not computed
                 # therefore v_r^opt is computed on the fly
                 singleSampleCompass(data=args['data'], model=meta_subsystem_model,
                                     media=args['media'], directory=os.path.join(args['temp_dir'], meta_subsystem_model),
+                                    sample_name=sample_name,
                                     sample_index=args['single_sample'], args=args,
                                     metabolic_model_dir=meta_subsystem_models_dir,
                                     preprocess_cache_dir=meta_subsystem_preprocess_cache_dir)
@@ -844,8 +932,9 @@ def entry():
                     # Calculate reaction penalties
                     success_token = os.path.join(meta_subsystem_model_temp_dir, 'success_token_penalties')
                     penalties_file = os.path.join(meta_subsystem_model_temp_dir, 'penalties.txt.gz')
+
                     if os.path.exists(success_token):
-                        logger.info("Reaction Penalties already evaluated")
+                        logger.info("Reaction Penalties already evaluated for Module-Compass (single sample)")
                         logger.info("Resuming execution from previous run...")
                     else:
                         logger.info("Evaluating Reaction Penalties...")
@@ -853,18 +942,52 @@ def entry():
                                                             args['media'], args['species'],
                                                             args, metabolic_model_dir=meta_subsystem_models_dir,
                                                             temp_dir=meta_subsystem_model_temp_dir)
+
+                        logger.info('Saving Reaction Penalties file')
                         penalties.to_csv(penalties_file, sep='\t', compression='gzip')
+
+                        # Save penalties for each sample in a separate .csv file to reduce overhead of reading penalties in singleSampleCompass
+                        penalties_dir = os.path.join(meta_subsystem_model_temp_dir, 'penalties_tmp', 'penalties')
+
+                        if os.path.exists(penalties_dir) == False:
+                            os.mkdir(penalties_dir)
+
+                        n_samples = penalties.shape[1]
+                        pool = multiprocessing.Pool(args['num_processes'])
+
+                        logger.info('Saving Reaction Penalties for individual samples')
+
+                        pbar = tqdm(total=n_samples)
+
+                        arguments = [(i, meta_subsystem_model_temp_dir, penalties.iloc[:, i]) for i in range(n_samples)]
+
+                        for argument in arguments:
+                            pool.apply_async(save_single_sample_penalties, args=argument, callback=lambda _: pbar.update())
+
+                        pool.close()
+                        pool.join()
+
                         with open(success_token, 'w') as fout:
                             fout.write('Success!')
 
                         end_time = datetime.datetime.now()
                         logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
 
+                    # Read sample names here to reduce runtime overhead in singleSampleCompass
+                    data = utils.read_data(args['data'])
+                    sample_names = list(data.columns)
+                    sample_name = sample_names[int(args['single_sample'])]
+                    
+                    # Specify penalties directory
+                    penalties_dir = os.path.join(meta_subsystem_model_temp_dir, 'penalties_tmp', 'penalties')
+                    args['penalties_dir'] = penalties_dir
+
                     # maximize_reaction retrieves v_r^opt if already cached
                     # If args['single_sample'] is given, then cache is not computed
                     # therefore v_r^opt is computed on the fly
                     singleSampleCompass(data=args['data'], model=meta_subsystem_model,
                                         media=args['media'], directory=meta_subsystem_model_temp_dir,
+                                        sample_name=sample_name, 
                                         sample_index=args['single_sample'], args=args,
                                         metabolic_model_dir=meta_subsystem_models_dir,
                                         preprocess_cache_dir=meta_subsystem_preprocess_cache_dir)
@@ -875,35 +998,115 @@ def entry():
 
 
         else:
-            args['penalties_file'] = os.path.join(args['temp_dir'], 'penalties.txt.gz')
 
-            # Calculate reaction penalties
-            success_token = os.path.join(args['temp_dir'], 'success_token_penalties')
-            penalties_file = os.path.join(args['temp_dir'], 'penalties.txt.gz')
-            if os.path.exists(success_token):
-                logger.info("Reaction Penalties already evaluated")
-                logger.info("Resuming execution from previous run...")
-            else:
-                logger.info("Evaluating Reaction Penalties...")
-                penalties = eval_reaction_penalties(args['data'], args['model'],
-                                                    args['media'], args['species'],
-                                                    args)
-                penalties.to_csv(penalties_file, sep='\t', compression='gzip')
-                with open(success_token, 'w') as fout:
-                    fout.write('Success!')
+            # Turbo-Compass
+            # This if statement is accessed by Turbo-Compass to retrieve reaction IDs
+            # penalties_file is set to be the same as the one computed before entering Turbo-Compass
 
+            if args['turbo_temp_dir'] is not None:
+
+                args['penalties_file'] = os.path.join(args['turbo_temp_dir'], 'penalties.txt.gz')
+
+                # Calculate reaction penalties
+                success_token = os.path.join(args['turbo_temp_dir'], 'success_token_penalties')
+                penalties_file = os.path.join(args['turbo_temp_dir'], 'penalties.txt.gz')
+
+                if os.path.exists(success_token):
+                    logger.info("Reaction Penalties already evaluated for Turbo-Compass")
+                    logger.info("Resuming execution from previous run...")
+                else:
+                    # NOTE: if run correctly this branch should not be accessed
+                    logger.info("Penalties file is corrupted. Please start a new Turbo-Compass run to re-compute reaction penalties."
+                                "You may need to all files in the output directory.")
+                    return
+
+                # Read sample names here to reduce runtime overhead in singleSampleCompass
+                data = utils.read_data(args['data'])
+                sample_names = list(data.columns)
+                sample_name = sample_names[int(args['single_sample'])]
+
+                # Specify penalties directory
+                penalties_dir = os.path.join(args['turbo_temp_dir'], 'penalties_tmp', 'penalties')
+                args['penalties_dir'] = penalties_dir
+
+                # maximize_reaction retrieves v_r^opt if already cached
+                # If args['single_sample'] is given, then cache is not computed
+                # therefore v_r^opt is computed on the fly
+                singleSampleCompass(data=args['data'], model=args['model'],
+                                    media=args['media'], directory=args['temp_dir'],
+                                    sample_name=sample_name,
+                                    sample_index=args['single_sample'], args=args)
                 end_time = datetime.datetime.now()
                 logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+                return
 
-            # maximize_reaction retrieves v_r^opt if already cached
-            # If args['single_sample'] is given, then cache is not computed
-            # therefore v_r^opt is computed on the fly
-            singleSampleCompass(data=args['data'], model=args['model'],
-                                media=args['media'], directory=args['temp_dir'],
-                                sample_index=args['single_sample'], args=args)
-            end_time = datetime.datetime.now()
-            logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
-            return
+            # Normal Compass
+            else:
+
+                args['penalties_file'] = os.path.join(args['temp_dir'], 'penalties.txt.gz')
+
+                # Calculate reaction penalties
+                success_token = os.path.join(args['temp_dir'], 'success_token_penalties')
+                penalties_file = os.path.join(args['temp_dir'], 'penalties.txt.gz')
+
+                if os.path.exists(success_token):
+                    logger.info("Reaction Penalties already evaluated")
+                    logger.info("Resuming execution from previous run...")
+                else:
+                    logger.info("Evaluating Reaction Penalties...")
+                    penalties = eval_reaction_penalties(args['data'], args['model'],
+                                                        args['media'], args['species'],
+                                                        args)
+                    
+                    logger.info('Saving Reaction Penalties file')
+                    penalties.to_csv(penalties_file, sep='\t', compression='gzip')
+
+                    # Save penalties for each sample in a separate .csv file to reduce overhead of reading penalties in singleSampleCompass
+                    penalties_dir = os.path.join(args['temp_dir'], 'penalties_tmp', 'penalties')
+
+                    if os.path.exists(penalties_dir) == False:
+                        os.mkdir(penalties_dir)
+
+                    n_samples = penalties.shape[1]
+                    pool = multiprocessing.Pool(args['num_processes'])
+
+                    logger.info('Saving Reaction Penalties for individual samples')
+                    pbar = tqdm(total=n_samples)
+
+                    arguments = [(i, args['temp_dir'], penalties.iloc[:, i]) for i in range(n_samples)]
+
+                    for argument in arguments:
+                        pool.apply_async(save_single_sample_penalties, args=argument, callback=lambda _: pbar.update())
+
+                    pool.close()
+                    pool.join()
+
+                    with open(success_token, 'w') as fout:
+                        fout.write('Success!')
+
+                    end_time = datetime.datetime.now()
+                    logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+
+                # Read sample names here to reduce runtime overhead in singleSampleCompass
+                data = utils.read_data(args['data'])
+                sample_names = list(data.columns)
+                sample_name = sample_names[int(args['single_sample'])]
+
+                # Specify penalties directory
+                penalties_dir = os.path.join(args['temp_dir'], 'penalties_tmp', 'penalties')
+                args['penalties_dir'] = penalties_dir
+
+                # maximize_reaction retrieves v_r^opt if already cached
+                # If args['single_sample'] is given, then cache is not computed
+                # therefore v_r^opt is computed on the fly
+                singleSampleCompass(data=args['data'], model=args['model'],
+                                    media=args['media'], directory=args['temp_dir'],
+                                    sample_name=sample_name,
+                                    sample_index=args['single_sample'], args=args)
+                end_time = datetime.datetime.now()
+                logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+                return
+            
 
     if args['collect']:
         collectCompassResults(args['data'], args['temp_dir'],
@@ -939,22 +1142,18 @@ def entry():
             penalties_file = os.path.join(meta_subsystem_model_temp_dir, 'penalties.txt.gz')
 
             if os.path.exists(success_token):
-                logger.info("Reaction Penalties already evaluated")
+                logger.info("Reaction Penalties already evaluated for Turbo-Module")
                 logger.info("Resuming execution from previous run...")
             else:
-                logger.info("Evaluating Reaction Penalties...")
-                penalties = eval_reaction_penalties(args['data'], meta_subsystem_model,
-                                                    args['media'], args['species'],
-                                                    args, metabolic_model_dir=meta_subsystem_models_dir,
-                                                    temp_dir=meta_subsystem_model_temp_dir)
-                penalties.to_csv(penalties_file, sep='\t', compression='gzip')
-                with open(success_token, 'w') as fout:
-                    fout.write('Success!')
-
-                end_time = datetime.datetime.now()
-                logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+                # NOTE: if run correctly this branch should not be accessed
+                logger.info("Penalties file is corrupted. Please start a new Turbo-Module run to re-compute reaction penalties."
+                            "You may need to all files in the output directory.")
+                return
 
             args['penalties_file'] = penalties_file
+
+            penalties_dir = os.path.join(meta_subsystem_model_temp_dir, 'penalties_tmp', 'penalties')
+            args['penalties_dir'] = penalties_dir
 
             # Now run the individual cells through cplex in parallel
             # This is either done by sending to Torque queue, or running on the
@@ -1026,8 +1225,9 @@ def entry():
                 # Time to evaluate the reaction expression
                 success_token = os.path.join(meta_subsystem_model_temp_dir, 'success_token_penalties')
                 penalties_file = os.path.join(meta_subsystem_model_temp_dir, 'penalties.txt.gz')
+
                 if os.path.exists(success_token):
-                    logger.info("Reaction Penalties already evaluated")
+                    logger.info("Reaction Penalties already evaluated for Module-Compass")
                     logger.info("Resuming execution from previous run...")
                 else:
                     logger.info("Evaluating Reaction Penalties...")
@@ -1035,7 +1235,30 @@ def entry():
                                                         args['media'], args['species'],
                                                         args, metabolic_model_dir=meta_subsystem_models_dir,
                                                         temp_dir=meta_subsystem_model_temp_dir)
+
+                    logger.info('Saving Reaction Penalties file')
                     penalties.to_csv(penalties_file, sep='\t', compression='gzip')
+
+                    # Save penalties for each sample in a separate .csv file to reduce overhead of reading penalties in singleSampleCompass
+                    penalties_dir = os.path.join(meta_subsystem_model_temp_dir, 'penalties_tmp', 'penalties')
+
+                    if os.path.exists(penalties_dir) == False:
+                        os.mkdir(penalties_dir)
+                    
+                    n_samples = penalties.shape[1]
+                    pool = multiprocessing.Pool(args['num_processes'])
+
+                    logger.info('Saving Reaction Penalties for individual samples')
+                    pbar = tqdm(total=n_samples)
+
+                    arguments = [(i, meta_subsystem_model_temp_dir, penalties.iloc[:, i]) for i in range(n_samples)]
+
+                    for argument in arguments:
+                        pool.apply_async(save_single_sample_penalties, args=argument, callback=lambda _: pbar.update())
+
+                    pool.close()
+                    pool.join()
+
                     with open(success_token, 'w') as fout:
                         fout.write('Success!')
 
@@ -1043,6 +1266,10 @@ def entry():
                     logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
 
                 args['penalties_file'] = penalties_file
+
+                penalties_dir = os.path.join(meta_subsystem_model_temp_dir, 'penalties_tmp', 'penalties')
+                args['penalties_dir'] = penalties_dir
+
                 if args['only_penalties']:
                     return
 
@@ -1074,61 +1301,150 @@ def entry():
 
     else:
 
-        #Check if the cache for (model, media) exists already:
-        size_of_cache = len(cache.load(init_model(model=args['model'], species=args['species'],
-                        exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
-                        isoform_summing=args['isoform_summing']), args['media']))
-        if size_of_cache == 0 or args['precache']:
-            logger.info("Building up model cache")
-            # Compute v_r^opt for each reaction beforehand
-            precacheCompass(args=args)
-            end_time = datetime.datetime.now()
-            logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
-            if not args['data']:
+        # Turbo-Compass
+        # This if statement is accessed by Turbo-Compass to observe entries for each iteration
+        # penalties_file is set to be the same as the one computed before entering Turbo-Compass
+
+        if args['turbo_temp_dir'] is not None:
+
+            # Time to evaluate the reaction expression
+            success_token = os.path.join(args['turbo_temp_dir'], 'success_token_penalties')
+            penalties_file = os.path.join(args['turbo_temp_dir'], 'penalties.txt.gz')
+
+            if os.path.exists(success_token):
+                logger.info("Reaction Penalties already evaluated for Turbo-Compass")
+                logger.info("Resuming execution from previous run...")
+            else:
+                # NOTE: if run correctly this branch should not be accessed
+                logger.info("Penalties file is corrupted. Please start a new Turbo-Compass run to re-compute reaction penalties."
+                            "You may need to all files in the output directory.")
                 return
+
+            args['penalties_file'] = penalties_file
+
+            penalties_dir = os.path.join(args['turbo_temp_dir'], 'penalties_tmp', 'penalties')
+            args['penalties_dir'] = penalties_dir
+
+            if args['only_penalties']:
+                return
+
+            # Now run the individual cells through cplex in parallel
+            # This is either done by sending to Torque queue, or running on the
+            # same machine
+            if args['torque_queue'] is not None:
+                logger.info(
+                    "Submitting COMPASS job to Torque queue - {}".format(
+                        args['torque_queue'])
+                )
+                submitCompassTorque(args,
+                                    temp_dir=args['temp_dir'],
+                                    output_dir=args['output_dir'],
+                                    queue=args['torque_queue'])
+                return
+            else:
+                runCompassParallel(args)
+                end_time = datetime.datetime.now()
+                logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+                return
+
+        # Normal Compass
         else:
-            logger.info("Cache for model and media already built")
 
-        # Time to evaluate the reaction expression
-        success_token = os.path.join(args['temp_dir'], 'success_token_penalties')
-        penalties_file = os.path.join(args['temp_dir'], 'penalties.txt.gz')
-        if os.path.exists(success_token):
-            logger.info("Reaction Penalties already evaluated")
-            logger.info("Resuming execution from previous run...")
-        else:
-            logger.info("Evaluating Reaction Penalties...")
-            penalties = eval_reaction_penalties(args['data'], args['model'],
-                                                args['media'], args['species'],
-                                                args)
-            penalties.to_csv(penalties_file, sep='\t', compression='gzip')
-            with open(success_token, 'w') as fout:
-                fout.write('Success!')
+            #Check if the cache for (model, media) exists already:
+            size_of_cache = len(cache.load(init_model(model=args['model'], species=args['species'],
+                            exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
+                            isoform_summing=args['isoform_summing']), args['media']))
+            if size_of_cache == 0 or args['precache']:
+                logger.info("Building up model cache")
+                # Compute v_r^opt for each reaction beforehand
+                precacheCompass(args=args)
+                end_time = datetime.datetime.now()
+                logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+                if not args['data']:
+                    return
+            else:
+                logger.info("Cache for model and media already built")
 
-            end_time = datetime.datetime.now()
-            logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+            # Time to evaluate the reaction expression
+            success_token = os.path.join(args['temp_dir'], 'success_token_penalties')
+            penalties_file = os.path.join(args['temp_dir'], 'penalties.txt.gz')
 
-        args['penalties_file'] = penalties_file
-        if args['only_penalties']:
-            return
+            if os.path.exists(success_token):
+                logger.info("Reaction Penalties already evaluated")
+                logger.info("Resuming execution from previous run...")
+            else:
+                logger.info("Evaluating Reaction Penalties...")
+                penalties = eval_reaction_penalties(args['data'], args['model'],
+                                                    args['media'], args['species'],
+                                                    args)
 
-        # Now run the individual cells through cplex in parallel
-        # This is either done by sending to Torque queue, or running on the
-        # same machine
-        if args['torque_queue'] is not None:
-            logger.info(
-                "Submitting COMPASS job to Torque queue - {}".format(
-                    args['torque_queue'])
-            )
-            submitCompassTorque(args,
-                                temp_dir=args['temp_dir'],
-                                output_dir=args['output_dir'],
-                                queue=args['torque_queue'])
-            return
-        else:
-            runCompassParallel(args)
-            end_time = datetime.datetime.now()
-            logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
-            return
+                logger.info('Saving Reaction Penalties file')
+                penalties.to_csv(penalties_file, sep='\t', compression='gzip')
+
+                # Save penalties for each sample in a separate .csv file to reduce overhead of reading penalties in singleSampleCompass
+                penalties_dir = os.path.join(args['temp_dir'], 'penalties_tmp', 'penalties')
+
+                if os.path.exists(penalties_dir) == False:
+                    os.mkdir(penalties_dir)
+                
+                n_samples = penalties.shape[1]
+                pool = multiprocessing.Pool(args['num_processes'])
+
+                logger.info('Saving Reaction Penalties for individual samples')
+                pbar = tqdm(total=n_samples)
+
+                arguments = [(i, args['temp_dir'], penalties.iloc[:, i]) for i in range(n_samples)]
+
+                for argument in arguments:
+                    pool.apply_async(save_single_sample_penalties, args=argument, callback=lambda _: pbar.update())
+
+                pool.close()
+                pool.join()
+
+                with open(success_token, 'w') as fout:
+                    fout.write('Success!')
+
+                end_time = datetime.datetime.now()
+                logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+
+
+            args['penalties_file'] = penalties_file
+
+            penalties_dir = os.path.join(args['temp_dir'], 'penalties_tmp', 'penalties')
+            args['penalties_dir'] = penalties_dir
+
+            if args['only_penalties']:
+                return
+
+            # Now run the individual cells through cplex in parallel
+            # This is either done by sending to Torque queue, or running on the
+            # same machine
+            if args['torque_queue'] is not None:
+                logger.info(
+                    "Submitting COMPASS job to Torque queue - {}".format(
+                        args['torque_queue'])
+                )
+                submitCompassTorque(args,
+                                    temp_dir=args['temp_dir'],
+                                    output_dir=args['output_dir'],
+                                    queue=args['torque_queue'])
+                return
+            else:
+                runCompassParallel(args)
+                end_time = datetime.datetime.now()
+                logger.debug("\nElapsed Time: {}\n".format(end_time-start_time))
+                return
+
+
+def save_single_sample_penalties(i, temp_dir, sample_penalties):
+
+    single_sample_dir = os.path.join(temp_dir, 'penalties_tmp', 'penalties', f'sample{i}')
+    
+    if os.path.exists(single_sample_dir) == False:
+        os.mkdir(single_sample_dir)
+
+    sample_penalties.to_csv(os.path.join(single_sample_dir, 'penalties.txt.gz'), sep='\t', compression='gzip')
+
 
 def runCompassParallel(args, model_name=None, temp_dir=None, output_dir=None, metabolic_model_dir=MODEL_DIR, preprocess_cache_dir=PREPROCESS_CACHE_DIR):
 
@@ -1149,6 +1465,10 @@ def runCompassParallel(args, model_name=None, temp_dir=None, output_dir=None, me
                               metabolic_model_dir=metabolic_model_dir,
                               preprocess_cache_dir=preprocess_cache_dir)
 
+    # Read sample names here to reduce runtime overhead in singleSampleCompass
+    sample_names = list(data.columns)
+    del data
+
     pool = multiprocessing.Pool(args['num_processes'])
 
     logger.info(
@@ -1162,8 +1482,13 @@ def runCompassParallel(args, model_name=None, temp_dir=None, output_dir=None, me
 
     pbar = tqdm(total=n_samples)
 
-    for _ in pool.imap_unordered(partial_map_fun, range(n_samples)):
-        pbar.update()
+    arguments = [(str(sample_names[i]), i) for i in range(n_samples)]
+
+    for argument in arguments:
+        pool.apply_async(partial_map_fun, args=argument, callback=lambda _: pbar.update())
+
+    pool.close()
+    pool.join()
 
     if temp_dir is None:
         temp_dir = args['temp_dir']
@@ -1178,7 +1503,7 @@ def runCompassParallel(args, model_name=None, temp_dir=None, output_dir=None, me
     logger.info("COMPASS Completed Successfully")
 
 
-def _parallel_map_fun(i, args, model_name=None, temp_dir=None, metabolic_model_dir=MODEL_DIR, preprocess_cache_dir=PREPROCESS_CACHE_DIR):
+def _parallel_map_fun(sample_name, i, args, model_name=None, temp_dir=None, metabolic_model_dir=MODEL_DIR, preprocess_cache_dir=PREPROCESS_CACHE_DIR):
 
         data = args['data']
 
@@ -1220,6 +1545,7 @@ def _parallel_map_fun(i, args, model_name=None, temp_dir=None, metabolic_model_d
                 singleSampleCompass(
                     data=data, model=model,
                     media=media, directory=sample_dir,
+                    sample_name=sample_name, 
                     sample_index=i, args=args,
                     metabolic_model_dir=metabolic_model_dir,
                     preprocess_cache_dir=preprocess_cache_dir

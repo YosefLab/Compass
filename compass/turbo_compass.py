@@ -79,6 +79,11 @@ class CompassResourceManager():
                 set_argument(compass_args, "--turbo-meta-subsystem-model-temp-dir",
                              os.path.join(self.compass_parsed_args['temp_dir'], self.meta_subsystem_model))
 
+            # Run Turbo-Compass
+            # Set temp dir argument to avoid repeated penalty computation
+            else:
+                set_argument(compass_args, "--turbo-temp-dir", os.path.join(self.compass_parsed_args['temp_dir']))
+
             set_argument(compass_args, "--single-sample", "0")
             set_argument(compass_args, "--output-dir", output_dir_name)
             dummy_selected_reactions_file = tempfile.NamedTemporaryFile('w')
@@ -274,6 +279,11 @@ class CompassOracle(MatrixOracle):
                 set_argument(compass_args_to_observe_entries, "--turbo-meta-subsystem-model", self.meta_subsystem_model)
                 set_argument(compass_args_to_observe_entries, "--turbo-meta-subsystem-model-temp-dir",
                              os.path.join(self.compass_parsed_args['temp_dir'], self.meta_subsystem_model))
+
+            # Run Turbo-Compass
+            # Set temp dir argument to avoid repeated penalty computation
+            else:
+                set_argument(compass_args_to_observe_entries, "--turbo-temp-dir", os.path.join(self.compass_parsed_args['temp_dir']))
 
             set_argument(
                 compass_args_to_observe_entries,
