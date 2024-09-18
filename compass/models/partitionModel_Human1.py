@@ -113,14 +113,14 @@ def partition_model(args):
             # reactants
             for met_id, coefficient in rxn.reactants.items():
                 metabolite = human1_model.species[met_id]
-                assert metabolite.compartment in ['c', 'e', 'm']
+                assert metabolite.compartment in ['c', 'e', 'm', 'i']
 
                 cur_meta_subsystem_met_ids.append(met_id)
 
             # products
             for met_id, coefficient in rxn.products.items():
                 metabolite = human1_model.species[met_id]
-                assert metabolite.compartment in ['c', 'e', 'm']
+                assert metabolite.compartment in ['c', 'e', 'm', 'i']
 
                 cur_meta_subsystem_met_ids.append(met_id)
 
@@ -156,7 +156,7 @@ def partition_model(args):
 
         # Set compartments
         for compartment in xml_model.getListOfCompartments():
-            if compartment.getId() not in ['c', 'e', 'm']:
+            if compartment.getId() not in ['c', 'e', 'm', 'i']:
                 continue
             cur_meta_subsystem_model.addCompartment(compartment)
 
@@ -297,7 +297,7 @@ def partition_model(args):
                 associated_smat_transpose_row = human1_smat_transposed[rxn_id]
                 for new_met_id, coef in associated_smat_transpose_row:
                     metabolite = human1_model.species[new_met_id]
-                    assert metabolite.compartment in ['c', 'e', 'm']
+                    assert metabolite.compartment in ['c', 'e', 'm', 'i']
                     if new_met_id in meta_subsystem_met_ids[meta_subsystem]:
                         continue
                     new_met_ids.add(new_met_id)

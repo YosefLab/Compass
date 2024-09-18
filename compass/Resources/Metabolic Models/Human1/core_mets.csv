@@ -5814,6 +5814,8 @@ MAM03914e,pitavastatin-M13,e
 MAM01442m,chloride,m
 MAM00519c,"1-alpha,25-dihydroxyvitamin D2",c
 MAM00519e,"1-alpha,25-dihydroxyvitamin D2",e
+MAM02039i,H+,i
+MAM02751i,Pi,i
 MAM03971e,biomass,e
 MAM10001e,steroids,e
 MAM10002e,xenobiotics,e
@@ -5892,6 +5894,24 @@ MAM20011m,(S)-3-hydroxybutanoate,m
 MAM20012m,(R)-2-hydroxyglutarate,m
 MAM20013c,octanal,c
 MAM20019c,FMNH2,c
+MAM20021i,"19-hydroxy-(5Z,8Z,11Z)-eicosatrienoate",i
+MAM02040i,H2O,i
+MAM02630i,O2,i
+MAM20019i,FMNH2,i
+MAM01828i,FMN,i
+MAM02457i,mead acid,i
+MAM01784i,EPA,i
+MAM20025i,"19-hydroxy-(5Z,8Z,11Z,14Z,17Z)-eicosapentaenoate",i
+MAM20027i,"21-hydroxy-(4Z,7Z,10Z,13Z,16Z,19Z)-docosahexaenoate",i
+MAM01689i,DHA,i
+MAM02344i,lauric acid,i
+MAM20029i,11-hydroxydodecanoate,i
+MAM20031i,13-hydroxytetradecanoate,i
+MAM02494i,myristic acid,i
+MAM01019i,4-nitrocatechol,i
+MAM02555i,NADPH,i
+MAM02754i,PNP,i
+MAM02554i,NADP+,i
 MAM20033c,beta-D-galactose,c
 MAM20035c,alpha-D-glucose,c
 MAM20036c,benzaldehyde,c

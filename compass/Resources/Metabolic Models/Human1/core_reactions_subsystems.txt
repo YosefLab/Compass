@@ -1,7 +1,7 @@
 Core reactions are defined as reactions associated with only mitochondrial, cytosolic, or extracellular metabolites
 Subsystem Name | # of Associated Reactions
 
-Transport reactions 2156
+Transport reactions 2189
 Fatty acid oxidation 231
 Bile acid biosynthesis 131
 Isolated 112
@@ -95,6 +95,7 @@ Carnitine shuttle (endoplasmic reticular) 9
 Butanoate metabolism 8
 C5-branched dibasic acid metabolism 7
 Biotin metabolism 7
+Oxidative phosphorylation 7
 Thiamine metabolism 6
 Sulfur metabolism 6
 Riboflavin metabolism 5
@@ -105,7 +106,6 @@ Glycosylphosphatidylinositol (GPI)-anchor biosynthesis 4
 Protein modification 4
 Cholesterol biosynthesis 2 4
 Lipoic acid metabolism 4
-Oxidative phosphorylation 3
 Vitamin A metabolism 3
 Phosphatidylinositol phosphate metabolism 3
 Ascorbate and aldarate metabolism 3
