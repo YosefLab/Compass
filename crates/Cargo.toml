@@ -1,0 +1,11 @@
+[workspace]
+members = [
+    "cplex",
+    "compass",
+]
+
+resolver = "2"
+
+[workspace.dependencies]
+bindgen = { version = "0.70" }
+cplex-sys = { version = "0.9" }
