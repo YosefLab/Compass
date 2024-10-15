@@ -67,24 +67,21 @@ dependencies = [
 name = "compass"
 version = "0.1.0"
 dependencies = [
- "cplex-sys",
+ "cplex-bindings",
 ]
 
 [[package]]
-name = "cplex"
+name = "cplex-bindings"
 version = "0.1.0"
 dependencies = [
  "bindgen",
 ]
 
 [[package]]
-name = "cplex-sys"
-version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b0c7854bf20c7fd3f6683c45100d34e8e55ec2259f3212051ced574a040e988"
+name = "cplex-rs"
+version = "0.1.0"
 dependencies = [
- "libc",
- "regex",
+ "cplex-bindings",
 ]
 
 [[package]]
