@@ -183,25 +183,6 @@ pub enum Xctype {
     Semiint = cplex::CPX_SEMIINT,
 }
 
-// kind of a shame that I'm use Vec rather than my own pointer types to remove the redundant length fields.
-pub struct CplexColList {
-    objs: Vec<CplexDouble>,
-    lbs: Vec<CplexDouble>,
-    ubs: Vec<CplexDouble>,
-    names: Vec<CString>,
-}
-
-
-#[derive(Debug)]
-pub struct CplexSolution {
-    solstat: CplexInt,
-    objval: CplexDouble,
-    x: Vec<CplexDouble>,
-    pi: Vec<CplexDouble>,
-    slack: Vec<CplexDouble>,
-    dj: Vec<CplexDouble>,
-}
-
 impl CplexEnv {
     pub fn new() -> Result<Self, CplexError> {
         let mut status: CplexStatus = 0;

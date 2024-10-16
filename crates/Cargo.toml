@@ -5,6 +5,7 @@ resolver = "2"
 
 [workspace.dependencies]
 bindgen = { version = "0.70" }
+regex = { version = "1.11" }
 
 # Intra-workspace dependencies
 cplex-bindings = { path = "cplex-bindings" }

@@ -54,3 +54,7 @@ pub const FP_ZERO: u32 = 2;
 pub const FP_ZERO: _bindgen_ty_1 = 2;
  ```
  So I do indeed get to remake the wheel in my very own image.
+
+ So I have the basic LP example working and ranges working, that will do for now.
+
+ ### Now to get parts of compass working.

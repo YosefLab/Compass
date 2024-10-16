@@ -4,5 +4,6 @@
 #![allow(non_snake_case)]
 // Also, it has extern blocks with u128. I thought u128 alignment got fixed recently though.
 #![allow(improper_ctypes)]
+pub mod params;
 
 include!(concat!(env!("OUT_DIR"), "/cplex_bindings.rs"));
