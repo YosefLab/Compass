@@ -1,6 +1,6 @@
 use std::{
-    ffi::{CStr, CString},
-    ptr::{addr_of_mut, NonNull},
+    ffi::{CString},
+    ptr::{addr_of_mut},
 };
 
 use cplex_bindings as cplex;
@@ -36,9 +36,6 @@ pub fn main() {
         println!("Set parameters");
 
         let mut lp = CplexLp::new(&mut env, "lpex1").unwrap();
-
-        const NUM_COLS: CplexInt = 3;
-        const NUM_ROWS: CplexInt = 2;
 
         let cols = [
             CplexCol {
@@ -87,6 +84,9 @@ pub fn main() {
 
         lp.opt().unwrap();
         println!("Problem solved");
+
+        let sol = lp.get_solution().unwrap();
+        println!("Solution status: {sol:#?}");
     }
 
     println!("Goodbye, world!");
@@ -189,6 +189,17 @@ pub struct CplexColList {
     lbs: Vec<CplexDouble>,
     ubs: Vec<CplexDouble>,
     names: Vec<CString>,
+}
+
+
+#[derive(Debug)]
+pub struct CplexSolution {
+    solstat: CplexInt,
+    objval: CplexDouble,
+    x: Vec<CplexDouble>,
+    pi: Vec<CplexDouble>,
+    slack: Vec<CplexDouble>,
+    dj: Vec<CplexDouble>,
 }
 
 impl CplexEnv {
@@ -331,11 +342,19 @@ impl<'a> CplexLp<'a> {
         let mut rmatbeg = Vec::new();
         let mut rmatind = Vec::new();
         let mut rmatval = Vec::new();
-        for row in rows {
+
+        let mut range_indices = Vec::new();
+        let mut range_values = Vec::new();
+
+        for (i, row) in rows.into_iter().enumerate() {
             rmatbeg.push(rmatind.len() as CplexInt);
             for (col, val) in &row.coeffs {
                 rmatind.push(*col);
                 rmatval.push(*val);
+            }
+            if row.sense.range().is_some() {
+                range_indices.push(i as CplexInt);
+                range_values.push(row.sense.range().unwrap());
             }
         }
 
@@ -358,6 +377,21 @@ impl<'a> CplexLp<'a> {
         if status != 0 {
             return Err(CplexError::new(&self.env, status));
         }
+
+        if !range_indices.is_empty() {
+            let status = unsafe {
+                cplex::CPXchgrngval(
+                    self.env.inner.cast_const(),
+                    self.inner,
+                    range_indices.len() as CplexInt,
+                    range_indices.as_ptr(),
+                    range_values.as_ptr(),
+                )
+            };
+            if status != 0 {
+                return Err(CplexError::new(&self.env, status));
+            }
+        }
         Ok(())
     }
 
@@ -367,6 +401,43 @@ impl<'a> CplexLp<'a> {
             return Err(CplexError::new(&self.env, status));
         }
         Ok(())
+    }
+
+    pub fn get_solution(&self) -> Result<CplexSolution, CplexError> {
+        let n_cols = self.num_cols();
+        let n_rows = self.num_rows();
+
+        let mut solstat: CplexInt = 0;
+        let mut objval: CplexDouble = 0.0;
+
+        let mut x: Vec<CplexDouble> = vec![0.0; n_cols as usize];
+        let mut pi = vec![0.0; n_rows as usize];
+        let mut slack = vec![0.0; n_rows as usize];
+        let mut dj = vec![0.0; n_cols as usize];
+
+        let status = unsafe {
+            cplex::CPXsolution(
+                self.env.inner.cast_const(),
+                self.inner.cast_const(),
+                addr_of_mut!(solstat),
+                addr_of_mut!(objval),
+                x.as_mut_ptr(),
+                pi.as_mut_ptr(),
+                slack.as_mut_ptr(),
+                dj.as_mut_ptr(),
+            )
+        };
+        if status != 0 {
+            return Err(CplexError::new(&self.env, status));
+        }
+        Ok(CplexSolution {
+            solstat,
+            objval,
+            x,
+            pi,
+            slack,
+            dj,
+        })
     }
 }
 
