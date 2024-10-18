@@ -23,7 +23,7 @@ impl<'a> Drop for CplexLp<'a> {
         unsafe {
             let status = cplex::CPXfreeprob(self.env.inner(), addr_of_mut!(self.inner));
             if status != 0 {
-                let err = CplexError::new(&self.env, status);
+                let err = CplexError::new(self.env, status);
                 eprintln!("CPXfreeprob failed with error {err:?}");
             }
         }
@@ -41,11 +41,7 @@ impl<'a> CplexLp<'a> {
             }
             ptr
         };
-        Ok(Self {
-            // FIXME: Argh, aliasing the ptrs.
-            env,
-            inner,
-        })
+        Ok(Self { env, inner })
     }
 
     pub fn num_rows(&self) -> CplexInt {
@@ -64,7 +60,7 @@ impl<'a> CplexLp<'a> {
         };
         let status = unsafe { cplex::CPXchgobjsen(self.env.inner(), self.inner, sense) };
         if status != 0 {
-            return Err(CplexError::new(&self.env, status));
+            return Err(CplexError::new(self.env, status));
         }
         Ok(())
     }
@@ -76,7 +72,7 @@ impl<'a> CplexLp<'a> {
         // If all the xctypes are continuous, then you can pass null.
         // "If types is specified, the problem type will be a MIP, even if all variables are specified to be continuous."
         // So double check that if you want a continuous problem, you pass None.
-        let xctype = if let None = cols.iter().find(|col| col.xctype != Xctype::Continuous) {
+        let xctype = if !cols.iter().any(|col| col.xctype != Xctype::Continuous) {
             None
         } else {
             Some(cols.iter().map(|col| col.xctype as i8).collect::<Vec<_>>())
@@ -108,7 +104,7 @@ impl<'a> CplexLp<'a> {
             )
         };
         if status != 0 {
-            return Err(CplexError::new(&self.env, status));
+            return Err(CplexError::new(self.env, status));
         }
         Ok(())
     }
@@ -147,7 +143,7 @@ impl<'a> CplexLp<'a> {
         let mut range_indices = Vec::new();
         let mut range_values = Vec::new();
 
-        for (i, row) in rows.into_iter().enumerate() {
+        for (i, row) in rows.iter().enumerate() {
             rmatbeg.push(rmatind.len() as CplexInt);
             for (col, val) in &row.coeffs {
                 rmatind.push(*col);
@@ -176,7 +172,7 @@ impl<'a> CplexLp<'a> {
             )
         };
         if status != 0 {
-            return Err(CplexError::new(&self.env, status));
+            return Err(CplexError::new(self.env, status));
         }
 
         if !range_indices.is_empty() {
@@ -190,7 +186,7 @@ impl<'a> CplexLp<'a> {
                 )
             };
             if status != 0 {
-                return Err(CplexError::new(&self.env, status));
+                return Err(CplexError::new(self.env, status));
             }
         }
         Ok(())
@@ -199,7 +195,7 @@ impl<'a> CplexLp<'a> {
     pub fn opt(&mut self) -> Result<(), CplexError> {
         let status = unsafe { cplex::CPXlpopt(self.env.inner(), self.inner) };
         if status != 0 {
-            return Err(CplexError::new(&self.env, status));
+            return Err(CplexError::new(self.env, status));
         }
         Ok(())
     }
@@ -229,7 +225,7 @@ impl<'a> CplexLp<'a> {
             )
         };
         if status != 0 {
-            return Err(CplexError::new(&self.env, status));
+            return Err(CplexError::new(self.env, status));
         }
         Ok(CplexSolution {
             solstat,
