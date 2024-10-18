@@ -1,6 +1,6 @@
-pub mod problem;
 pub mod env;
-pub mod types;
 pub mod error;
+pub mod problem;
 #[cfg(test)]
 mod tests;
+pub mod types;

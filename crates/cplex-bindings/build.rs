@@ -52,6 +52,7 @@ pub fn main() {
     let bindings_text = bindings.to_string();
     std::fs::write(out_path.join("cplex_bindings.rs"), &bindings_text).unwrap();
 
+    // Parse the CPXPARAM_ constants into an enum
     let cpx_param_regex = regex::Regex::new(r"CPXPARAM_([A-Za-z_]+): u32 = ([0-9]+)").unwrap();
 
     let mut cpx_params = BTreeMap::new();

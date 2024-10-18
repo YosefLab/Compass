@@ -38,7 +38,6 @@ pub struct CplexRow {
     pub name: String,
 }
 
-
 #[derive(Debug)]
 pub struct CplexSolution {
     pub solstat: CplexInt,

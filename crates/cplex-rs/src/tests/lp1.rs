@@ -12,7 +12,7 @@ pub fn example_linear_program() {
     let mut env = CplexEnv::new().unwrap();
 
     // Turn on output and data checking
-    env.set_param(CplexParam::ScreenOutput, cplex::CPX_ON as CplexInt)
+    env.set_param(CplexParam::ScreenOutput, cplex::CPX_OFF as CplexInt)
         .unwrap();
 
     env.set_param(
@@ -74,5 +74,11 @@ pub fn example_linear_program() {
     println!("Problem solved");
 
     let sol = lp.get_solution().unwrap();
+    assert_eq!(sol.solstat as u32, cplex::CPX_STAT_OPTIMAL);
+    assert_eq!(sol.objval, 202.5);
+    assert_eq!(sol.x, vec![40.0, 17.5, 42.5]);
+    assert_eq!(sol.pi, vec![2.75, 0.25]);
+    assert_eq!(sol.slack, vec![0.0, 0.0]);
+    assert_eq!(sol.dj, vec![3.5, 0.0, 0.0]);
     println!("Solution status: {sol:#?}");
 }

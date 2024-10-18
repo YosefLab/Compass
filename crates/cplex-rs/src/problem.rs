@@ -2,8 +2,11 @@ use std::{ffi::CString, ptr::addr_of_mut};
 
 use cplex_bindings as cplex;
 
-use crate::{env::CplexEnv, error::CplexError, types::{CplexCol, CplexDouble, CplexInt, CplexRow, CplexSolution, CplexStatus, Xctype}};
-
+use crate::{
+    env::CplexEnv,
+    error::CplexError,
+    types::{CplexCol, CplexDouble, CplexInt, CplexRow, CplexSolution, CplexStatus, Xctype},
+};
 
 pub struct CplexLp<'a> {
     inner: cplex::CPXLPptr,
