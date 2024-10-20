@@ -356,7 +356,7 @@ def compass_exchange(model, problem, reaction_penalties, only_exchange=False, pe
         if(problem.objective.get_name() != 'reaction_penalties'):
             utils.reset_objective(problem)
             problem.objective.set_linear(
-                list(reaction_penalties.iteritems())
+                list(reaction_penalties.items())
             )
             problem.objective.set_name('reaction_penalties')
             problem.objective.set_sense(problem.objective.sense.minimize)
@@ -414,7 +414,7 @@ def compass_exchange(model, problem, reaction_penalties, only_exchange=False, pe
         if(problem.objective.get_name() != 'reaction_penalties'):
             utils.reset_objective(problem)
             problem.objective.set_linear(
-                list(reaction_penalties.iteritems())
+                list(reaction_penalties.items())
             )
             problem.objective.set_name('reaction_penalties')
             problem.objective.set_sense(problem.objective.sense.minimize)
@@ -522,7 +522,7 @@ def compass_reactions(model, problem, reaction_penalties, perf_log=None, args = 
             if(problem.objective.get_name() != 'reaction_penalties'):
                 utils.reset_objective(problem)
                 problem.objective.set_linear(
-                    list(reaction_penalties.iteritems())
+                    list(reaction_penalties.items())
                 )
                 problem.objective.set_name('reaction_penalties')
                 problem.objective.set_sense(problem.objective.sense.minimize)
