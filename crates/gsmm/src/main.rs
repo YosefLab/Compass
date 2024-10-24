@@ -126,28 +126,15 @@ pub fn main() {
     .unwrap();
     assert_eq!(rxns.len(), rules.len());
 
-    parse_rule(&rules[41]);
-
-    /*let rules = rules
-    .iter()
-    .map(|rule| parse_rule(&rule))
-    .collect::<Vec<_>>();*/
+    let rules = rules
+        .iter()
+        .map(|rule| parse_rule(&rule))
+        .collect::<Vec<_>>();
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GeneRuleNode {
     id: u32,
-}
-
-// Going with the tree structure for now.
-#[derive(Debug)]
-pub enum GeneAssociation {
-    // Gene ID - actual data on gene stored in a separate structure
-    Gene(GeneRuleNode),
-    // List of children
-    Or(Box<[GeneAssociation]>),
-    // List of children
-    And(Box<[GeneAssociation]>),
 }
 
 // TODO: add reference to the text source for debugging?
@@ -160,11 +147,17 @@ pub enum Token {
     Gene(GeneRuleNode),
 }
 
-#[derive(Debug)]
-enum ParsingAssociation {
+#[derive(Debug, Clone)]
+pub enum GeneAssociation {
     Gene(GeneRuleNode),
-    Or(Vec<ParsingAssociation>),
-    And(Vec<ParsingAssociation>),
+    Or {
+        left: Box<GeneAssociation>,
+        right: Box<GeneAssociation>,
+    },
+    And {
+        left: Box<GeneAssociation>,
+        right: Box<GeneAssociation>,
+    },
 }
 
 pub fn tokenize(rule: &str) -> Vec<Token> {
@@ -247,11 +240,15 @@ fn parse_tokens(tokens: &[Token]) -> Option<GeneAssociation> {
                         Some(Operations::LeftParen) => {
                             break;
                         }
-                        Some(Operations::Or) => {
-                            output.push(Token::Or);
-                        }
-                        Some(Operations::And) => {
-                            output.push(Token::And);
+                        Some(op @ Operations::Or) | Some(op @ Operations::And) => {
+                            let right = Box::new(output.pop().expect("Expected right operand"));
+                            let left = Box::new(output.pop().expect("Expected left operand"));
+                            let op = match op {
+                                Operations::Or => GeneAssociation::Or { left, right },
+                                Operations::And => GeneAssociation::And { left, right },
+                                _ => unreachable!(),
+                            };
+                            output.push(op);
                         }
                         None => {
                             panic!("Unmatched right paren");
@@ -266,20 +263,35 @@ fn parse_tokens(tokens: &[Token]) -> Option<GeneAssociation> {
                 operations.push(Operations::And);
             }
             Some(Token::Gene(gene_rule_node)) => {
-                output.push(Token::Gene(*gene_rule_node));
+                output.push(GeneAssociation::Gene(*gene_rule_node));
             }
             None => {
                 break;
             }
         }
     }
-    output.extend(operations.iter().map(|op| match op {
-        Operations::Or => Token::Or,
-        Operations::And => Token::And,
-        Operations::LeftParen => panic!("Unmatched left paren"),
-    }));
-    println!("{output:?}");
-    None
+    loop {
+        match operations.pop() {
+            Some(op @ Operations::Or) | Some(op @ Operations::And) => {
+                let right = Box::new(output.pop().expect("Expected right operand"));
+                let left = Box::new(output.pop().expect("Expected left operand"));
+                let op = match op {
+                    Operations::Or => GeneAssociation::Or { left, right },
+                    Operations::And => GeneAssociation::And { left, right },
+                    _ => unreachable!(),
+                };
+                output.push(op);
+            }
+            None => {
+                break;
+            }
+            Some(Operations::LeftParen) => {
+                panic!("Unmatched left paren");
+            }
+        }
+    }
+    assert!(output.len() <= 1);
+    output.first().cloned()
 }
 
 pub fn sbml_parse() {
