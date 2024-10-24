@@ -58,3 +58,50 @@ pub const FP_ZERO: _bindgen_ty_1 = 2;
  So I have the basic LP example working and ranges working, that will do for now.
 
  ### Now to get parts of compass working.
+
+ - Clustering - skip that for now
+ - GSMM - let's do that.
+    - Recon2 or Recon3.
+    - Resolving Gene Names. Not fun,
+ - Construct optimization problem.
+    - For now, do CPLEX? Perhaps make a trait so that I can drop in whatever backend.
+
+### GEM (GSMM)
+ - Why is the abberviation for Genome Scale Metabolic Model = GEM rather than GSMM?
+ - We want mouse model, yes? Recon2 appears to be a human one https://www.nature.com/articles/nbt.2488
+ - Why does http://humanmetabolism.org/, the link in the Recon2 paper just show a straight up nginx proxy?
+ - Formats?
+    - _mat ie matlab? Mostly it seems to be our format devised with jsons.
+    - _xml ie SBML, a particular schema of XML.
+ - Which one to use?
+    - I should just dredge up CLI params from somewhere
+    - Looks like Recon2, so go with that one.
+    - We'll use SBML as that seems to be the one most models are published in.
+    - It appears that this crate https://github.com/carrascomj/rust_sbml will suffice.
+    - Maybe, perhaps I can use my own XML code to figure it out. 
+    - XML crates:
+        - quick-xml (used by sbml crate). Per benchmarks on roxmltree, it's probably faster.
+            - The unofficial Azure REST API uses it? So I guess maybe just use SBML crate.
+        - xmlparser - same author as memmap2. Mostly used via other tools, like aws-smithy-xml or roxmltree
+        - roxmltree - read only xml tree. A bit slower than quick-xml, but you get the whole doc.
+    - Where is the Recon2 SBML? Hmm, I see Recon2.2 xml gz.
+        - Oh the rust_sbml code is actually quite short? Just serde + quick-xml.
+
+
+### Models
+- Recon1
+    - rust_sbml parses this one
+- Recon2.2
+    - rust_sbml chokes on this one due to 'dc:creator'
+    - Possibly due to the http://www.sbml.org/sbml/level2/version4 rather than level 2 - version 2
+- Recon2_mat
+    - What model is this actually?. I kind of suspect it is the same as Recon2.2.
+    - Maybe not, I just grepped for R_3HPVSCOAitx and found nothing.
+- Perhaps just write code for whatever GSMM I can use for now?
+
+
+We'll use Recon1 for now perhaps. At least I have a _mat and an xml format that work. Note that rust_sbml Model and ModelRaw have minimal performance differences, so just use Model. The number of reactions and species/metabolites checks out, but this one does not include genes at all, so I may be reduced to parsing things myself. There is a list of associations for a reaction? Also see https://github.com/carrascomj/rust_sbml/issues/2. Yeah it dooes not appear to support gene product associations.
+
+
+### Parsing MAT
+Hmm, the rules part looks like a pain, mostly because the format is not clear to me. In particular, why certain tokens are (x([0-9]+)) or just x([0-9]+) and what's the precedence for & or |. I suppose if it's just left to right precedence, that is okay.
