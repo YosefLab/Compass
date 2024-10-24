@@ -126,10 +126,12 @@ pub fn main() {
     .unwrap();
     assert_eq!(rxns.len(), rules.len());
 
-    let rules = rules
-        .iter()
-        .map(|rule| parse_rule(&rule))
-        .collect::<Vec<_>>();
+    parse_rule(&rules[41]);
+
+    /*let rules = rules
+    .iter()
+    .map(|rule| parse_rule(&rule))
+    .collect::<Vec<_>>();*/
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -151,8 +153,8 @@ pub enum GeneAssociation {
 // TODO: add reference to the text source for debugging?
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Token {
-    OpenParen,
-    CloseParen,
+    LeftParen,
+    RightParen,
     Or,
     And,
     Gene(GeneRuleNode),
@@ -165,18 +167,17 @@ enum ParsingAssociation {
     And(Vec<ParsingAssociation>),
 }
 
-pub fn parse_rule(rule: &str) -> Option<GeneAssociation> {
+pub fn tokenize(rule: &str) -> Vec<Token> {
     let mut tokens = Vec::new();
-    tokens.push(Token::OpenParen);
 
     let mut citer = rule.char_indices();
     while let Some((ind, c)) = citer.next() {
         match c {
             '(' => {
-                tokens.push(Token::OpenParen);
+                tokens.push(Token::LeftParen);
             }
             ')' => {
-                tokens.push(Token::CloseParen);
+                tokens.push(Token::RightParen);
             }
             ' ' => {} // Ignore extra whitespace.
             'x' => {
@@ -207,103 +208,78 @@ pub fn parse_rule(rule: &str) -> Option<GeneAssociation> {
             }
         }
     }
-    if tokens == [Token::OpenParen] {
+    tokens
+}
+
+pub fn parse_rule(rule: &str) -> Option<GeneAssociation> {
+    let tokens = tokenize(rule);
+    if tokens.is_empty() {
         return None;
     }
-    tokens.push(Token::CloseParen);
-    //println!("{:?}", tokens);
 
-    let (parsed, consumed) = parse_tree_recursive(&tokens);
+    let parsed = parse_tokens(&tokens);
 
     //println!("{:?}", parsed);
     parsed
 }
 
-fn parse_tree_recursive(mut tokens: &[Token]) -> (Option<GeneAssociation>, &[Token]) {
-    let mut res = None;
-    let mut prev = None;
-    let mut or_found = false;
-    let mut and_found = false;
+enum Operations {
+    Or,
+    And,
+    LeftParen,
+}
+
+fn parse_tokens(tokens: &[Token]) -> Option<GeneAssociation> {
+    let mut operations = Vec::new();
+    let mut output = Vec::new();
+    let mut token_iter = tokens.iter();
     loop {
-        let t = tokens.first();
-        match t {
-            Some(Token::OpenParen) => {
-                (res, tokens) = parse_tree_recursive(&tokens[1..]);
-                assert!(tokens.first() == Some(&Token::CloseParen));
+        match token_iter.next() {
+            Some(Token::LeftParen) => {
+                operations.push(Operations::LeftParen);
+                //(res, tokens) = parse_tokens(&tokens[1..]);
+                //assert!(tokens.first() == Some(&Token::RightParen));
             }
-            Some(Token::CloseParen) => {
-                panic!("Unexpected CloseParen");
+            Some(Token::RightParen) => {
+                // Pop until we find the left paren
+                loop {
+                    match operations.pop() {
+                        Some(Operations::LeftParen) => {
+                            break;
+                        }
+                        Some(Operations::Or) => {
+                            output.push(Token::Or);
+                        }
+                        Some(Operations::And) => {
+                            output.push(Token::And);
+                        }
+                        None => {
+                            panic!("Unmatched right paren");
+                        }
+                    }
+                }
             }
-            Some(Token::Or) => {}
+            Some(Token::Or) => {
+                operations.push(Operations::Or);
+            }
             Some(Token::And) => {
-                i += 1;
+                operations.push(Operations::And);
             }
             Some(Token::Gene(gene_rule_node)) => {
-                genes.push(GeneAssociation::Gene(*gene_rule_node));
-                tokens = &tokens[1..];
+                output.push(Token::Gene(*gene_rule_node));
             }
             None => {
                 break;
             }
         }
-        let prev = Some(t);
     }
-
-    /*match tokens.first() {
-        Some(Tokens::OpenParen) => {
-            let mut group = Vec::new();
-            let mut or_found = false;
-            let mut and_found = false;
-
-            let mut i = 1usize;
-            loop {
-                match tokens[i] {
-                    Tokens::OpenParen => {
-                        let (sub_group, sub_i) = parse_tree_recursive(&tokens[i..]);
-                        group.push(sub_group);
-                        i += sub_i;
-                    }
-                    Tokens::CloseParen => {
-                        // Found matching parenthesis.
-                        i += 1;
-                        break;
-                    }
-                    Tokens::Or => {
-                        or_found = true;
-                        i += 1;
-                    }
-                    Tokens::And => {
-                        and_found = true;
-                        i += 1;
-                    }
-                    Tokens::Gene(gene_rule_node) => {
-                        group.push(GeneAssociation::Gene(gene_rule_node));
-                        i += 1;
-                    }
-                }
-            }
-
-            if or_found && and_found {
-                panic!("Cannot have both OR and AND in the same group {tokens:?}");
-            }
-            if or_found {
-                (GeneAssociation::Or(group.into_boxed_slice()), i)
-            } else if and_found {
-                (GeneAssociation::And(group.into_boxed_slice()), i)
-            } else if group.len() == 1 {
-                if let GeneAssociation::Gene(rule) = group[0] {
-                    (GeneAssociation::Gene(rule), i)
-                } else {
-                    panic!("Expected gene in singleton group {tokens:?}");
-                }
-            } else {
-                panic!("Expected OR or AND in group {tokens:?}");
-            }
-        }
-        val => {
-            panic!("Expected OpenParen, found {:?}", val);
-        }
-    }*/
+    output.extend(operations.iter().map(|op| match op {
+        Operations::Or => Token::Or,
+        Operations::And => Token::And,
+        Operations::LeftParen => panic!("Unmatched left paren"),
+    }));
+    println!("{output:?}");
+    None
 }
 
 pub fn sbml_parse() {
