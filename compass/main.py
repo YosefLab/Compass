@@ -571,6 +571,8 @@ def entry():
             stderr=open(os.devnull, 'w')
         )
         logger.debug("Git commit: " + commit.decode())
+    except FileNotFoundError:
+        logger.debug("FileNotFoundError may indicate that git is not installed")
     except sp.CalledProcessError:
         logger.debug("Git commit: Not in Git repo")
     except sp.SubprocessError:
