@@ -1,4 +1,4 @@
-use std::fs::read_to_string;
+use std::{collections::BTreeMap, fs::read_to_string};
 
 use itertools::{izip, Group};
 
@@ -132,8 +132,8 @@ pub fn main() {
         .collect::<Vec<_>>();
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct GeneRuleNode {
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub struct GeneId {
     id: u32,
 }
 
@@ -144,12 +144,12 @@ pub enum Token {
     RightParen,
     Or,
     And,
-    Gene(GeneRuleNode),
+    Gene(GeneId),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum GeneAssociation {
-    Gene(GeneRuleNode),
+    Gene(GeneId),
     Or {
         left: Box<GeneAssociation>,
         right: Box<GeneAssociation>,
@@ -158,6 +158,75 @@ pub enum GeneAssociation {
         left: Box<GeneAssociation>,
         right: Box<GeneAssociation>,
     },
+}
+
+#[derive(Debug)]
+pub enum OrOp {
+    Sum,
+}
+
+impl OrOp {
+    pub fn apply(&self, left: Option<f64>, right: Option<f64>) -> f64 {
+        let nan_to_zero = |x: f64| if x.is_nan() { 0.0 } else { x };
+        match self {
+            OrOp::Sum => {
+                let left = left.map(nan_to_zero).unwrap_or(0.0);
+                let right = right.map(nan_to_zero).unwrap_or(0.0);
+                left + right
+            }
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum AndOp {
+    /// Propagates nans
+    Min,
+    /// Treats nans as 0
+    Mean,
+    // Because I am representating operations as a binary tree, I do not support median.
+}
+
+impl AndOp {
+    pub fn apply(&self, left: Option<f64>, right: Option<f64>) -> f64 {
+        let nan_to_zero = |x: f64| if x.is_nan() { 0.0 } else { x };
+        match self {
+            AndOp::Min => {
+                let left = left.unwrap_or(0.0);
+                let right = right.unwrap_or(0.0);
+                left.min(right)
+            }
+            AndOp::Mean => {
+                let left = left.map(nan_to_zero).unwrap_or(0.0);
+                let right = right.map(nan_to_zero).unwrap_or(0.0);
+                (left + right) / 2.0
+            }
+        }
+    }
+}
+
+pub struct GeneAssociationEvaluator<'a> {
+    gene_expr: &'a BTreeMap<GeneId, f64>,
+    or_op: OrOp,
+    and_op: AndOp,
+}
+
+impl GeneAssociationEvaluator<'_> {
+    pub fn evaluate(&self, node: &GeneAssociation) -> Option<f64> {
+        match node {
+            GeneAssociation::Gene(gene) => self.gene_expr.get(gene).copied(),
+            GeneAssociation::Or { left, right } => {
+                let left = self.evaluate(left);
+                let right = self.evaluate(right);
+                Some(self.or_op.apply(left, right))
+            }
+            GeneAssociation::And { left, right } => {
+                let left = self.evaluate(left);
+                let right = self.evaluate(right);
+                Some(self.and_op.apply(left, right))
+            }
+        }
+    }
 }
 
 pub fn tokenize(rule: &str) -> Vec<Token> {
@@ -188,7 +257,7 @@ pub fn tokenize(rule: &str) -> Vec<Token> {
                 let num = num_text.parse::<u32>().unwrap_or_else(|e| {
                     panic!("Failed to parse number from {num_text}: {e}\n{rule}");
                 });
-                tokens.push(Token::Gene(GeneRuleNode { id: num }));
+                tokens.push(Token::Gene(GeneId { id: num }));
             }
             '|' => {
                 tokens.push(Token::Or);
@@ -307,4 +376,140 @@ pub fn sbml_parse() {
     });
 
     println!("Parsed models");
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    const RULE_OR: &str = "(x(20)) | (x(17)) | (x(19)) | (x(18))";
+    const TOKENS_OR: &[Token] = &[
+        Token::LeftParen,
+        Token::Gene(GeneId { id: 20 }),
+        Token::RightParen,
+        Token::Or,
+        Token::LeftParen,
+        Token::Gene(GeneId { id: 17 }),
+        Token::RightParen,
+        Token::Or,
+        Token::LeftParen,
+        Token::Gene(GeneId { id: 19 }),
+        Token::RightParen,
+        Token::Or,
+        Token::LeftParen,
+        Token::Gene(GeneId { id: 18 }),
+        Token::RightParen,
+    ];
+
+    const RULE_AND: &str = "(x(21)) & (x(18)) & (x(22)) & (x(16))";
+    const TOKENS_AND: &[Token] = &[
+        Token::LeftParen,
+        Token::Gene(GeneId { id: 21 }),
+        Token::RightParen,
+        Token::And,
+        Token::LeftParen,
+        Token::Gene(GeneId { id: 18 }),
+        Token::RightParen,
+        Token::And,
+        Token::LeftParen,
+        Token::Gene(GeneId { id: 22 }),
+        Token::RightParen,
+        Token::And,
+        Token::LeftParen,
+        Token::Gene(GeneId { id: 16 }),
+        Token::RightParen,
+    ];
+
+    const RULE_BOTH: &str = "(x(1)) & (x(3)) | (x(4)) & (x(7))";
+    const TOKENS_BOTH: &[Token] = &[
+        Token::LeftParen,
+        Token::Gene(GeneId { id: 1 }),
+        Token::RightParen,
+        Token::And,
+        Token::LeftParen,
+        Token::Gene(GeneId { id: 3 }),
+        Token::RightParen,
+        Token::Or,
+        Token::LeftParen,
+        Token::Gene(GeneId { id: 4 }),
+        Token::RightParen,
+        Token::And,
+        Token::LeftParen,
+        Token::Gene(GeneId { id: 7 }),
+        Token::RightParen,
+    ];
+
+    #[test]
+    pub fn test_tokenizer() {
+        let tokens = super::tokenize(RULE_OR);
+        assert_eq!(tokens, TOKENS_OR);
+        let tokens = super::tokenize(RULE_AND);
+        assert_eq!(tokens, TOKENS_AND);
+        let tokens = super::tokenize(RULE_BOTH);
+        assert_eq!(tokens, TOKENS_BOTH);
+    }
+
+    #[test]
+    pub fn test_parser() {
+        let or_expected = GeneAssociation::Or {
+            left: Box::new(GeneAssociation::Gene(GeneId { id: 20 })),
+            right: Box::new(GeneAssociation::Or {
+                left: Box::new(GeneAssociation::Gene(GeneId { id: 17 })),
+                right: Box::new(GeneAssociation::Or {
+                    left: Box::new(GeneAssociation::Gene(GeneId { id: 19 })),
+                    right: Box::new(GeneAssociation::Gene(GeneId { id: 18 })),
+                }),
+            }),
+        };
+        let or_parsed = parse_tokens(&TOKENS_OR).unwrap();
+        assert_eq!(or_parsed, or_expected);
+
+        let and_expected = GeneAssociation::And {
+            left: Box::new(GeneAssociation::Gene(GeneId { id: 21 })),
+            right: Box::new(GeneAssociation::And {
+                left: Box::new(GeneAssociation::Gene(GeneId { id: 18 })),
+                right: Box::new(GeneAssociation::And {
+                    left: Box::new(GeneAssociation::Gene(GeneId { id: 22 })),
+                    right: Box::new(GeneAssociation::Gene(GeneId { id: 16 })),
+                }),
+            }),
+        };
+        let and_parsed = parse_tokens(&TOKENS_AND).unwrap();
+        assert_eq!(and_parsed, and_expected);
+
+        let both_expected = GeneAssociation::And {
+            left: Box::new(GeneAssociation::Gene(GeneId { id: 1 })),
+            right: Box::new(GeneAssociation::Or {
+                left: Box::new(GeneAssociation::Gene(GeneId { id: 3 })),
+                right: Box::new(GeneAssociation::And {
+                    left: Box::new(GeneAssociation::Gene(GeneId { id: 4 })),
+                    right: Box::new(GeneAssociation::Gene(GeneId { id: 7 })),
+                }),
+            }),
+        };
+        let both_parsed = parse_tokens(&TOKENS_BOTH).unwrap();
+        assert_eq!(both_parsed, both_expected);
+    }
+
+    #[test]
+    pub fn test_eval() {
+        let expr = [(1, 5.0), (3, 2.0), (4, 3.0), (7, 6.0)]
+            .iter()
+            .copied()
+            .map(|(id, val)| (GeneId { id }, val))
+            .collect::<BTreeMap<_, _>>();
+        let evaluator = GeneAssociationEvaluator {
+            gene_expr: &expr,
+            or_op: OrOp::Sum,
+            and_op: AndOp::Mean,
+        };
+        let rule = parse_rule(RULE_BOTH).unwrap();
+        // Hmm, this seems a bit off. I suppose my AST is constructed assuming associativity,
+        // but the OR function is not neccesarily associative.
+        // Ie ((x + y) / 2 + z) / 2 is not the same as (x + (y + z) / 2) / 2
+        assert_eq!(
+            evaluator.evaluate(&rule),
+            Some((5.0 + (2.0 + (3.0 + 6.0) / 2.0)) / 2.0)
+        );
+    }
 }
