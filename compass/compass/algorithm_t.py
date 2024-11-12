@@ -304,7 +304,7 @@ def compass_transposed(ranges, data, model, media, args):
                 # Minimize Penalty
                 utils.reset_objective(problem)
                 problem.objective.set_linear(
-                    list(reaction_penalties[sample_name].iteritems())
+                    list(reaction_penalties[sample_name].items())
                 )
                 problem.objective.set_sense(problem.objective.sense.minimize)
                 
