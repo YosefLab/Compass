@@ -148,16 +148,63 @@ pub enum Token {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum GeneAssociation {
+pub enum GeneAssociationBinary {
     Gene(GeneId),
     Or {
-        left: Box<GeneAssociation>,
-        right: Box<GeneAssociation>,
+        left: Box<GeneAssociationBinary>,
+        right: Box<GeneAssociationBinary>,
     },
     And {
-        left: Box<GeneAssociation>,
-        right: Box<GeneAssociation>,
+        left: Box<GeneAssociationBinary>,
+        right: Box<GeneAssociationBinary>,
     },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum GeneAssociation {
+    Gene(GeneId),
+    Or(Vec<GeneAssociation>),
+    And(Vec<GeneAssociation>),
+}
+
+impl GeneAssociation {
+    pub fn collapse(other: &GeneAssociationBinary) -> Self {
+        match other {
+            GeneAssociationBinary::Gene(gene_id) => Self::Gene(*gene_id),
+            GeneAssociationBinary::Or { left, right } => {
+                let mut operands = Vec::new();
+                let left = Self::collapse(left);
+                if let Self::Or(mut operands_left) = left {
+                    operands.append(&mut operands_left);
+                } else {
+                    operands.push(left);
+                }
+                let right = Self::collapse(right);
+                if let Self::Or(mut operands_right) = right {
+                    operands.append(&mut operands_right);
+                } else {
+                    operands.push(right);
+                }
+                Self::Or(operands)
+            }
+            GeneAssociationBinary::And { left, right } => {
+                let mut operands = Vec::new();
+                let left = Self::collapse(left);
+                if let Self::And(mut operands_left) = left {
+                    operands.append(&mut operands_left);
+                } else {
+                    operands.push(left);
+                }
+                let right = Self::collapse(right);
+                if let Self::And(mut operands_right) = right {
+                    operands.append(&mut operands_right);
+                } else {
+                    operands.push(right);
+                }
+                Self::And(operands)
+            }
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -174,6 +221,13 @@ impl OrOp {
                 let right = right.map(nan_to_zero).unwrap_or(0.0);
                 left + right
             }
+        }
+    }
+
+    pub fn apply_many(&self, operands: impl Iterator<Item = Option<f64>>) -> f64 {
+        let nan_to_zero = |x: f64| if x.is_nan() { 0.0 } else { x };
+        match self {
+            OrOp::Sum => operands.map(|x| x.map(nan_to_zero).unwrap_or(0.0)).sum(),
         }
     }
 }
@@ -203,6 +257,27 @@ impl AndOp {
             }
         }
     }
+
+    pub fn apply_many(&self, operands: impl Iterator<Item = Option<f64>>) -> f64 {
+        let nan_to_zero = |x: f64| if x.is_nan() { 0.0 } else { x };
+        match self {
+            AndOp::Min => operands
+                .map(|x| x.unwrap_or(0.0))
+                .fold(f64::INFINITY, |acc, val| acc.min(val)),
+            AndOp::Mean => {
+                let (mut sum, mut len) = (0.0, 0);
+                for operand in operands {
+                    sum += operand.map(nan_to_zero).unwrap_or(0.0);
+                    len += 1;
+                }
+                if len == 0 {
+                    0.0
+                } else {
+                    sum / len as f64
+                }
+            }
+        }
+    }
 }
 
 pub struct GeneAssociationEvaluator<'a> {
@@ -212,18 +287,30 @@ pub struct GeneAssociationEvaluator<'a> {
 }
 
 impl GeneAssociationEvaluator<'_> {
-    pub fn evaluate(&self, node: &GeneAssociation) -> Option<f64> {
+    pub fn evaluate_binary(&self, node: &GeneAssociationBinary) -> Option<f64> {
         match node {
-            GeneAssociation::Gene(gene) => self.gene_expr.get(gene).copied(),
-            GeneAssociation::Or { left, right } => {
-                let left = self.evaluate(left);
-                let right = self.evaluate(right);
+            GeneAssociationBinary::Gene(gene) => self.gene_expr.get(gene).copied(),
+            GeneAssociationBinary::Or { left, right } => {
+                let left = self.evaluate_binary(left);
+                let right = self.evaluate_binary(right);
                 Some(self.or_op.apply(left, right))
             }
-            GeneAssociation::And { left, right } => {
-                let left = self.evaluate(left);
-                let right = self.evaluate(right);
+            GeneAssociationBinary::And { left, right } => {
+                let left = self.evaluate_binary(left);
+                let right = self.evaluate_binary(right);
                 Some(self.and_op.apply(left, right))
+            }
+        }
+    }
+
+    pub fn evaluate(&self, node: &GeneAssociation) -> Option<f64> {
+        match node {
+            GeneAssociation::Gene(gene_id) => self.gene_expr.get(gene_id).copied(),
+            GeneAssociation::Or(vec) => {
+                Some(self.or_op.apply_many(vec.iter().map(|x| self.evaluate(x))))
+            }
+            GeneAssociation::And(vec) => {
+                Some(self.and_op.apply_many(vec.iter().map(|x| self.evaluate(x))))
             }
         }
     }
@@ -273,7 +360,7 @@ pub fn tokenize(rule: &str) -> Vec<Token> {
     tokens
 }
 
-pub fn parse_rule(rule: &str) -> Option<GeneAssociation> {
+pub fn parse_rule(rule: &str) -> Option<GeneAssociationBinary> {
     let tokens = tokenize(rule);
     if tokens.is_empty() {
         return None;
@@ -281,7 +368,6 @@ pub fn parse_rule(rule: &str) -> Option<GeneAssociation> {
 
     let parsed = parse_tokens(&tokens);
 
-    //println!("{:?}", parsed);
     parsed
 }
 
@@ -291,7 +377,7 @@ enum Operations {
     LeftParen,
 }
 
-fn parse_tokens(tokens: &[Token]) -> Option<GeneAssociation> {
+fn parse_tokens(tokens: &[Token]) -> Option<GeneAssociationBinary> {
     let mut operations = Vec::new();
     let mut output = Vec::new();
     let mut token_iter = tokens.iter();
@@ -313,8 +399,8 @@ fn parse_tokens(tokens: &[Token]) -> Option<GeneAssociation> {
                             let right = Box::new(output.pop().expect("Expected right operand"));
                             let left = Box::new(output.pop().expect("Expected left operand"));
                             let op = match op {
-                                Operations::Or => GeneAssociation::Or { left, right },
-                                Operations::And => GeneAssociation::And { left, right },
+                                Operations::Or => GeneAssociationBinary::Or { left, right },
+                                Operations::And => GeneAssociationBinary::And { left, right },
                                 _ => unreachable!(),
                             };
                             output.push(op);
@@ -332,7 +418,7 @@ fn parse_tokens(tokens: &[Token]) -> Option<GeneAssociation> {
                 operations.push(Operations::And);
             }
             Some(Token::Gene(gene_rule_node)) => {
-                output.push(GeneAssociation::Gene(*gene_rule_node));
+                output.push(GeneAssociationBinary::Gene(*gene_rule_node));
             }
             None => {
                 break;
@@ -345,8 +431,8 @@ fn parse_tokens(tokens: &[Token]) -> Option<GeneAssociation> {
                 let right = Box::new(output.pop().expect("Expected right operand"));
                 let left = Box::new(output.pop().expect("Expected left operand"));
                 let op = match op {
-                    Operations::Or => GeneAssociation::Or { left, right },
-                    Operations::And => GeneAssociation::And { left, right },
+                    Operations::Or => GeneAssociationBinary::Or { left, right },
+                    Operations::And => GeneAssociationBinary::And { left, right },
                     _ => unreachable!(),
                 };
                 output.push(op);
@@ -451,39 +537,39 @@ mod test {
 
     #[test]
     pub fn test_parser() {
-        let or_expected = GeneAssociation::Or {
-            left: Box::new(GeneAssociation::Gene(GeneId { id: 20 })),
-            right: Box::new(GeneAssociation::Or {
-                left: Box::new(GeneAssociation::Gene(GeneId { id: 17 })),
-                right: Box::new(GeneAssociation::Or {
-                    left: Box::new(GeneAssociation::Gene(GeneId { id: 19 })),
-                    right: Box::new(GeneAssociation::Gene(GeneId { id: 18 })),
+        let or_expected = GeneAssociationBinary::Or {
+            left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 20 })),
+            right: Box::new(GeneAssociationBinary::Or {
+                left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 17 })),
+                right: Box::new(GeneAssociationBinary::Or {
+                    left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 19 })),
+                    right: Box::new(GeneAssociationBinary::Gene(GeneId { id: 18 })),
                 }),
             }),
         };
         let or_parsed = parse_tokens(&TOKENS_OR).unwrap();
         assert_eq!(or_parsed, or_expected);
 
-        let and_expected = GeneAssociation::And {
-            left: Box::new(GeneAssociation::Gene(GeneId { id: 21 })),
-            right: Box::new(GeneAssociation::And {
-                left: Box::new(GeneAssociation::Gene(GeneId { id: 18 })),
-                right: Box::new(GeneAssociation::And {
-                    left: Box::new(GeneAssociation::Gene(GeneId { id: 22 })),
-                    right: Box::new(GeneAssociation::Gene(GeneId { id: 16 })),
+        let and_expected = GeneAssociationBinary::And {
+            left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 21 })),
+            right: Box::new(GeneAssociationBinary::And {
+                left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 18 })),
+                right: Box::new(GeneAssociationBinary::And {
+                    left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 22 })),
+                    right: Box::new(GeneAssociationBinary::Gene(GeneId { id: 16 })),
                 }),
             }),
         };
         let and_parsed = parse_tokens(&TOKENS_AND).unwrap();
         assert_eq!(and_parsed, and_expected);
 
-        let both_expected = GeneAssociation::And {
-            left: Box::new(GeneAssociation::Gene(GeneId { id: 1 })),
-            right: Box::new(GeneAssociation::Or {
-                left: Box::new(GeneAssociation::Gene(GeneId { id: 3 })),
-                right: Box::new(GeneAssociation::And {
-                    left: Box::new(GeneAssociation::Gene(GeneId { id: 4 })),
-                    right: Box::new(GeneAssociation::Gene(GeneId { id: 7 })),
+        let both_expected = GeneAssociationBinary::And {
+            left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 1 })),
+            right: Box::new(GeneAssociationBinary::Or {
+                left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 3 })),
+                right: Box::new(GeneAssociationBinary::And {
+                    left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 4 })),
+                    right: Box::new(GeneAssociationBinary::Gene(GeneId { id: 7 })),
                 }),
             }),
         };
@@ -508,8 +594,37 @@ mod test {
         // but the OR function is not neccesarily associative.
         // Ie ((x + y) / 2 + z) / 2 is not the same as (x + (y + z) / 2) / 2
         assert_eq!(
-            evaluator.evaluate(&rule),
+            evaluator.evaluate_binary(&rule),
             Some((5.0 + (2.0 + (3.0 + 6.0) / 2.0)) / 2.0)
         );
+
+        let rule_flat = GeneAssociation::collapse(&rule);
+        assert_eq!(
+            evaluator.evaluate(&rule_flat),
+            Some((5.0 + (2.0 + (3.0 + 6.0) / 2.0)) / 2.0)
+        );
+    }
+
+    #[test]
+    pub fn test_eval_associative() {
+        let expr = [(1, 5.0), (2, 2.0), (3, 6.0)]
+            .iter()
+            .copied()
+            .map(|(id, val)| (GeneId { id }, val))
+            .collect::<BTreeMap<_, _>>();
+        let evaluator = GeneAssociationEvaluator {
+            gene_expr: &expr,
+            or_op: OrOp::Sum,
+            and_op: AndOp::Mean,
+        };
+        let rule = parse_rule("(x(1)) & (x(2)) & (x(3))").unwrap();
+        const VALUE: f64 = (((6.0 + 2.0) / 2.0) + 5.0) / 2.0;
+        assert_eq!(evaluator.evaluate_binary(&rule), Some(VALUE));
+
+        let rule_flat = GeneAssociation::collapse(&rule);
+        const FLAT_VALUE: f64 = (5.0 + 2.0 + 6.0) / 3.0;
+        assert_eq!(evaluator.evaluate(&rule_flat), Some(FLAT_VALUE));
+
+        assert!(VALUE != FLAT_VALUE);
     }
 }

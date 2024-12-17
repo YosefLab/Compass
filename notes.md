@@ -107,3 +107,5 @@ We'll use Recon1 for now perhaps. At least I have a _mat and an xml format that 
 Hmm, the rules part looks like a pain, mostly because the format is not clear to me. In particular, why certain tokens are (x([0-9]+)) or just x([0-9]+) and what's the precedence for & or |. I suppose if it's just left to right precedence, that is okay.
 
 The lack of associativity of the gene rules is a problem I think. Or I guess I should say it's that taking the mean is not associative. I may just try parsing the SBML instead, it has an unambiguous grammar. I suppose an alternative is to collapse the AST so that multi-ORs can be collapsed.
+
+Seems to mostly work though, at least it produces valid stuff I think.
