@@ -126,16 +126,16 @@ pub fn main() {
     .unwrap();
     assert_eq!(rxns.len(), rules.len());
 
-    let index = rxns.iter().position(|r| r == "ALAt4").unwrap();
+    let index = rxns.iter().position(|r| r == "2OXOADOXm").unwrap();
+    //println!("{index}: {}", &rules[index]);
 
-    /*let rules = rules
+    let rules_0 = rules
         .iter()
-        .map(|rule| parse_rule(&rule))
+        .map(|rule| parse_rule(&rule).as_ref().map(GeneAssociation::collapse))
         .collect::<Vec<_>>();
-    let rule = GeneAssociation::collapse(rules[index].as_ref().unwrap());
-    */
-    println!("{index}: {}", &rules[index]);
-    let rules = rules
+    let rule_0 = rules_0[index].as_ref().unwrap();
+
+    let rules_1 = rules
         .iter()
         .map(|rule| {
             if rule.len() > 0 {
@@ -145,19 +145,42 @@ pub fn main() {
             }
         })
         .collect::<Vec<_>>();
-
-    let rule = rules[index].as_ref().unwrap().clone();
+    let rule_1 = rules_1[index].as_ref().unwrap();
 
     let gene_info = genes
         .iter()
         .enumerate()
         .map(|(id, g)| (GeneId { id: id as u32 }, g.clone()))
         .collect();
-    let displayer = GeneAssociationWithInfo {
-        association: rule,
+
+    println!("{}", GeneAssociationWithInfo {
+        association: rule_0,
         info: &gene_info,
-    };
-    println!("{displayer}");
+    });
+    println!("{}", GeneAssociationWithInfo {
+        association: rule_1,
+        info: &gene_info,
+    });
+    /*let mut count = 0;
+    for (i, (a, b)) in rules_0.iter().zip(rules_1.iter()).enumerate() {
+        if a != b {
+            count += 1;
+            if let (Some(x), Some(y)) = (a,b) {
+                println!("{}", rules[i]);
+                println!("{}", GeneAssociationWithInfo {
+                    association: x,
+                    info: &gene_info,
+                });
+                println!("{}", GeneAssociationWithInfo {
+                    association: y,
+                    info: &gene_info,
+                });
+                return;
+            }
+           
+        }
+    }
+    println!("{count} out of {}", rules_0.len());*/
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -189,7 +212,7 @@ pub enum GeneAssociationBinary {
 }
 
 pub struct GeneAssociationWithInfo<'a> {
-    association: GeneAssociation,
+    association: &'a GeneAssociation,
     info: &'a BTreeMap<GeneId, Gene>,
 }
 
@@ -417,7 +440,8 @@ pub fn tokenize(rule: &str) -> Vec<Token> {
                 let num = num_text.parse::<u32>().unwrap_or_else(|e| {
                     panic!("Failed to parse number from {num_text}: {e}\n{rule}");
                 });
-                tokens.push(Token::Gene(GeneId { id: num }));
+                // The numbers in the json are treated as 1-indexed, so subtract that here
+                tokens.push(Token::Gene(GeneId { id: num - 1 }));
             }
             '|' => {
                 tokens.push(Token::Or);

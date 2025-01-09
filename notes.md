@@ -112,6 +112,8 @@ Seems to mostly work though, at least it produces valid stuff I think.
 
 This still seems suspect to me, I'd prefer to see if it's CNF vs DNF. Or perhaps just do what the python code does to check.
 
+Ok, so checking at least the reaction 2OXOADOXm in recon 1, we can check the XML sourced right from SBML against the results of the parsers for the mat format. The compass parsing of the mat format results in what appears to be a mathcing, albeit deeper than neccesary tree, while my shunting-yard esque algorithm results in a different precedence than the SBML. It might be possible to adjust the shunting yard to just prefer ORs to the ANDs.
+
 ### Python stuff
 Using miniforge'd conda. install:
 ```
