@@ -109,3 +109,11 @@ Hmm, the rules part looks like a pain, mostly because the format is not clear to
 The lack of associativity of the gene rules is a problem I think. Or I guess I should say it's that taking the mean is not associative. I may just try parsing the SBML instead, it has an unambiguous grammar. I suppose an alternative is to collapse the AST so that multi-ORs can be collapsed.
 
 Seems to mostly work though, at least it produces valid stuff I think.
+
+This still seems suspect to me, I'd prefer to see if it's CNF vs DNF. Or perhaps just do what the python code does to check.
+
+### Python stuff
+Using miniforge'd conda. install:
+```
+ numpy pandas python-libsbml
+```

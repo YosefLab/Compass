@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, fs::read_to_string};
+use std::{collections::BTreeMap, fmt::Display, fs::read_to_string, mem};
 
 use itertools::{izip, Group};
 
@@ -16,7 +16,7 @@ pub enum Species {
     MusMusculus,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Gene {
     id: String,
     non_i: u32,
@@ -29,7 +29,7 @@ pub fn main() {
 
     let species = Species::HomoSapiens;
 
-    let top_dir = std::path::PathBuf::from(RECON1_MAT_PATH);
+    let top_dir = std::path::PathBuf::from(RECON2_MAT_PATH);
     let model_dir = top_dir.join("model");
 
     // Technically are numerical, but because they're fixed point we'll treat them as strings for now.
@@ -126,10 +126,38 @@ pub fn main() {
     .unwrap();
     assert_eq!(rxns.len(), rules.len());
 
-    let rules = rules
+    let index = rxns.iter().position(|r| r == "ALAt4").unwrap();
+
+    /*let rules = rules
         .iter()
         .map(|rule| parse_rule(&rule))
         .collect::<Vec<_>>();
+    let rule = GeneAssociation::collapse(rules[index].as_ref().unwrap());
+    */
+    println!("{index}: {}", &rules[index]);
+    let rules = rules
+        .iter()
+        .map(|rule| {
+            if rule.len() > 0 {
+                Some(tree_to_association(&tokens_to_tree(&tokenize(rule))))
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+
+    let rule = rules[index].as_ref().unwrap().clone();
+
+    let gene_info = genes
+        .iter()
+        .enumerate()
+        .map(|(id, g)| (GeneId { id: id as u32 }, g.clone()))
+        .collect();
+    let displayer = GeneAssociationWithInfo {
+        association: rule,
+        info: &gene_info,
+    };
+    println!("{displayer}");
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -158,6 +186,18 @@ pub enum GeneAssociationBinary {
         left: Box<GeneAssociationBinary>,
         right: Box<GeneAssociationBinary>,
     },
+}
+
+pub struct GeneAssociationWithInfo<'a> {
+    association: GeneAssociation,
+    info: &'a BTreeMap<GeneId, Gene>,
+}
+
+impl<'a> Display for GeneAssociationWithInfo<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.association
+            .display_with_gene_info(f, 0, Some(self.info))
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -204,6 +244,39 @@ impl GeneAssociation {
                 Self::And(operands)
             }
         }
+    }
+
+    fn display_with_gene_info(
+        &self,
+        f: &mut std::fmt::Formatter<'_>,
+        depth: usize,
+        info: Option<&BTreeMap<GeneId, Gene>>,
+    ) -> std::fmt::Result {
+        write!(f, "{}", " ".repeat(depth * 4))?;
+        match self {
+            GeneAssociation::Gene(gene_id) => match info.map(|m| m.get(gene_id)) {
+                Some(Some(g)) => writeln!(f, "{gene_id:?}: {g:?}")?,
+                Some(None) => writeln!(f, "{gene_id:?}: Missing info")?,
+                None => writeln!(f, "{gene_id:?}")?,
+            },
+            GeneAssociation::And(vec) | GeneAssociation::Or(vec) => {
+                if matches!(self, GeneAssociation::And(..)) {
+                    writeln!(f, "and")?
+                } else {
+                    writeln!(f, "or")?
+                }
+                for expr in vec {
+                    expr.display_with_gene_info(f, depth + 1, info)?;
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+impl Display for GeneAssociation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.display_with_gene_info(f, 0, None)
     }
 }
 
@@ -367,7 +440,6 @@ pub fn parse_rule(rule: &str) -> Option<GeneAssociationBinary> {
     }
 
     let parsed = parse_tokens(&tokens);
-
     parsed
 }
 
@@ -447,6 +519,109 @@ fn parse_tokens(tokens: &[Token]) -> Option<GeneAssociationBinary> {
     }
     assert!(output.len() <= 1);
     output.first().cloned()
+}
+
+#[derive(Debug)]
+enum TokenTree {
+    Gene(GeneId),
+    Or,
+    And,
+    Tree(Vec<TokenTree>),
+}
+
+/// Parse in the same way compass does currently
+/// Prioritize OR over AND and use the middle OR to keep trees balanced.
+fn tokens_to_tree(tokens: &[Token]) -> Vec<TokenTree> {
+    let mut stack: Vec<Vec<TokenTree>> = Vec::new();
+    let mut curr: Vec<TokenTree> = Vec::new();
+    for token in tokens {
+        match token {
+            Token::LeftParen => {
+                // New group, put curr on the stack of groups. Hopefully we find a right paren later.
+                stack.push(mem::take(&mut curr));
+            }
+            Token::RightParen => {
+                // End of group. We need there to be some previous left paren.
+                let mut prev = match stack.pop() {
+                    Some(prev) => prev,
+                    v => panic!("Expected a group, not {v:?}"),
+                };
+                prev.push(TokenTree::Tree(mem::take(&mut curr)));
+                curr = prev;
+            }
+            Token::Or => curr.push(TokenTree::Or),
+            Token::And => curr.push(TokenTree::And),
+            Token::Gene(gene_id) => curr.push(TokenTree::Gene(gene_id.clone())),
+        }
+    }
+
+    assert!(stack.len() == 0, "Unclosed left paren");
+    curr
+}
+
+fn tree_to_association(tree: &[TokenTree]) -> GeneAssociation {
+    enum GeneValues {
+        Gene(GeneId),
+        Association(GeneAssociation),
+    }
+    if tree.len() == 1 {
+        match &tree[0] {
+            TokenTree::Gene(gene_id) => return GeneAssociation::Gene(gene_id.clone()),
+            TokenTree::Tree(nodes) => return tree_to_association(&nodes),
+            TokenTree::Or | TokenTree::And => panic!("Invalid Token Tree"),
+        }
+    }
+    // Iterate over all of the tokens to determine which operators appear in a group.
+    // Also verify the operators and values alternate.
+    let (mut or_count, mut and_count) = (0, 0);
+    for (i, node) in tree.iter().enumerate() {
+        match node {
+            TokenTree::Or | TokenTree::And => {
+                if matches!(node, TokenTree::Or) {
+                    or_count += 1;
+                } else {
+                    and_count += 1
+                }
+                assert_eq!(i % 2, 1, "{i} % 2 != 1");
+            }
+            TokenTree::Gene(_) | TokenTree::Tree(_) => {
+                assert_eq!(i % 2, 0, "{i} % 2 != 0");
+            }
+        }
+    }
+
+    if or_count > 0 && and_count > 0 {
+        // Partition on a middle or operation and recurse.
+        let (index, _) = tree
+            .iter()
+            .enumerate()
+            .filter(|(_i, node)| matches!(node, TokenTree::Or))
+            .nth(or_count / 2)
+            .expect("There must exist such an or");
+        let left = tree_to_association(&tree[..index]);
+        let right = tree_to_association(&tree[index + 1..]);
+
+        GeneAssociation::Or(vec![left, right])
+    } else {
+        assert!(
+            or_count + and_count > 0,
+            "Node without operation {or_count} {and_count}. {tree:?}"
+        );
+        let nodes = tree
+            .iter()
+            .step_by(2)
+            .map(|node| match node {
+                TokenTree::Gene(gene_id) => GeneAssociation::Gene(gene_id.clone()),
+                TokenTree::Tree(nodes) => tree_to_association(nodes),
+                TokenTree::Or | TokenTree::And => unreachable!(),
+            })
+            .collect();
+        if or_count > 0 {
+            GeneAssociation::Or(nodes)
+        } else {
+            GeneAssociation::And(nodes)
+        }
+    }
 }
 
 pub fn sbml_parse() {

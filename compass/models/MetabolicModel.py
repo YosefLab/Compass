@@ -622,20 +622,20 @@ class Gene(object):
 def _print_node(node, expression=None, indent=0):
     lines = []
     if expression is None:
-        lines.append(" "*indent + node.type)
+        lines.append(" "*indent + node.type + ": ")
     else:
         lines.append(" ".join([
             " "*indent + node.type,
-            node.eval_expression(expression, min_w_nan, sum_wo_nan)
+            node.eval_expression(expression, min_w_nan, sum_wo_nan) 
+            + ": "
         ]))
 
     if len(node.children) > 0:
         for x in node.children:
             lines.append(_print_node(x, expression, indent+4))
     if node.type == 'gene':
-        lines.append(" ".join([
-            " "*indent, node.gene.id,
-            node.gene.name, str(node.gene.alt_symbols)]))
+        names =  { node.gene.name } | set(node.gene.alt_symbols)
+        lines[0] += " ".join([node.gene.id, str(names)])
 
     return "\n".join(lines)
 
