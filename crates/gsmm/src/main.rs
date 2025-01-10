@@ -2,8 +2,6 @@ use std::{collections::BTreeMap, fmt::Display, fs::read_to_string, mem};
 
 use itertools::{izip, Group};
 
-mod mat;
-
 // TODO: Remove hardcoded paths lol
 const RECON1_XML_PATH: &str = "../compass/Resources/Metabolic Models/RECON1_xml/RECON1.xml";
 const RECON1_MAT_PATH: &str = "../compass/Resources/Metabolic Models/RECON1_mat";
@@ -153,14 +151,20 @@ pub fn main() {
         .map(|(id, g)| (GeneId { id: id as u32 }, g.clone()))
         .collect();
 
-    println!("{}", GeneAssociationWithInfo {
-        association: rule_0,
-        info: &gene_info,
-    });
-    println!("{}", GeneAssociationWithInfo {
-        association: rule_1,
-        info: &gene_info,
-    });
+    println!(
+        "{}",
+        GeneAssociationWithInfo {
+            association: rule_0,
+            info: &gene_info,
+        }
+    );
+    println!(
+        "{}",
+        GeneAssociationWithInfo {
+            association: rule_1,
+            info: &gene_info,
+        }
+    );
     /*let mut count = 0;
     for (i, (a, b)) in rules_0.iter().zip(rules_1.iter()).enumerate() {
         if a != b {
@@ -177,7 +181,7 @@ pub fn main() {
                 });
                 return;
             }
-           
+
         }
     }
     println!("{count} out of {}", rules_0.len());*/
@@ -513,8 +517,8 @@ fn parse_tokens(tokens: &[Token]) -> Option<GeneAssociationBinary> {
             Some(Token::And) => {
                 operations.push(Operations::And);
             }
-            Some(Token::Gene(gene_rule_node)) => {
-                output.push(GeneAssociationBinary::Gene(*gene_rule_node));
+            Some(Token::Gene(gene_id)) => {
+                output.push(GeneAssociationBinary::Gene(*gene_id));
             }
             None => {
                 break;
@@ -584,10 +588,6 @@ fn tokens_to_tree(tokens: &[Token]) -> Vec<TokenTree> {
 }
 
 fn tree_to_association(tree: &[TokenTree]) -> GeneAssociation {
-    enum GeneValues {
-        Gene(GeneId),
-        Association(GeneAssociation),
-    }
     if tree.len() == 1 {
         match &tree[0] {
             TokenTree::Gene(gene_id) => return GeneAssociation::Gene(gene_id.clone()),
