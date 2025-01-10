@@ -3,9 +3,115 @@
 //!     1. Prefers OR over AND and appears to be correct. This is how the python code does it.
 //!     2. Parses the operations, applying operations left to right.
 
-use std::mem;
+use std::{fs::read_to_string, mem, path::Path};
 
-use crate::model::{GeneAssociation, GeneId};
+use crate::model::{Gene, GeneAssociation, GeneId, Model, Species};
+
+pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
+    let model_dir = top_dir.join("model");
+
+    let genes = serde_json::from_str::<Vec<String>>(
+        &read_to_string(model_dir.join("model.genes.json")).unwrap(),
+    )
+    .unwrap();
+
+    let gtx = serde_json::from_str::<Vec<u32>>(
+        &read_to_string(top_dir.join("non2uniqueEntrez.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(genes.len(), gtx.len());
+
+    let (gene_symbols, gene_alt_symbols) = match species {
+        Species::HomoSapiens => {
+            let gene_symbols: Vec<String> = serde_json::from_str(
+                &read_to_string(top_dir.join("uniqueHumanGeneSymbol.json")).unwrap(),
+            )
+            .unwrap();
+            // No alt symbols for human in the mat models
+            let gene_alt_symbols = Vec::new();
+            (gene_symbols, gene_alt_symbols)
+        }
+        Species::MusMusculus => {
+            let gene_symbols: Vec<String> = serde_json::from_str(
+                &read_to_string(top_dir.join("uniqueMouseGeneSymbol.json")).unwrap(),
+            )
+            .unwrap();
+            let gene_alt_symbols: Vec<Vec<String>> = serde_json::from_str(
+                &read_to_string(top_dir.join("uniqueMouseGeneSymbol_all.json")).unwrap(),
+            )
+            .unwrap();
+            (gene_symbols, gene_alt_symbols)
+        }
+    };
+
+    let genes = genes
+        .iter()
+        .zip(gtx)
+        .map(|(id, idx)| {
+            let non_i = idx - 1;
+            Gene {
+                id: id.to_string(),
+                non_i, // TODO: This index might be unused after this point
+                name: gene_symbols[non_i as usize].clone(),
+                alt_symbols: gene_alt_symbols
+                    .get(non_i as usize)
+                    .unwrap_or(&Vec::new())
+                    .to_vec(),
+            }
+        })
+        .collect::<Vec<Gene>>();
+
+    let rxns = serde_json::from_str::<Vec<String>>(
+        &read_to_string(model_dir.join("model.rxns.json")).unwrap(),
+    )
+    .unwrap();
+    println!(
+        "Number of reactions: {}. First {:?}",
+        rxns.len(),
+        rxns.first()
+    );
+
+    let rxn_names = serde_json::from_str::<Vec<String>>(
+        &read_to_string(model_dir.join("model.rxnNames.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(rxns.len(), rxn_names.len());
+
+    let lb =
+        serde_json::from_str::<Vec<f64>>(&read_to_string(model_dir.join("model.lb.json")).unwrap())
+            .unwrap();
+    assert_eq!(rxns.len(), lb.len());
+    let ub =
+        serde_json::from_str::<Vec<f64>>(&read_to_string(model_dir.join("model.ub.json")).unwrap())
+            .unwrap();
+    assert_eq!(rxns.len(), ub.len());
+
+    let subsystems = serde_json::from_str::<Vec<String>>(
+        &read_to_string(model_dir.join("model.subSystems.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(rxns.len(), subsystems.len());
+
+    let rules_text = serde_json::from_str::<Vec<String>>(
+        &read_to_string(model_dir.join("model.rules.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(rxns.len(), rules_text.len());
+
+    let rules = rules_text
+        .iter()
+        .map(|ja| {
+            if ja.len() > 0 {
+                Some(TokenTree::tree_to_association(&TokenTree::from_tokens(
+                    Token::tokenize(ja).into_iter(),
+                )))
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+    todo!()
+}
 
 // TODO: add reference to the text source for debugging?
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -88,7 +194,7 @@ impl Token {
 impl TokenTree {
     /// Parse in the same way compass does currently
     /// Prioritize OR over AND and use the middle OR to keep trees balanced.
-    fn tokens_to_tree(tokens: impl Iterator<Item = Token>) -> Vec<Self> {
+    fn from_tokens(tokens: impl Iterator<Item = Token>) -> Vec<Self> {
         let mut stack: Vec<Vec<TokenTree>> = Vec::new();
         let mut curr: Vec<TokenTree> = Vec::new();
         for token in tokens {
@@ -142,7 +248,7 @@ impl TokenTree {
                 }
             }
         }
-    
+
         if or_count > 0 && and_count > 0 {
             // Partition on a middle or operation and recurse.
             let (index, _) = tree
@@ -153,7 +259,7 @@ impl TokenTree {
                 .expect("There must exist such an or");
             let left = Self::tree_to_association(&tree[..index]);
             let right = Self::tree_to_association(&tree[index + 1..]);
-    
+
             GeneAssociation::Or(vec![left, right])
         } else {
             assert!(
