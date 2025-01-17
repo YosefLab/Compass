@@ -5,12 +5,17 @@
 
 use std::{fs::read_to_string, mem, path::Path};
 
-use crate::model::{Gene, GeneAssociation, GeneId, Model, Species};
+use itertools::izip;
+
+use crate::model::{
+    Gene, GeneAssociation, GeneId, MetabId, Metabolite, Model, Reaction, Species,
+    StoichiometricEntry, StoichiometricMatrix, SubsystemId,
+};
 
 pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
     let model_dir = top_dir.join("model");
 
-    let genes = serde_json::from_str::<Vec<String>>(
+    let genes_entrez = serde_json::from_str::<Vec<String>>(
         &read_to_string(model_dir.join("model.genes.json")).unwrap(),
     )
     .unwrap();
@@ -19,7 +24,7 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
         &read_to_string(top_dir.join("non2uniqueEntrez.json")).unwrap(),
     )
     .unwrap();
-    assert_eq!(genes.len(), gtx.len());
+    assert_eq!(genes_entrez.len(), gtx.len());
 
     let (gene_symbols, gene_alt_symbols) = match species {
         Species::HomoSapiens => {
@@ -44,13 +49,13 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
         }
     };
 
-    let genes = genes
-        .iter()
+    let genes = genes_entrez
+        .into_iter()
         .zip(gtx)
-        .map(|(id, idx)| {
+        .map(|(entrez, idx)| {
             let non_i = idx - 1;
             Gene {
-                id: id.to_string(),
+                entrez,
                 non_i, // TODO: This index might be unused after this point
                 name: gene_symbols[non_i as usize].clone(),
                 alt_symbols: gene_alt_symbols
@@ -60,6 +65,38 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
             }
         })
         .collect::<Vec<Gene>>();
+
+    let mets = serde_json::from_str::<Vec<String>>(
+        &read_to_string(model_dir.join("model.mets.json")).unwrap(),
+    )
+    .unwrap();
+
+    let met_names = serde_json::from_str::<Vec<String>>(
+        &read_to_string(model_dir.join("model.metNames.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(mets.len(), met_names.len());
+
+    let met_formulas = serde_json::from_str::<Vec<String>>(
+        &read_to_string(model_dir.join("model.metFormulas.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(mets.len(), met_formulas.len());
+
+    let metabolites = izip!(mets, met_names, met_formulas)
+        .map(|(name, display_name, formula)| {
+            let display_name = if display_name.len() > 0 {
+                Some(display_name)
+            } else {
+                None
+            };
+            Metabolite {
+                name,
+                display_name,
+                formula,
+            }
+        })
+        .collect::<Vec<Metabolite>>();
 
     let rxns = serde_json::from_str::<Vec<String>>(
         &read_to_string(model_dir.join("model.rxns.json")).unwrap(),
@@ -110,7 +147,47 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
             }
         })
         .collect::<Vec<_>>();
-    todo!()
+    assert_eq!(rxns.len(), rules.len());
+
+    let mut reactions = Vec::new();
+    for (i, rule) in rules.into_iter().enumerate() {
+        reactions.push(Reaction {
+            name: rxns[i].clone(),
+            rule,
+            subsystem: SubsystemId { index: 0 },
+            lb: lb[i],
+            ub: ub[i],
+        });
+    }
+
+    let s_matrix = serde_json::from_str::<Vec<(usize, usize, f64)>>(
+        &read_to_string(model_dir.join("model.S.json")).unwrap(),
+    )
+    .unwrap();
+
+    let s_matrix = StoichiometricMatrix {
+        data: s_matrix
+            .into_iter()
+            .map(|(met, rxn, val)| {
+                // The indexes in the json are treated as 1-indexed, so subtract that here
+                assert!(rxn <= rxns.len(), "{rxn} <= {},", rxns.len());
+                assert!(met <= metabolites.len(), "{met} <= {},", metabolites.len());
+                StoichiometricEntry {
+                    rxn: rxn - 1,
+                    metab: MetabId { index: met - 1 },
+                    value: val,
+                }
+            })
+            .collect(),
+    };
+
+    Model {
+        species,
+        genes,
+        metabolites,
+        reactions,
+        s_matrix,
+    }
 }
 
 // TODO: add reference to the text source for debugging?
