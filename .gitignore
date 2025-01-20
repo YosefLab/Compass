@@ -90,3 +90,7 @@ ENV/
 
 # Visual Studio Code configuration
 .vscode
+
+# Rust things
+target/
+Cargo.lock
