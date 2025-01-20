@@ -54,14 +54,17 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
         .zip(gtx)
         .map(|(entrez, idx)| {
             let non_i = idx - 1;
+            let primary_symbol = gene_symbols[non_i as usize].clone();
+            let mut symbols = vec![primary_symbol];
+            if let Some(alt_symbols) = gene_alt_symbols.get(non_i as usize) {
+                for symbol in alt_symbols.iter() {
+                    symbols.push(symbol.clone());
+                }
+            }
             Gene {
                 entrez,
                 non_i, // TODO: This index might be unused after this point
-                name: gene_symbols[non_i as usize].clone(),
-                alt_symbols: gene_alt_symbols
-                    .get(non_i as usize)
-                    .unwrap_or(&Vec::new())
-                    .to_vec(),
+                symbols,
             }
         })
         .collect::<Vec<Gene>>();

@@ -10,6 +10,7 @@ pub struct Model {
     pub(super) s_matrix: StoichiometricMatrix,
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum Species {
     HomoSapiens,
     MusMusculus,
@@ -33,8 +34,7 @@ pub struct Gene {
     /// The entrez? gene id. Pretty sure its entrez.
     pub(super) entrez: String,
     pub(super) non_i: u32,
-    pub(super) name: String,
-    pub(super) alt_symbols: Vec<String>,
+    pub(super) symbols: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -132,5 +132,57 @@ impl<'a> Display for GeneAssociationWithInfo<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.association
             .display_with_gene_info(f, 0, Some(self.info))
+    }
+}
+
+impl Model {
+    pub fn species(&self) -> Species {
+        self.species
+    }
+
+    pub fn genes(&self) -> &[Gene] {
+        &self.genes
+    }
+
+    pub fn reactions(&self) -> &[Reaction] {
+        &self.reactions
+    }
+
+    pub fn metabolites(&self) -> &[Metabolite] {
+        &self.metabolites
+    }
+}
+
+impl Reaction {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn rule(&self) -> Option<&GeneAssociation> {
+        self.rule.as_ref()
+    }
+
+    pub fn subsystem(&self) -> SubsystemId {
+        self.subsystem
+    }
+
+    pub fn lower_bound(&self) -> f64 {
+        self.lb
+    }
+
+    pub fn upper_bound(&self) -> f64 {
+        self.ub
+    }
+}
+
+impl Gene {
+    /// Lists all symbols for this gene, including the primary symbol.
+    pub fn get_symbols(&self) -> &[String] {
+        &self.symbols
+    }
+
+    /// Returns the primary symbol of the gene.
+    pub fn name(&self) -> &str {
+        &self.symbols[0]
     }
 }

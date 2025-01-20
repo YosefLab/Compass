@@ -119,3 +119,57 @@ Using miniforge'd conda. install:
 ```
  numpy pandas python-libsbml
 ```
+
+## Now for the algorithm
+
+Steps: 
+0. Generating the cache is a kind of 0th step.
+1. microcluster cells? May be tricky to replicate exactly.
+2. Compute penalties
+3. Run algorithm core
+
+### Microclustering
+I'm generally inclined to skip this for now. It's really an additional step, not neccesarily core to what I want to do.
+
+Oh, it's the VISION algorithm. The only really tricky thing is the leiden algorithm, which I am not at all familiar with.
+
+KMeans is inconvenient, but not neccesarily complicated to implement. It may be complicated to do quickly.
+
+### Penalties
+Could use knn smoothing, but once again, we can skip that. Knn is not that hard at least. Tsne is pretty complicated, I don't really want to re-implement that for this project. That would be its own project at least.
+
+The core of the penalties is neccesary though.
+
+1. Read the data
+2. Preprocess
+ a. Aggregate any duplicate gene symbols
+3. Setup model see init_model
+4. Actually do the evaluation.
+
+### Algorithm - flux balance analysis is the core of the work.
+We want to do this.
+
+### Linear algebra library
+Faer - 228k downloads. Pure rust implementation. Probably the coolest one. Does have some conversion traits for the following two.
+Nalgebra - 19m downloads. Uses lapack with some configuration it appears.
+Ndarray - 18m downloads. Can use BLAS with some configuration.
+
+sprs maybe? For sparse stuff.
+
+Another factor - how compatible with polars? Well, polars can convert things to ndarray. Seems like a reasonable start?
+Also, burn has some built-in compatability with ndarray.
+
+Well, what operations do I need:
+ 1. np.log2
+ 2. Add 1 to all elements of the array
+Pretty easy.
+
+Down the line may want: tsne? Umap?
+
+Whatever, back to more serious concerns:
+ 1. conda install openblas
+ 2. sudo apt intsall pkg-config libssl-dev - needed for openssl-sys to find the openssl system version, used by openblas-src for something or another I guess.
+
+### Misc nonsense
+How to install compass on my conda pip? Seems like a pita, mostly because sudo obliterates the environment and path.
+Hmm, very irritating permission error. Here. 
