@@ -55,10 +55,13 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
         .map(|(entrez, idx)| {
             let non_i = idx - 1;
             let primary_symbol = gene_symbols[non_i as usize].clone();
-            let mut symbols = vec![primary_symbol];
+            let mut symbols = vec![primary_symbol.clone()];
             if let Some(alt_symbols) = gene_alt_symbols.get(non_i as usize) {
                 for symbol in alt_symbols.iter() {
-                    symbols.push(symbol.clone());
+                    // Filter out repeats of the primary symbol
+                    if primary_symbol != *symbol {
+                        symbols.push(symbol.clone());
+                    }
                 }
             }
             Gene {

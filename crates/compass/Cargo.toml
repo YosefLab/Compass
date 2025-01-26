@@ -11,6 +11,8 @@ clap.workspace = true
 ndarray.workspace = true
 openblas-src.workspace = true
 polars.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
 
 # Intra-workspace dependencies
 cplex-bindings.workspace = true

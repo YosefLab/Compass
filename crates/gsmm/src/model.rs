@@ -98,6 +98,13 @@ pub enum OrOp {
     Sum,
 }
 
+impl GeneId {
+    /// Returns the index of the gene in the list of metabolic model's genes.
+    pub fn index(&self) -> usize {
+        self.id
+    }
+}
+
 impl GeneAssociation {
     /// Note that `info` is expected to be vector where the index is the gene id.
     fn display_with_gene_info(

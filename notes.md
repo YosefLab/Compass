@@ -173,3 +173,33 @@ Whatever, back to more serious concerns:
 ### Misc nonsense
 How to install compass on my conda pip? Seems like a pita, mostly because sudo obliterates the environment and path.
 Hmm, very irritating permission error. Here. 
+
+### Penalty computation
+So if I use the default for the and/or functions: mean/sum. Can I use a matrix multiplication for this? I think so.
+
+So mean(x1 + x2 + x3) = x1 / 3.0 + x2 / 3.0 + x3 / 3.0.
+
+So you can do something like:
+
+let mut row = vec![0.0; cols];
+let mut stack = vec![(root, 1.0)];
+while let Some((t, m)) = stack.pop() {
+    match t {
+        gene => row[gene.id] += m;
+        or => {
+            stack.push((child, m));
+        }
+        and => {
+            stack.push((child, m / num_children))
+        }
+    }
+}
+
+Note that for other, non-linear functions you can't do this. Also, it's not clear to me how to efficiently do the multiplication. Apache arrow, I suspect, is not quite designed with this approach in mind.
+
+Also, other ops will require another strategy, so lets do the column function thing instead.
+
+### Penalties debugging
+It appears most of my results match the python code. 13DAMPPOX_pos vs my 13DAMPPOX differs though. Also I am not splitting pos and neg. And to be fair, pos vs neg makes no difference for penalties, does it? The gene-protein rule should be the same.
+ 1. Check that py does generate a bunch of identical penalties for pos vs neg
+ 1. Check why the 13DAMPPOX differs from 13DAMPPOX_pos
