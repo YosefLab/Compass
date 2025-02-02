@@ -1,16 +1,27 @@
-use std::{collections::BTreeMap, fmt::Display};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fmt::Display,
+};
 
 pub struct Model {
-    /// Hmmm, not really specified by the model itself is it?
-    pub(super) species: Species,
+    pub config: ModelConfig,
     /// A list of genes.
     pub(super) genes: Vec<Gene>,
     pub(super) reactions: Vec<Reaction>,
     pub(super) metabolites: Vec<Metabolite>,
+    pub(super) subsystems: Vec<Subsystem>,
     pub(super) s_matrix: StoichiometricMatrix,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
+pub struct ModelConfig {
+    pub model_name: String,
+    pub species: Species,
+    pub remove_isoform_summing: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
 pub enum Species {
     HomoSapiens,
     MusMusculus,
@@ -43,6 +54,11 @@ pub struct Metabolite {
     pub(super) display_name: Option<String>,
     pub(super) formula: String,
     // TODO: Add kegg id or something?
+}
+
+#[derive(Debug, Clone)]
+pub struct Subsystem {
+    pub(super) name: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -133,6 +149,35 @@ impl GeneAssociation {
         }
         Ok(())
     }
+
+    /// Removes instances where the same gene is OR'd or AND'd together with itself.
+    /// This can occur where there are multiple isoforms with the same gene symbol.
+    pub fn remove_isoform_summing(&self, genes: &Vec<Gene>) -> Self {
+        match self {
+            GeneAssociation::Gene(g) => GeneAssociation::Gene(g.clone()),
+            GeneAssociation::And(vec) | GeneAssociation::Or(vec) => {
+                let mut new = Vec::new();
+                let mut seen = BTreeSet::new();
+                for expr in vec {
+                    match expr {
+                        v @ GeneAssociation::Gene(gene_id) => {
+                            if seen.insert(genes[gene_id.id].name()) {
+                                new.push(v.clone());
+                            }
+                        }
+                        v => {
+                            new.push(v.remove_isoform_summing(genes));
+                        }
+                    }
+                }
+                match self {
+                    GeneAssociation::And(..) => GeneAssociation::And(new),
+                    GeneAssociation::Or(..) => GeneAssociation::Or(new),
+                    _ => unreachable!(),
+                }
+            }
+        }
+    }
 }
 
 impl<'a> Display for GeneAssociationWithInfo<'a> {
@@ -144,7 +189,7 @@ impl<'a> Display for GeneAssociationWithInfo<'a> {
 
 impl Model {
     pub fn species(&self) -> Species {
-        self.species
+        self.config.species
     }
 
     pub fn genes(&self) -> &[Gene] {
@@ -157,6 +202,28 @@ impl Model {
 
     pub fn metabolites(&self) -> &[Metabolite] {
         &self.metabolites
+    }
+
+    pub fn reaction_display<'a>(&'a self, reaction: &'a Reaction) -> String {
+        use std::fmt::Write;
+        // TODO: Returning a string here is less than ideal.
+        // Also, this does not check whether the reaction is in the model.
+
+        let mut s = String::new();
+        writeln!(s, "{}", reaction.name).unwrap();
+        let subsystem_name = self.subsystems[reaction.subsystem.index].name.clone();
+        writeln!(s, "Subsystem: {}", subsystem_name).unwrap();
+        writeln!(s, "Bounds: [{}, {}]", reaction.lb, reaction.ub).unwrap();
+        if let Some(rule) = &reaction.rule {
+            let rule = GeneAssociationWithInfo {
+                association: rule,
+                info: &self.genes,
+            };
+            writeln!(s, "Rule:\n{}", rule).unwrap();
+        } else {
+            writeln!(s, "Rule: None").unwrap();
+        }
+        s
     }
 }
 

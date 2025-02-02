@@ -2,7 +2,7 @@ use std::{collections::BTreeMap, fmt::Display, fs::read_to_string, mem};
 
 use gsmm::{
     mat::parse_mat_model,
-    model::{Gene, Species},
+    model::{Gene, ModelConfig, Species},
 };
 
 // TODO: Remove hardcoded paths lol
@@ -16,9 +16,15 @@ pub fn main() {
     println!("Hello from GSMM!");
 
     let species = Species::HomoSapiens;
+    let model_name = String::from("Recon2Mat");
+    let config = ModelConfig {
+        model_name,
+        species,
+        remove_isoform_summing: false,
+    };
 
     let top_dir = std::path::PathBuf::from(RECON2_MAT_PATH);
-    parse_mat_model(&top_dir, species);
+    parse_mat_model(config, &top_dir);
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]

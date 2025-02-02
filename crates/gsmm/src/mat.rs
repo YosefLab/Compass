@@ -8,11 +8,11 @@ use std::{fs::read_to_string, mem, path::Path};
 use itertools::izip;
 
 use crate::model::{
-    Gene, GeneAssociation, GeneId, MetabId, Metabolite, Model, Reaction, Species,
-    StoichiometricEntry, StoichiometricMatrix, SubsystemId,
+    Gene, GeneAssociation, GeneId, MetabId, Metabolite, Model, ModelConfig, Reaction, Species,
+    StoichiometricEntry, StoichiometricMatrix, Subsystem, SubsystemId,
 };
 
-pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
+pub fn parse_mat_model(config: ModelConfig, top_dir: &Path) -> Model {
     let model_dir = top_dir.join("model");
 
     let genes_entrez = serde_json::from_str::<Vec<String>>(
@@ -26,7 +26,7 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
     .unwrap();
     assert_eq!(genes_entrez.len(), gtx.len());
 
-    let (gene_symbols, gene_alt_symbols) = match species {
+    let (gene_symbols, gene_alt_symbols) = match config.species {
         Species::HomoSapiens => {
             let gene_symbols: Vec<String> = serde_json::from_str(
                 &read_to_string(top_dir.join("uniqueHumanGeneSymbol.json")).unwrap(),
@@ -108,11 +108,6 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
         &read_to_string(model_dir.join("model.rxns.json")).unwrap(),
     )
     .unwrap();
-    println!(
-        "Number of reactions: {}. First {:?}",
-        rxns.len(),
-        rxns.first()
-    );
 
     let rxn_names = serde_json::from_str::<Vec<String>>(
         &read_to_string(model_dir.join("model.rxnNames.json")).unwrap(),
@@ -132,7 +127,10 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
     let subsystems = serde_json::from_str::<Vec<String>>(
         &read_to_string(model_dir.join("model.subSystems.json")).unwrap(),
     )
-    .unwrap();
+    .unwrap()
+    .into_iter()
+    .map(|s| Subsystem { name: s })
+    .collect::<Vec<Subsystem>>();
     assert_eq!(rxns.len(), subsystems.len());
 
     let rules_text = serde_json::from_str::<Vec<String>>(
@@ -150,6 +148,13 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
                 )))
             } else {
                 None
+            }
+        })
+        .map(|g| {
+            if config.remove_isoform_summing {
+                g.map(|g| g.remove_isoform_summing(&genes))
+            } else {
+                g
             }
         })
         .collect::<Vec<_>>();
@@ -188,10 +193,11 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
     };
 
     Model {
-        species,
+        config,
         genes,
         metabolites,
         reactions,
+        subsystems,
         s_matrix,
     }
 }

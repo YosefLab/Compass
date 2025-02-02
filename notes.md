@@ -203,3 +203,12 @@ Also, other ops will require another strategy, so lets do the column function th
 It appears most of my results match the python code. 13DAMPPOX_pos vs my 13DAMPPOX differs though. Also I am not splitting pos and neg. And to be fair, pos vs neg makes no difference for penalties, does it? The gene-protein rule should be the same.
  1. Check that py does generate a bunch of identical penalties for pos vs neg
  1. Check why the 13DAMPPOX differs from 13DAMPPOX_pos
+
+Could it be the isoform summing? My rule for 13DAMPPOX is the same it appears, but I note that AOC2 appears twice. Yeah that fixed it.
+
+Some options for plotting things
+ 1. ggplot - but then I have to use R. I don't want to do that, not for at least 10 years.
+ 1. seaborn - matplotlib, but in a very, very nice hat. Can do dataframe interchange protocol with polars? I'm also pretty used to seaborn. It's fairly nice.
+ 1. plotnine - python-ish version of ggplot?
+ 1. altair - another grammar of graphics thing? It works with polars very nicely. That seems good enough for me.
+ 1. Plotly - very interactive thing?

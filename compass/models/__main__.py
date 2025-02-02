@@ -15,7 +15,7 @@ if __name__ == '__main__':
     #print(model.reactions["AKGDm"].gene_associations)
     #print(model.reactions["ALCD1"].gene_associations)
     # One with OR -> AND -> OR. Potentially a concern for associativity of the parsing?
-    print(model.reactions["2OXOADOXm"].gene_associations)
+    print(model.reactions["13DAMPPOX"].gene_associations)
     # Big ones, probably get deeply nested
     #"ATPasel"
     #"ATPS4m"

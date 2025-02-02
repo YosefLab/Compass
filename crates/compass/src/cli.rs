@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{Args, Parser, Subcommand, ValueEnum};
+use gsmm::model::Species;
 
 #[derive(Parser)]
 pub struct CompassCli {
@@ -11,19 +12,53 @@ pub struct CompassCli {
 #[derive(Subcommand)]
 pub enum Commands {
     /// Developer thingy to go test stuff
-    Debug {
+    Demo {
         input_data: PathBuf,
         /// Optional column name for the gene symbols.
         #[arg(short, long)]
         gene_column: Option<String>,
-        /// Metabolic model to use
+        #[command(flatten)]
+        model: MetabolicModelConfig,
         #[arg(short, long)]
-        model: MetabolicModel,
+        output: PathBuf,
+    },
+    ModelDebug {
+        #[command(flatten)]
+        model: MetabolicModelConfig,
+        #[command(subcommand)]
+        mode: ModelDebugMode,
     },
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, ValueEnum)]
+#[derive(Args, Debug, Clone, PartialEq, Eq)]
+pub struct MetabolicModelConfig {
+    #[arg(value_enum, short, long)]
+    pub model: MetabolicModel,
+    #[arg(value_enum, short, long, default_value_t = Species::MusMusculus)]
+    pub species: Species,
+    #[arg(short, long, default_value_t = true)]
+    pub remove_isoform_summing: bool,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, ValueEnum)]
 pub enum MetabolicModel {
     Recon2Mat,
     Recon1Mat,
+}
+
+#[derive(Clone, PartialEq, Eq, Subcommand)]
+pub enum ModelDebugMode {
+    /// List all reactions in the model.
+    ListReactions,
+    /// List info about a reaction in the model.
+    ReactionInfo { reaction: String },
+}
+
+impl MetabolicModel {
+    pub fn name(&self) -> &'static str {
+        match self {
+            MetabolicModel::Recon2Mat => "Recon2Mat",
+            MetabolicModel::Recon1Mat => "Recon1Mat",
+        }
+    }
 }

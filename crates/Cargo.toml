@@ -22,4 +22,4 @@ openblas-src = { version = "0.10", features = ["system"] }
 
 # Intra-workspace dependencies
 cplex-bindings = { path = "cplex-bindings" }
-gsmm = { path = "gsmm" }
+gsmm = { path = "gsmm", features = ["clap"] }

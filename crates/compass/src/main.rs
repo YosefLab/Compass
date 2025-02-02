@@ -1,13 +1,14 @@
 mod cli;
+mod model_debug;
 mod penalties;
 
 use std::path::{Path, PathBuf};
 
 use clap::Parser;
-use cli::{Commands, CompassCli};
+use cli::{Commands, CompassCli, ModelDebugMode};
 use gsmm::{
     mat::parse_mat_model,
-    model::{Model, Species},
+    model::{Model, ModelConfig, Species},
 };
 use polars::prelude::*;
 use tracing::info;
@@ -22,15 +23,25 @@ fn main() {
         .init();
 
     match args.command {
-        Commands::Debug {
+        Commands::Demo {
             input_data,
             gene_column,
             model,
+            output,
         } => {
             info!("Input data: {:?}", input_data);
             let data = read_expression_data(&input_data, gene_column);
             let model = load_model(model);
-            al_gore_rhythm(data, model, PaddingMode::Zero);
+            al_gore_rhythm(data, model, PaddingMode::Zero, output);
+        }
+        Commands::ModelDebug { model, mode } => {
+            let model = load_model(model);
+            match mode {
+                ModelDebugMode::ListReactions => model_debug::list_reactions(model),
+                ModelDebugMode::ReactionInfo { reaction } => {
+                    model_debug::reaction_info(model, reaction)
+                }
+            }
         }
     }
     // Read the expression file.
@@ -94,9 +105,9 @@ pub fn read_expression_data(path: &Path, gene_column: Option<String>) -> Express
     }
 }
 
-pub fn load_model(model: cli::MetabolicModel) -> Model {
+pub fn load_model(model: cli::MetabolicModelConfig) -> Model {
     // TODO: remove hardcoded paths
-    let path = match model {
+    let path = match model.model {
         cli::MetabolicModel::Recon1Mat => "../compass/Resources/Metabolic Models/RECON1_mat",
         cli::MetabolicModel::Recon2Mat => "../compass/Resources/Metabolic Models/RECON2_mat",
     };
@@ -106,7 +117,14 @@ pub fn load_model(model: cli::MetabolicModel) -> Model {
         path.file_name().unwrap().to_str().unwrap()
     );
     // TODO: stop hardcoding mouse species
-    parse_mat_model(&path, Species::MusMusculus)
+    parse_mat_model(
+        ModelConfig {
+            model_name: model.model.name().to_owned(),
+            species: model.species,
+            remove_isoform_summing: model.remove_isoform_summing,
+        },
+        &path,
+    )
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -115,7 +133,12 @@ pub enum PaddingMode {
     NaN,
 }
 
-pub fn al_gore_rhythm(mut data: ExpressionData, model: Model, padding_mode: PaddingMode) {
+pub fn al_gore_rhythm(
+    mut data: ExpressionData,
+    model: Model,
+    padding_mode: PaddingMode,
+    output: PathBuf,
+) {
     println!("{:#?}", data.data.clone().first().collect().unwrap());
     // This is a somewhat ugly way to construct things, but whatever
     // The goal here is to transform the data such that only genes from the metabolic model are present
@@ -223,7 +246,7 @@ pub fn al_gore_rhythm(mut data: ExpressionData, model: Model, padding_mode: Padd
     }
     let mut rxn_expr_df = DataFrame::new(rxn_expr_cols).unwrap();
     println!("{:#?}", rxn_expr_df);
-    let penalty_file = std::fs::File::create(PathBuf::from("penalties.csv")).unwrap();
+    let penalty_file = std::fs::File::create(output).unwrap();
     CsvWriter::new(penalty_file)
         .finish(&mut rxn_expr_df)
         .unwrap();
