@@ -20,7 +20,7 @@ pub fn main() {
     let config = ModelConfig {
         model_name,
         species,
-        remove_isoform_summing: false,
+        isoform_summing: false,
     };
 
     let top_dir = std::path::PathBuf::from(RECON2_MAT_PATH);

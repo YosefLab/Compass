@@ -521,6 +521,7 @@ class Association(object):
         elif self.type == 'gene':
 
             try:
+                print("Evaluating gene expression for: ", self.gene.name)
                 return self.gene.eval_expression(expression)
             except KeyError:
                 return float('nan')
@@ -596,19 +597,23 @@ class Gene(object):
             return float('nan')
 
         if self.name in expression.index:
-            return expression[self.name]
+            expr = expression[self.name]
+            print("Found in index", expr)
+            return expr
 
         # Average expression across found alt_symbols
         found_symbols = 0
         agg_expression = 0
         for symbol in self.alt_symbols:
             if symbol in expression.index:
+                print("Found alt symbol", symbol)
                 agg_expression += expression[symbol]
                 found_symbols += 1
 
         if found_symbols > 0:
             return agg_expression / found_symbols
 
+        print("returning nan")
         return float('nan')
 
     def to_serializable(self):

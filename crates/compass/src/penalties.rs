@@ -1,3 +1,5 @@
+use tracing::debug;
+
 use gsmm::model::GeneAssociation;
 
 pub struct GeneRuleEval<'a, OR, AND> {
@@ -8,10 +10,24 @@ pub struct GeneRuleEval<'a, OR, AND> {
 
 impl<'a, OR: GeneRuleOp, AND: GeneRuleOp> GeneRuleEval<'_, OR, AND> {
     pub fn evaluate(&self, node: &GeneAssociation) -> f64 {
+        self.evaluate_debug(node, false)
+    }
+
+    pub fn evaluate_debug(&self, node: &GeneAssociation, debug: bool) -> f64 {
         match node {
-            GeneAssociation::Gene(gene_id) => self.gene_expr[gene_id.index()],
-            GeneAssociation::Or(vec) => self.or_op.apply(vec.iter().map(|x| self.evaluate(x))),
-            GeneAssociation::And(vec) => self.and_op.apply(vec.iter().map(|x| self.evaluate(x))),
+            GeneAssociation::Gene(gene_id) => {
+                let expr = self.gene_expr[gene_id.index()];
+                if debug {
+                    debug!("Gene {gene_id:?} has expr {expr}");
+                }
+                expr
+            }
+            GeneAssociation::Or(vec) => self
+                .or_op
+                .apply(vec.iter().map(|x| self.evaluate_debug(x, debug))),
+            GeneAssociation::And(vec) => self
+                .and_op
+                .apply(vec.iter().map(|x| self.evaluate_debug(x, debug))),
         }
     }
 }

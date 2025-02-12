@@ -17,7 +17,7 @@ pub struct Model {
 pub struct ModelConfig {
     pub model_name: String,
     pub species: Species,
-    pub remove_isoform_summing: bool,
+    pub isoform_summing: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

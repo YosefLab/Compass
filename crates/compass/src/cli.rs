@@ -36,8 +36,8 @@ pub struct MetabolicModelConfig {
     pub model: MetabolicModel,
     #[arg(value_enum, short, long, default_value_t = Species::MusMusculus)]
     pub species: Species,
-    #[arg(short, long, default_value_t = true)]
-    pub remove_isoform_summing: bool,
+    #[arg(long, default_value_t = false)]
+    pub isoform_summing: bool,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, ValueEnum)]

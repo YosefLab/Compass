@@ -151,10 +151,10 @@ pub fn parse_mat_model(config: ModelConfig, top_dir: &Path) -> Model {
             }
         })
         .map(|g| {
-            if config.remove_isoform_summing {
-                g.map(|g| g.remove_isoform_summing(&genes))
-            } else {
+            if config.isoform_summing {
                 g
+            } else {
+                g.map(|g| g.remove_isoform_summing(&genes))
             }
         })
         .collect::<Vec<_>>();

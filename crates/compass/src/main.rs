@@ -121,7 +121,7 @@ pub fn load_model(model: cli::MetabolicModelConfig) -> Model {
         ModelConfig {
             model_name: model.model.name().to_owned(),
             species: model.species,
-            remove_isoform_summing: model.remove_isoform_summing,
+            isoform_summing: model.isoform_summing,
         },
         &path,
     )
@@ -133,10 +133,23 @@ pub enum PaddingMode {
     NaN,
 }
 
+pub enum GeneResolutionMode {
+    /// Sum gene expression for all symbols of a gene
+    SumAll,
+    /// Look up gene expression by:
+    /// 1. The primary symbol of the gene
+    /// If 1 is not found, then:
+    /// 2. The mean of all alternative symbols
+    /// Returns NaN if no symbols are found
+    /// Note this is what the python code does.
+    PreferPrimary,
+}
+
 pub fn al_gore_rhythm(
     mut data: ExpressionData,
     model: Model,
     padding_mode: PaddingMode,
+    gene_mode: GeneResolutionMode,
     output: PathBuf,
 ) {
     println!("{:#?}", data.data.clone().first().collect().unwrap());
@@ -147,7 +160,7 @@ pub fn al_gore_rhythm(
 
     // Create a full list of the symbols the model can process along with the associated gene index
     // Join the gene index frame with the expression data
-    // Then sort and aggregate the data by gene index
+    // Then sort and aggregate the data by gene index so they are in the same order as the model.
     let mut symbol_vec = Vec::new();
     let mut index_vec = Vec::new();
     println!("Number of genes {}", model.genes().len());
@@ -178,10 +191,23 @@ pub fn al_gore_rhythm(
         col("*"),
     ]);
 
+    /*let debug_stuff = df
+        .clone()
+        .filter(col(data.gene_column.clone()).eq(lit("cyp2c29")))
+        //.filter(col(GENE_INDEX_KEY).eq(lit("CYP2C29")))
+        .select([col("Ob-DHA-e_S154_L007_R1_001")])
+        .collect()
+        .unwrap();
+    info!("Debug {:#?}", debug_stuff);*/
+
     // Here we
     // 1. Select the gene symbols that appear in the model
     // 2. Sort by the model's gene index
     // 3. Sum the data columns by the gene index
+    let null_filler = match padding_mode {
+        PaddingMode::Zero => 0.0,
+        PaddingMode::NaN => f64::NAN,
+    };
     let df = df
         .join(
             gene_df,
@@ -192,11 +218,7 @@ pub fn al_gore_rhythm(
         .sort([GENE_INDEX_KEY], Default::default())
         .group_by([col(GENE_INDEX_KEY)])
         .agg([
-            // TODO: Not propagating the NaNs here. Unsure if that's the best approach.
-            cols(data.data_columns.clone())
-                .fill_null(0.0)
-                .fill_nan(0.0)
-                .sum(),
+            cols(data.data_columns.clone()).fill_null(null_filler).sum(),
             col(GENE_LIST_KEY).flatten(),
         ]);
     // TODO: Other metabolic and_functions?
@@ -213,14 +235,14 @@ pub fn al_gore_rhythm(
     rxn_expr_cols.push(rxn_names);
     // Loop columns first, as the data columns are the memory-expensive parts.
     // TODO: Rayon here?
-    for gene in data.data_columns.clone() {
+    for sample in data.data_columns.clone() {
         // TODO: With polars, should I be cloning the lazy frame like this?
         // Then I can do this with only one column in memory at a time
-        let col_df = df.clone().select([col(gene.clone())]).collect().unwrap();
+        let col_df = df.clone().select([col(sample.clone())]).collect().unwrap();
         assert!(col_df.width() == 1);
         // The column height is limited by the number of genes in the model
         // So should be fine to just collect it all at once
-        let col = col_df.column(&gene).unwrap().f64().unwrap();
+        let col = col_df.column(&sample).unwrap().f64().unwrap();
         // Handling nulls here again technically.
         let data = col.iter().map(|f| f.unwrap_or(0.0)).collect::<Vec<_>>();
         let eval = penalties::GeneRuleEval {
@@ -232,17 +254,21 @@ pub fn al_gore_rhythm(
             .reactions()
             .iter()
             .map(|rxn| {
-                if let Some(rule) = rxn.rule() {
+                let res = if let Some(rule) = rxn.rule() {
                     eval.evaluate(rule)
                 } else {
                     // Hmm, is this the correct way to fill things without a rule?
                     0.0
+                };
+                if rxn.name() == "RE3310R" && sample == "Ob-DHA-e_S154_L007_R1_001" {
+                    eval.evaluate_debug(rxn.rule().unwrap(), true);
                 }
+                res
             })
             .map(|f| (f + 1.0).log2())
             .map(|f| 1.0 / (1.0 + f))
             .collect();
-        rxn_expr_cols.push(rxn_expr.with_name(gene).into());
+        rxn_expr_cols.push(rxn_expr.with_name(sample).into());
     }
     let mut rxn_expr_df = DataFrame::new(rxn_expr_cols).unwrap();
     println!("{:#?}", rxn_expr_df);

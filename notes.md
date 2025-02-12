@@ -206,6 +206,18 @@ It appears most of my results match the python code. 13DAMPPOX_pos vs my 13DAMPP
 
 Could it be the isoform summing? My rule for 13DAMPPOX is the same it appears, but I note that AOC2 appears twice. Yeah that fixed it.
 
+Okay the difference appears to be the gene symbols? The first 3 match and then everything else screws up. CYP4F12 vs CYP4F14. Oh is it human vs mouse? Yeah that fixed that the debugging it appears. The only difference I see is in the order of symbols? For python, using a set may result in an arbitrary order?
+
+Python {'CYP3A44', 'CYP3A41A', 'CYP3A41B', 'CYP3A11', 'CYP3A16'} vs ["CYP3A41B", "CYP3A16", "CYP3A11", "CYP3A41A", "CYP3A44"]
+
+Hmm, also note that in Gene eval_expression there is the alt_symbol matching option, which I don't support currently. Mostly because polars is pretty restrictive in comparison and requires nonzero effort vs pandas.
+
+Omg is it just the capitalization? CYP1A1 vs Cyp1a1 lmao. But no, there is already expression.index = expression.index.astype('str').str.upper()  # Gene names to upper. So why is Cyp1a1 not being accepted by the python code?
+
+Hmm, for the same reaction the python code is gettign a different number of genes to scan? 26 vs 15? Oh, my code is not trying to resolve ones without any symbols. I get different values than pandas though. Okay yeah my code is wrong somewhere. I get CYP2C29 with 942.02 rather than 812.79 (python and manually examining the file agree). Oh it looks like: (CYP2C29 + CYP2C38 + CYP2C39) 812.79 +  116.94 + 12.29 = 942.02, so it's because I am including the alt symbols.
+
+So once again consulting the python code, we see that Gene eval_expression will match by name and only use alt symbols if an exact match for the name could not be found, and takes the average across them. While my code just sums across all. Hmm, using polars I can probably change the filtering a bit. Not sure how efficient it will be though.
+
 Some options for plotting things
  1. ggplot - but then I have to use R. I don't want to do that, not for at least 10 years.
  1. seaborn - matplotlib, but in a very, very nice hat. Can do dataframe interchange protocol with polars? I'm also pretty used to seaborn. It's fairly nice.
