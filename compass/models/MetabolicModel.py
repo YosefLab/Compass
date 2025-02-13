@@ -521,7 +521,6 @@ class Association(object):
         elif self.type == 'gene':
 
             try:
-                print("Evaluating gene expression for: ", self.gene.name)
                 return self.gene.eval_expression(expression)
             except KeyError:
                 return float('nan')
@@ -598,7 +597,7 @@ class Gene(object):
 
         if self.name in expression.index:
             expr = expression[self.name]
-            print("Found in index", expr)
+            print(self.name, "found in index ",  expr)
             return expr
 
         # Average expression across found alt_symbols
@@ -606,7 +605,7 @@ class Gene(object):
         agg_expression = 0
         for symbol in self.alt_symbols:
             if symbol in expression.index:
-                print("Found alt symbol", symbol)
+                print(self.name, "found alt symbol", symbol)
                 agg_expression += expression[symbol]
                 found_symbols += 1
 

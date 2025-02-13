@@ -11,7 +11,7 @@ use gsmm::{
     model::{Model, ModelConfig, Species},
 };
 use polars::prelude::*;
-use tracing::info;
+use tracing::{info, warn};
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 fn main() {
@@ -32,7 +32,13 @@ fn main() {
             info!("Input data: {:?}", input_data);
             let data = read_expression_data(&input_data, gene_column);
             let model = load_model(model);
-            al_gore_rhythm(data, model, PaddingMode::Zero, output);
+            al_gore_rhythm(
+                data,
+                model,
+                PaddingMode::Zero,
+                GeneResolutionMode::PreferPrimary,
+                output,
+            );
         }
         Commands::ModelDebug { model, mode } => {
             let model = load_model(model);
@@ -97,7 +103,13 @@ pub fn read_expression_data(path: &Path, gene_column: Option<String>) -> Express
         })
         .collect::<Vec<_>>();
     info!("Detected {} data columns", data_columns.len());
-    let data = data.group_by([col(gene_col.clone())]).agg([col("*").sum()]);
+    // For all the data columns, sum the values by gene
+    let data = data
+        .group_by([col(gene_col.clone())])
+        .agg([cols(data_columns.clone()).sum()]);
+    warn!("Truncating data columns to 2 for debugging");
+    let data_columns: Vec<_> = data_columns.into_iter().take(2).collect();
+    let data = data.select([col(gene_col.clone()), cols(data_columns.clone())]);
     ExpressionData {
         data,
         gene_column: gene_col,
@@ -146,84 +158,16 @@ pub enum GeneResolutionMode {
 }
 
 pub fn al_gore_rhythm(
-    mut data: ExpressionData,
+    data: ExpressionData,
     model: Model,
     padding_mode: PaddingMode,
     gene_mode: GeneResolutionMode,
     output: PathBuf,
 ) {
-    println!("{:#?}", data.data.clone().first().collect().unwrap());
-    // This is a somewhat ugly way to construct things, but whatever
-    // The goal here is to transform the data such that only genes from the metabolic model are present
-    // And they any missing genes are padded with zeros (or NaNs, if configured that way)
-    // Then the gene evaluation can be done by a simple indexing operation.
+    let df = gene_expr(&data, &model, padding_mode, gene_mode).cache();
 
-    // Create a full list of the symbols the model can process along with the associated gene index
-    // Join the gene index frame with the expression data
-    // Then sort and aggregate the data by gene index so they are in the same order as the model.
-    let mut symbol_vec = Vec::new();
-    let mut index_vec = Vec::new();
-    println!("Number of genes {}", model.genes().len());
-    for (i, gene) in model.genes().iter().enumerate() {
-        for symbol in gene.get_symbols() {
-            symbol_vec.push(symbol.to_lowercase());
-            index_vec.push(i as u32);
-        }
-    }
-
-    // TODO: Alternative naming scheme for reserved keys?
-    const GENE_INDEX_KEY: &str = "_gene_index";
-    let gene_df = DataFrame::new(vec![
-        Column::new(data.gene_column.clone().into(), symbol_vec),
-        Column::new(GENE_INDEX_KEY.into(), index_vec),
-    ])
-    .unwrap()
-    .lazy();
-    println!("{:#?}", gene_df.clone().collect().unwrap());
-
-    // Turn the gene column into a list of strings
-    // Keep around the regular one for the join
-    const GENE_LIST_KEY: &str = "_gene_list";
-    let df = data.data.clone().select([
-        col(data.gene_column.clone())
-            .cast(DataType::List(Box::new(DataType::String)))
-            .alias(GENE_LIST_KEY),
-        col("*"),
-    ]);
-
-    /*let debug_stuff = df
-        .clone()
-        .filter(col(data.gene_column.clone()).eq(lit("cyp2c29")))
-        //.filter(col(GENE_INDEX_KEY).eq(lit("CYP2C29")))
-        .select([col("Ob-DHA-e_S154_L007_R1_001")])
-        .collect()
-        .unwrap();
-    info!("Debug {:#?}", debug_stuff);*/
-
-    // Here we
-    // 1. Select the gene symbols that appear in the model
-    // 2. Sort by the model's gene index
-    // 3. Sum the data columns by the gene index
-    let null_filler = match padding_mode {
-        PaddingMode::Zero => 0.0,
-        PaddingMode::NaN => f64::NAN,
-    };
-    let df = df
-        .join(
-            gene_df,
-            [col(data.gene_column.clone()).str().to_lowercase()],
-            [col(data.gene_column.clone()).str().to_lowercase()],
-            JoinArgs::new(JoinType::Right),
-        )
-        .sort([GENE_INDEX_KEY], Default::default())
-        .group_by([col(GENE_INDEX_KEY)])
-        .agg([
-            cols(data.data_columns.clone()).fill_null(null_filler).sum(),
-            col(GENE_LIST_KEY).flatten(),
-        ]);
     // TODO: Other metabolic and_functions?
     // For now, default to AND=mean and OR=sum. Which should be doable as a matrix multiplication, no?
-    let df = df.cache();
     let mut rxn_expr_cols = Vec::new();
     let rxn_names = model
         .reactions()
@@ -294,4 +238,169 @@ pub fn al_gore_rhythm(
     // Then join again on the gene_df, padding all columns with zeros for missing genes.
     // Replace gene symbol with canonical one from the model?
     // Yeah for debugging keep around list of them.
+}
+
+fn gene_expr(
+    data: &ExpressionData,
+    model: &Model,
+    padding_mode: PaddingMode,
+    gene_mode: GeneResolutionMode,
+) -> LazyFrame {
+    println!("{:#?}", data.data.clone().first().collect().unwrap());
+    // This is a somewhat ugly way to construct things, but whatever
+    // The goal here is to transform the data such that only genes from the metabolic model are present
+    // And they any missing genes are padded with zeros (or NaNs, if configured that way)
+    // Then the gene evaluation can be done by a simple indexing operation.
+
+    // Create a full list of the symbols the model can process along with the associated gene index
+    // Join the gene index frame with the expression data
+    // Then sort and aggregate the data by gene index so they are in the same order as the model.
+    let mut symbol_vec = Vec::new();
+    let mut is_primary_symbol = Vec::new();
+    let mut index_vec = Vec::new();
+    println!("Number of genes {}", model.genes().len());
+    for (i, gene) in model.genes().iter().enumerate() {
+        let name = gene.name();
+        for symbol in gene.get_symbols() {
+            // TODO: This is a hack that relies on the internal detail
+            // that name is the first element of the list.
+            if std::ptr::eq(name, symbol.as_str()) {
+                is_primary_symbol.push(true);
+            } else {
+                is_primary_symbol.push(false);
+            }
+            symbol_vec.push(symbol.to_lowercase());
+            index_vec.push(i as u32);
+        }
+    }
+
+    // TODO: Alternative naming scheme for reserved keys?
+    const GENE_INDEX_KEY: &str = "_gene_index";
+    const GENE_PRIMARY_KEY: &str = "_gene_primary";
+    let gene_df = DataFrame::new(vec![
+        Column::new(data.gene_column.clone().into(), symbol_vec),
+        Column::new(GENE_INDEX_KEY.into(), index_vec),
+        Column::new(GENE_PRIMARY_KEY.into(), is_primary_symbol),
+    ])
+    .unwrap()
+    .lazy();
+    /*let debug_gene_df = gene_df.clone().collect().unwrap();
+    println!("{debug_gene_df:#?}");
+    println!(
+        "{:#?}",
+        debug_gene_df
+            .lazy()
+            .filter(col(GENE_PRIMARY_KEY))
+            .collect()
+            .unwrap()
+    );*/
+
+    // Turn the gene column into a list of strings
+    // Keep around the regular one for the join
+    const GENE_LIST_KEY: &str = "_gene_list";
+    let df = data.data.clone().select([
+        col(data.gene_column.clone())
+            .cast(DataType::List(Box::new(DataType::String)))
+            .alias(GENE_LIST_KEY),
+        col("*"),
+    ]);
+
+    /*let debug_stuff = df
+        .clone()
+        .filter(col(data.gene_column.clone()).eq(lit("cyp2c29")))
+        //.filter(col(GENE_INDEX_KEY).eq(lit("CYP2C29")))
+        .select([col("Ob-DHA-e_S154_L007_R1_001")])
+        .collect()
+        .unwrap();
+    info!("Debug {:#?}", debug_stuff);*/
+    let df = df.join(
+        gene_df,
+        [col(data.gene_column.clone()).str().to_lowercase()],
+        [col(data.gene_column.clone()).str().to_lowercase()],
+        JoinArgs::new(JoinType::Right),
+    );
+    // Here we
+    // 1. Select the gene symbols that appear in the model
+    // 2. Sort by the model's gene index
+    // 3. Sum the data columns by the gene index
+    let null_filler = match padding_mode {
+        PaddingMode::Zero => 0.0,
+        PaddingMode::NaN => f64::NAN,
+    };
+    match gene_mode {
+        GeneResolutionMode::SumAll => df
+            .sort([GENE_INDEX_KEY], Default::default())
+            .group_by([col(GENE_INDEX_KEY)])
+            .agg([
+                cols(data.data_columns.clone()).fill_null(null_filler).sum(),
+                col(GENE_LIST_KEY).flatten(),
+            ]),
+        GeneResolutionMode::PreferPrimary => {
+            // First, add the secondary expression to the data frame
+            // This is the mean of all alternative symbols
+            let primary_expr = df
+                .clone()
+                .filter(col(GENE_PRIMARY_KEY))
+                .sort([GENE_INDEX_KEY], Default::default())
+                .group_by([col(GENE_INDEX_KEY)])
+                .agg([
+                    cols(data.data_columns.clone()).sum(),
+                    col(GENE_LIST_KEY).flatten(),
+                ]);
+
+            let secondary_expr = df
+                .clone()
+                .filter(not(col(GENE_PRIMARY_KEY)))
+                .sort([GENE_INDEX_KEY], Default::default())
+                .group_by([col(GENE_INDEX_KEY)])
+                .agg([
+                    // Drop NaNs to ensure they aren't included in the mean
+                    cols(data.data_columns.clone()).drop_nans().mean(),
+                    col(GENE_LIST_KEY).flatten(),
+                ]);
+
+            let combined_expr = primary_expr.join(
+                secondary_expr,
+                [col(GENE_INDEX_KEY)],
+                [col(GENE_INDEX_KEY)],
+                JoinArgs::new(JoinType::Full),
+            );
+
+            let combined_expr = combined_expr.select(
+                data.data_columns
+                    .iter()
+                    .map(|col_name| {
+                        col(col_name.clone())
+                            .fill_null(col(format!("{}_right", col_name)))
+                            .alias(col_name.clone())
+                    })
+                    .collect::<Vec<_>>(),
+            );
+
+            combined_expr
+
+            /*let secondary_expr = df
+                .clone()
+                .filter(not(col(GENE_PRIMARY_KEY)))
+                .sort([GENE_INDEX_KEY], Default::default())
+                .group_by([col(GENE_INDEX_KEY)])
+                .agg([
+                    cols(data.data_columns.clone())
+                        .fill_null(null_filler)
+                        .mean(),
+                    col(GENE_LIST_KEY).flatten(),
+                ]);
+            // Then we need to fill nulls in the primary expression with the secondary expression
+
+            let primary_expr = df
+            .clone()
+            .select(when(col(GENE_PRIMARY_KEY))
+                .then(col("*"))
+                .otherwise()
+                )
+            .filter(col(GENE_PRIMARY_KEY))
+            .sort([GENE_INDEX_KEY], Default::default()).fill_null(secondary_expr.);
+            todo!();*/
+        }
+    }
 }

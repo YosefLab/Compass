@@ -218,6 +218,8 @@ Hmm, for the same reaction the python code is gettign a different number of gene
 
 So once again consulting the python code, we see that Gene eval_expression will match by name and only use alt symbols if an exact match for the name could not be found, and takes the average across them. While my code just sums across all. Hmm, using polars I can probably change the filtering a bit. Not sure how efficient it will be though.
 
+So I think these new changes should work.
+
 Some options for plotting things
  1. ggplot - but then I have to use R. I don't want to do that, not for at least 10 years.
  1. seaborn - matplotlib, but in a very, very nice hat. Can do dataframe interchange protocol with polars? I'm also pretty used to seaborn. It's fairly nice.
