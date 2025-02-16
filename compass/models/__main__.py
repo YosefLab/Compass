@@ -1,5 +1,5 @@
 from . import load_metabolic_model, init_model
-from .MetabolicModel import sum_wo_nan, min_w_nan
+from .MetabolicModel import sum_wo_nan, mean_nan_zero
 import pandas as pd
 
 # Mucking about with this code while on a machine without cplex.
@@ -24,8 +24,8 @@ if __name__ == '__main__':
     #print(model.reactions["AKGDm"].gene_associations)
     #print(model.reactions["ALCD1"].gene_associations)
     # One with OR -> AND -> OR. Potentially a concern for associativity of the parsing?
-    print(model.reactions["ENO"].gene_associations)
-    print(model.reactions["ENO"].eval_expression(sample_expression, min_w_nan, sum_wo_nan))
+    print(model.reactions["r0739"].gene_associations)
+    print(model.reactions["r0739"].eval_expression(sample_expression, mean_nan_zero, sum_wo_nan))
     # Big ones, probably get deeply nested
     #"ATPasel"
     #"ATPS4m"

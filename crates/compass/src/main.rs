@@ -2,7 +2,10 @@ mod cli;
 mod model_debug;
 mod penalties;
 
-use std::path::{Path, PathBuf};
+use std::{
+    collections::BTreeSet,
+    path::{Path, PathBuf},
+};
 
 use clap::Parser;
 use cli::{Commands, CompassCli, ModelDebugMode};
@@ -189,6 +192,12 @@ pub fn al_gore_rhythm(
         let col = col_df.column(&sample).unwrap().f64().unwrap();
         // Handling nulls here again technically.
         let data = col.iter().map(|f| f.unwrap_or(0.0)).collect::<Vec<_>>();
+        info!(
+            "Sample {} has {} or {} genes",
+            sample,
+            data.len(),
+            col.len()
+        );
         let eval = penalties::GeneRuleEval {
             gene_expr: &data,
             or_op: penalties::GeneOrSum,
@@ -204,7 +213,7 @@ pub fn al_gore_rhythm(
                     // Hmm, is this the correct way to fill things without a rule?
                     0.0
                 };
-                if rxn.name() == "ENO" && sample == "Ob-DHA-e_S154_L007_R1_001" {
+                if rxn.name() == "r0739" && sample == "Ob-DHA-e_S154_L007_R1_001" {
                     eval.evaluate_debug(rxn.rule().unwrap(), true);
                 }
                 res
@@ -260,19 +269,34 @@ fn gene_expr(
     let mut index_vec = Vec::new();
     println!("Number of genes {}", model.genes().len());
     for (i, gene) in model.genes().iter().enumerate() {
-        let name = gene.name();
-        for symbol in gene.get_symbols() {
-            // TODO: This is a hack that relies on the internal detail
-            // that name is the first element of the list.
-            if std::ptr::eq(name, symbol.as_str()) {
-                is_primary_symbol.push(true);
-            } else {
-                is_primary_symbol.push(false);
+        if let Some(name) = gene.name() {
+            for symbol in gene.get_symbols() {
+                if name == symbol.as_str() {
+                    is_primary_symbol.push(Some(true));
+                } else {
+                    is_primary_symbol.push(Some(false));
+                }
+                symbol_vec.push(Some(symbol.to_lowercase()));
+                index_vec.push(i as u32);
             }
-            symbol_vec.push(symbol.to_lowercase());
+        } else {
+            symbol_vec.push(None);
+            is_primary_symbol.push(None);
             index_vec.push(i as u32);
         }
     }
+
+    /*let mut seen_indices =
+        BTreeSet::from_iter((0..model.genes().len()).into_iter().map(|x| x as u32));
+    for index in index_vec.iter() {
+        seen_indices.remove(index);
+    }
+    for index in seen_indices {
+        // We need the index to have the correct number of genes around
+        symbol_vec.push(None);
+        is_primary_symbol.push(None);
+        index_vec.push(index);
+    }*/
 
     // TODO: Alternative naming scheme for reserved keys?
     const GENE_INDEX_KEY: &str = "_gene_index";
@@ -282,8 +306,9 @@ fn gene_expr(
         Column::new(GENE_INDEX_KEY.into(), index_vec),
         Column::new(GENE_PRIMARY_KEY.into(), is_primary_symbol),
     ])
-    .unwrap()
-    .lazy();
+    .unwrap();
+    println!("Gene df: {gene_df:#?}");
+    let gene_df = gene_df.lazy();
     /*let debug_gene_df = gene_df.clone().collect().unwrap();
     println!("{debug_gene_df:#?}");
     println!(
@@ -327,7 +352,7 @@ fn gene_expr(
         PaddingMode::Zero => 0.0,
         PaddingMode::NaN => f64::NAN,
     };
-    match gene_mode {
+    let expr = match gene_mode {
         GeneResolutionMode::SumAll => df
             .sort([GENE_INDEX_KEY], Default::default())
             .group_by([col(GENE_INDEX_KEY)])
@@ -353,10 +378,10 @@ fn gene_expr(
             df.clone()
                 .group_by([col(GENE_INDEX_KEY)])
                 .agg([cols(data.data_columns.clone()).is_null().sum()]);*/
-            let nulls = primary_expr
+            /*let nulls = primary_expr
                 .clone()
                 .select([cols(data.data_columns.clone()).is_null().sum()]);
-            println!("Nulls: {:#?}", nulls.collect().unwrap());
+            println!("Nulls: {:#?}", nulls.collect().unwrap());*/
 
             let secondary_expr = df
                 .clone()
@@ -423,5 +448,7 @@ fn gene_expr(
             .sort([GENE_INDEX_KEY], Default::default()).fill_null(secondary_expr.);
             todo!();*/
         }
-    }
+    };
+    println!("Expr: {:#?}", expr.clone().collect().unwrap());
+    expr
 }

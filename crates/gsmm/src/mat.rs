@@ -54,12 +54,20 @@ pub fn parse_mat_model(config: ModelConfig, top_dir: &Path) -> Model {
         .zip(gtx)
         .map(|(entrez, idx)| {
             let non_i = idx - 1;
-            let primary_symbol = gene_symbols[non_i as usize].clone();
-            let mut symbols = vec![primary_symbol.clone()];
+            // Treat "" as a missing symbol.
+            let primary_symbol = if gene_symbols[non_i as usize].len() > 0 {
+                Some(gene_symbols[non_i as usize].clone())
+            } else {
+                None
+            };
+            let mut symbols = vec![];
+            if let Some(symbol) = &primary_symbol {
+                symbols.push(symbol.clone());
+            }
             if let Some(alt_symbols) = gene_alt_symbols.get(non_i as usize) {
                 for symbol in alt_symbols.iter() {
                     // Filter out repeats of the primary symbol
-                    if primary_symbol != *symbol {
+                    if primary_symbol.as_ref() != Some(symbol) {
                         symbols.push(symbol.clone());
                     }
                 }

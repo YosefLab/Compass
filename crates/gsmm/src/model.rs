@@ -1,7 +1,4 @@
-use std::{
-    collections::BTreeSet,
-    fmt::Display,
-};
+use std::{collections::BTreeSet, fmt::Display};
 
 pub struct Model {
     pub config: ModelConfig,
@@ -161,7 +158,11 @@ impl GeneAssociation {
                 for expr in vec {
                     match expr {
                         v @ GeneAssociation::Gene(gene_id) => {
-                            if seen.insert(genes[gene_id.id].name()) {
+                            if let Some(name) = genes[gene_id.id].name() {
+                                if seen.insert(name) {
+                                    new.push(v.clone());
+                                }
+                            } else {
                                 new.push(v.clone());
                             }
                         }
@@ -256,7 +257,7 @@ impl Gene {
     }
 
     /// Returns the primary symbol of the gene.
-    pub fn name(&self) -> &str {
-        &self.symbols[0]
+    pub fn name(&self) -> Option<&str> {
+        self.symbols.get(0).map(|x| x.as_str())
     }
 }

@@ -507,16 +507,20 @@ class Association(object):
         """
 
         if self.type == 'and':
-            return and_function(
+            res = and_function(
                     [x.eval_expression(expression, and_function, or_function)
                      for x in self.children]
                     )
+            print("AND result", res)
+            return res
 
         elif self.type == 'or':
-            return or_function(
+            res = or_function(
                     [x.eval_expression(expression, and_function, or_function)
                      for x in self.children]
                     )
+            print("OR result", res)
+            return res
 
         elif self.type == 'gene':
 

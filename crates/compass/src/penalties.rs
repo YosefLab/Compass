@@ -22,12 +22,24 @@ impl<'a, OR: GeneRuleOp, AND: GeneRuleOp> GeneRuleEval<'_, OR, AND> {
                 }
                 expr
             }
-            GeneAssociation::Or(vec) => self
-                .or_op
-                .apply(vec.iter().map(|x| self.evaluate_debug(x, debug))),
-            GeneAssociation::And(vec) => self
-                .and_op
-                .apply(vec.iter().map(|x| self.evaluate_debug(x, debug))),
+            GeneAssociation::Or(vec) => {
+                let expr = self
+                    .or_op
+                    .apply(vec.iter().map(|x| self.evaluate_debug(x, debug)));
+                if debug {
+                    debug!("Or expr {expr}");
+                }
+                expr
+            }
+            GeneAssociation::And(vec) => {
+                let expr = self
+                    .and_op
+                    .apply(vec.iter().map(|x| self.evaluate_debug(x, debug)));
+                if debug {
+                    debug!("And expr {expr}");
+                }
+                expr
+            }
         }
     }
 }
