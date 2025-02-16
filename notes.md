@@ -220,6 +220,22 @@ So once again consulting the python code, we see that Gene eval_expression will 
 
 So I think these new changes should work.
 
+Okay, so it appears my secondary code is not quite cooperating. We have python:
+```
+ENO1B found alt symbol ENO1 expression 738.88
+ENO3 found in index expression 3.43
+ENO2 found in index expression 0.45
+```
+Rust:
+```
+2025-02-13T13:46:01.116242Z DEBUG compass::penalties: compass/src/penalties.rs:21: Gene GeneId { id: 743 } has expr 0
+2025-02-13T13:46:01.116274Z DEBUG compass::penalties: compass/src/penalties.rs:21: Gene GeneId { id: 744 } has expr 3.4299999999999997
+2025-02-13T13:46:01.116293Z DEBUG compass::penalties: compass/src/penalties.rs:21: Gene GeneId { id: 746 } has expr 0.45
+```
+So this is not resolving the alt symbol ENO1
+
+## Plotting?
+
 Some options for plotting things
  1. ggplot - but then I have to use R. I don't want to do that, not for at least 10 years.
  1. seaborn - matplotlib, but in a very, very nice hat. Can do dataframe interchange protocol with polars? I'm also pretty used to seaborn. It's fairly nice.

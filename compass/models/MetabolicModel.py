@@ -597,7 +597,7 @@ class Gene(object):
 
         if self.name in expression.index:
             expr = expression[self.name]
-            print(self.name, "found in index ",  expr)
+            print(self.name, "found in index expression",  expr)
             return expr
 
         # Average expression across found alt_symbols
@@ -605,7 +605,7 @@ class Gene(object):
         agg_expression = 0
         for symbol in self.alt_symbols:
             if symbol in expression.index:
-                print(self.name, "found alt symbol", symbol)
+                print(self.name, "found alt symbol", symbol, "expression", expression[symbol])
                 agg_expression += expression[symbol]
                 found_symbols += 1
 

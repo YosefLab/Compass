@@ -8,17 +8,17 @@ use clap::Parser;
 use cli::{Commands, CompassCli, ModelDebugMode};
 use gsmm::{
     mat::parse_mat_model,
-    model::{Model, ModelConfig, Species},
+    model::{Model, ModelConfig},
 };
 use polars::prelude::*;
-use tracing::{info, warn};
+use tracing::info;
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 fn main() {
     let args = CompassCli::parse();
 
     tracing_subscriber::registry()
-        .with(fmt::layer())
+        .with(fmt::layer().with_file(true).with_line_number(true))
         .with(EnvFilter::from_default_env())
         .init();
 
@@ -107,9 +107,9 @@ pub fn read_expression_data(path: &Path, gene_column: Option<String>) -> Express
     let data = data
         .group_by([col(gene_col.clone())])
         .agg([cols(data_columns.clone()).sum()]);
-    warn!("Truncating data columns to 2 for debugging");
-    let data_columns: Vec<_> = data_columns.into_iter().take(2).collect();
-    let data = data.select([col(gene_col.clone()), cols(data_columns.clone())]);
+    //warn!("Truncating data columns to 2 for debugging");
+    //let data_columns: Vec<_> = data_columns.into_iter().take(2).collect();
+    //let data = data.select([col(gene_col.clone()), cols(data_columns.clone())]);
     ExpressionData {
         data,
         gene_column: gene_col,
@@ -204,7 +204,7 @@ pub fn al_gore_rhythm(
                     // Hmm, is this the correct way to fill things without a rule?
                     0.0
                 };
-                if rxn.name() == "RE3310R" && sample == "Ob-DHA-e_S154_L007_R1_001" {
+                if rxn.name() == "ENO" && sample == "Ob-DHA-e_S154_L007_R1_001" {
                     eval.evaluate_debug(rxn.rule().unwrap(), true);
                 }
                 res
@@ -344,9 +344,19 @@ fn gene_expr(
                 .sort([GENE_INDEX_KEY], Default::default())
                 .group_by([col(GENE_INDEX_KEY)])
                 .agg([
-                    cols(data.data_columns.clone()).sum(),
+                    when(cols(data.data_columns.clone()).count().gt(0))
+                        .then(cols(data.data_columns.clone()).sum())
+                        .otherwise(lit(NULL)),
                     col(GENE_LIST_KEY).flatten(),
                 ]);
+            /*let nulls =
+            df.clone()
+                .group_by([col(GENE_INDEX_KEY)])
+                .agg([cols(data.data_columns.clone()).is_null().sum()]);*/
+            let nulls = primary_expr
+                .clone()
+                .select([cols(data.data_columns.clone()).is_null().sum()]);
+            println!("Nulls: {:#?}", nulls.collect().unwrap());
 
             let secondary_expr = df
                 .clone()
@@ -359,12 +369,23 @@ fn gene_expr(
                     col(GENE_LIST_KEY).flatten(),
                 ]);
 
-            let combined_expr = primary_expr.join(
-                secondary_expr,
-                [col(GENE_INDEX_KEY)],
-                [col(GENE_INDEX_KEY)],
-                JoinArgs::new(JoinType::Full),
+            println!(
+                "Secondary expr: {:#?}",
+                secondary_expr
+                    .clone()
+                    .filter(col(GENE_INDEX_KEY).gt_eq(lit(743)))
+                    .collect()
+                    .unwrap()
             );
+
+            let combined_expr = primary_expr
+                .join(
+                    secondary_expr,
+                    [col(GENE_INDEX_KEY)],
+                    [col(GENE_INDEX_KEY)],
+                    JoinArgs::new(JoinType::Full),
+                )
+                .sort([GENE_INDEX_KEY], Default::default());
 
             let combined_expr = combined_expr.select(
                 data.data_columns

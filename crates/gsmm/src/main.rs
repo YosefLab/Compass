@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, fmt::Display, fs::read_to_string, mem};
+use std::{collections::BTreeMap, fmt::Display, mem};
 
 use gsmm::{
     mat::parse_mat_model,

@@ -1,4 +1,4 @@
-use gsmm::model::{self, Model};
+use gsmm::model::{Model};
 
 pub fn list_reactions(model: Model) {
     for reaction in model.reactions() {
