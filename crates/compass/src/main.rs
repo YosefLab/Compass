@@ -303,7 +303,7 @@ fn gene_expr(
     const GENE_PRIMARY_KEY: &str = "_gene_primary";
     let gene_df = DataFrame::new(vec![
         Column::new(data.gene_column.clone().into(), symbol_vec),
-        Column::new(GENE_INDEX_KEY.into(), index_vec),
+        Column::new(GENE_INDEX_KEY.into(), index_vec.clone()),
         Column::new(GENE_PRIMARY_KEY.into(), is_primary_symbol),
     ])
     .unwrap();
@@ -374,14 +374,6 @@ fn gene_expr(
                         .otherwise(lit(NULL)),
                     col(GENE_LIST_KEY).flatten(),
                 ]);
-            /*let nulls =
-            df.clone()
-                .group_by([col(GENE_INDEX_KEY)])
-                .agg([cols(data.data_columns.clone()).is_null().sum()]);*/
-            /*let nulls = primary_expr
-                .clone()
-                .select([cols(data.data_columns.clone()).is_null().sum()]);
-            println!("Nulls: {:#?}", nulls.collect().unwrap());*/
 
             let secondary_expr = df
                 .clone()
@@ -395,13 +387,18 @@ fn gene_expr(
                 ]);
 
             println!(
-                "Secondary expr: {:#?}",
-                secondary_expr
-                    .clone()
-                    .filter(col(GENE_INDEX_KEY).gt_eq(lit(743)))
-                    .collect()
-                    .unwrap()
+                "Primary expr: {:#?}",
+                primary_expr.clone().collect().unwrap().shape()
             );
+
+            println!(
+                "Secondary expr: {:#?}",
+                secondary_expr.clone().collect().unwrap().shape()
+            );
+
+            let index_df = DataFrame::new(vec![Column::new(GENE_INDEX_KEY.into(), index_vec)])
+                .unwrap()
+                .lazy();
 
             let combined_expr = primary_expr
                 .join(
@@ -409,6 +406,13 @@ fn gene_expr(
                     [col(GENE_INDEX_KEY)],
                     [col(GENE_INDEX_KEY)],
                     JoinArgs::new(JoinType::Full),
+                )
+                // Need to padd gene index s.t. all genes are present
+                .join(
+                    index_df,
+                    [col(GENE_INDEX_KEY)],
+                    [col(GENE_INDEX_KEY)],
+                    JoinArgs::new(JoinType::Right),
                 )
                 .sort([GENE_INDEX_KEY], Default::default());
 
