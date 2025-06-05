@@ -98,8 +98,8 @@ def filterGenesThreshold(data, threshold):
 
 def filterGenesFano(data, num_mad=2):
     #Could sample columns at random to improve runtime
-    mu = data.mean(axis=1).ravel()
-    fano = data.var(axis=1).ravel() / mu
+    mu = data.mean(axis=1).to_numpy()
+    fano = data.var(axis=1).to_numpy() / mu
     
     mu_argsort = np.argsort(mu)
     mu_sort = mu[mu_argsort]
@@ -178,7 +178,7 @@ def pool_matrix_cols(data, pools):
         for i in pools[g]:
             groups[data.columns[i]] = g
     groups = pd.DataFrame.from_dict(groups, orient='index', columns=['compass_microcluster']).T
-    return data.append(groups).T.groupby("compass_microcluster").mean().T.rename(mapper=lambda x: 'cluster_'+str(int(x)), axis=1)
+    return pd.concat([data, groups]).T.groupby("compass_microcluster").mean().T.rename(mapper=lambda x: 'cluster_'+str(int(x)), axis=1)
 
 def unpool_columns(pooled_data, pools, data):
     unpooled_cols = []
