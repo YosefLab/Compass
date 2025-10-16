@@ -5,7 +5,9 @@
 
 use std::{fs::read_to_string, mem, path::Path};
 
-use crate::model::{Gene, GeneAssociation, GeneId, Model, Species};
+use itertools::izip;
+
+use crate::model::{Gene, GeneAssociation, GeneIndex, Metabolite, Model, Reaction, Species};
 
 pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
     let model_dir = top_dir.join("model");
@@ -53,6 +55,7 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
                 id: id.to_string(),
                 non_i, // TODO: This index might be unused after this point
                 name: gene_symbols[non_i as usize].clone(),
+                // Note that gene_alt_symbols may be empty, therefore cannot zip
                 alt_symbols: gene_alt_symbols
                     .get(non_i as usize)
                     .unwrap_or(&Vec::new())
@@ -110,7 +113,64 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
             }
         })
         .collect::<Vec<_>>();
-    todo!()
+    assert_eq!(rxns.len(), rules.len());
+
+    let reactions = izip!(
+        rxns,
+        rxn_names,
+        lb,
+        ub,
+        subsystems,
+        rules
+    ).map(|(id, name, lb, ub, subsystem, rule)| {
+        Reaction {
+            id,
+            name,
+            lb,
+            ub,
+            subsystem,
+            rule,
+        }
+    }).collect();
+
+    let mets = serde_json::from_str::<Vec<String>>(
+        &read_to_string(model_dir.join("model.mets.json")).unwrap(),
+    )
+    .unwrap();
+
+    let met_formulas = serde_json::from_str::<Vec<String>>(
+        &read_to_string(model_dir.join("model.metFormulas.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(mets.len(), met_formulas.len());
+
+    let kegg_ids = serde_json::from_str::<Vec<String>>(
+        &read_to_string(model_dir.join("model.metKeggID.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(mets.len(), kegg_ids.len());
+
+    let met_names = serde_json::from_str::<Vec<String>>(
+        &read_to_string(model_dir.join("model.metNames.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(mets.len(), met_names.len());
+
+    let metabolites = izip!(mets, met_names, met_formulas, kegg_ids)
+        .map(|(id, name, formula, kegg_id)| Metabolite {
+            id,
+            name,
+            formula,
+            kegg_id,
+        })
+        .collect::<Vec<_>>();
+
+    Model {
+        genes,
+        reactions,
+        metabolites,
+        species,
+    }
 }
 
 // TODO: add reference to the text source for debugging?
@@ -120,13 +180,13 @@ pub enum Token {
     RightParen,
     Or,
     And,
-    Gene(GeneId),
+    Gene(GeneIndex),
 }
 
 // The token tree applies parentheses, but no other semantics.
 #[derive(Debug)]
 enum TokenTree {
-    Gene(GeneId),
+    Gene(GeneIndex),
     Or,
     And,
     TreeVec(Vec<TokenTree>),
@@ -162,7 +222,7 @@ impl Token {
                         panic!("Failed to parse number from {num_text}: {e}\n{rule}");
                     });
                     // The numbers in the json are treated as 1-indexed, so subtract that here
-                    tokens.push(Token::Gene(GeneId { id: num - 1 }));
+                    tokens.push(Token::Gene(GeneIndex { id: num - 1 }));
                 }
                 '|' => {
                     tokens.push(Token::Or);
@@ -281,19 +341,19 @@ pub mod tests {
         const RULE_OR: &str = "(x(20)) | (x(17)) | (x(19)) | (x(18))";
         const TOKENS_OR: &[Token] = &[
             Token::LeftParen,
-            Token::Gene(GeneId { id: 19 }),
+            Token::Gene(GeneIndex { id: 19 }),
             Token::RightParen,
             Token::Or,
             Token::LeftParen,
-            Token::Gene(GeneId { id: 16 }),
+            Token::Gene(GeneIndex { id: 16 }),
             Token::RightParen,
             Token::Or,
             Token::LeftParen,
-            Token::Gene(GeneId { id: 18 }),
+            Token::Gene(GeneIndex { id: 18 }),
             Token::RightParen,
             Token::Or,
             Token::LeftParen,
-            Token::Gene(GeneId { id: 17 }),
+            Token::Gene(GeneIndex { id: 17 }),
             Token::RightParen,
         ];
 
@@ -306,19 +366,19 @@ pub mod tests {
         const RULE_AND: &str = "(x(21)) & (x(18)) & (x(22)) & (x(16))";
         const TOKENS_AND: &[Token] = &[
             Token::LeftParen,
-            Token::Gene(GeneId { id: 20 }),
+            Token::Gene(GeneIndex { id: 20 }),
             Token::RightParen,
             Token::And,
             Token::LeftParen,
-            Token::Gene(GeneId { id: 17 }),
+            Token::Gene(GeneIndex { id: 17 }),
             Token::RightParen,
             Token::And,
             Token::LeftParen,
-            Token::Gene(GeneId { id: 21 }),
+            Token::Gene(GeneIndex { id: 21 }),
             Token::RightParen,
             Token::And,
             Token::LeftParen,
-            Token::Gene(GeneId { id: 15 }),
+            Token::Gene(GeneIndex { id: 15 }),
             Token::RightParen,
         ];
 
@@ -331,19 +391,19 @@ pub mod tests {
         const RULE_BOTH: &str = "(x(1)) & (x(3)) | (x(4)) & (x(7))";
         const TOKENS_BOTH: &[Token] = &[
             Token::LeftParen,
-            Token::Gene(GeneId { id: 0 }),
+            Token::Gene(GeneIndex { id: 0 }),
             Token::RightParen,
             Token::And,
             Token::LeftParen,
-            Token::Gene(GeneId { id: 2 }),
+            Token::Gene(GeneIndex { id: 2 }),
             Token::RightParen,
             Token::Or,
             Token::LeftParen,
-            Token::Gene(GeneId { id: 3 }),
+            Token::Gene(GeneIndex { id: 3 }),
             Token::RightParen,
             Token::And,
             Token::LeftParen,
-            Token::Gene(GeneId { id: 6 }),
+            Token::Gene(GeneIndex { id: 6 }),
             Token::RightParen,
         ];
 
@@ -376,20 +436,20 @@ pub mod tests {
         let expected : GeneAssociation = 
         GeneAssociation::Or(vec![
             GeneAssociation::And(vec![
-                GeneAssociation::Gene(GeneId { id: 971 }),
+                GeneAssociation::Gene(GeneIndex { id: 971 }),
                 GeneAssociation::And(vec![
-                    GeneAssociation::Gene(GeneId { id: 317 }),
-                    GeneAssociation::Gene(GeneId { id: 1661 }),
+                    GeneAssociation::Gene(GeneIndex { id: 317 }),
+                    GeneAssociation::Gene(GeneIndex { id: 1661 }),
                 ]),
-                GeneAssociation::Gene(GeneId { id: 318 }),
+                GeneAssociation::Gene(GeneIndex { id: 318 }),
             ]),
             GeneAssociation::And(vec![
-                GeneAssociation::Gene(GeneId { id: 972 }),
+                GeneAssociation::Gene(GeneIndex { id: 972 }),
                 GeneAssociation::And(vec![
-                    GeneAssociation::Gene(GeneId { id: 317 }),
-                    GeneAssociation::Gene(GeneId { id: 1661 }),
+                    GeneAssociation::Gene(GeneIndex { id: 317 }),
+                    GeneAssociation::Gene(GeneIndex { id: 1661 }),
                 ]),
-                GeneAssociation::Gene(GeneId { id: 318 }),
+                GeneAssociation::Gene(GeneIndex { id: 318 }),
             ]),
         ]);
         let tokens = Token::tokenize(EXAMPLE_RULE);
@@ -444,48 +504,48 @@ pub mod tests {
         let expected : GeneAssociation = 
         GeneAssociation::Or(vec![
             GeneAssociation::And(vec![
-                GeneAssociation::Gene(GeneId { id: 940 }),
-                GeneAssociation::Gene(GeneId { id: 937 }),
+                GeneAssociation::Gene(GeneIndex { id: 940 }),
+                GeneAssociation::Gene(GeneIndex { id: 937 }),
             ]),
             GeneAssociation::And(vec![
-                GeneAssociation::Gene(GeneId { id: 936 }),
-                GeneAssociation::Gene(GeneId { id: 450 }),
+                GeneAssociation::Gene(GeneIndex { id: 936 }),
+                GeneAssociation::Gene(GeneIndex { id: 450 }),
             ]),
             GeneAssociation::And(vec![
-                GeneAssociation::Gene(GeneId { id: 942 }),
-                GeneAssociation::Gene(GeneId { id: 935 }),
+                GeneAssociation::Gene(GeneIndex { id: 942 }),
+                GeneAssociation::Gene(GeneIndex { id: 935 }),
             ]),
             GeneAssociation::And(vec![
-                GeneAssociation::Gene(GeneId { id: 940 }),
-                GeneAssociation::Gene(GeneId { id: 939 }),
+                GeneAssociation::Gene(GeneIndex { id: 940 }),
+                GeneAssociation::Gene(GeneIndex { id: 939 }),
             ]),
             GeneAssociation::And(vec![
-                GeneAssociation::Gene(GeneId { id: 941 }),
-                GeneAssociation::Gene(GeneId { id: 937 }),
+                GeneAssociation::Gene(GeneIndex { id: 941 }),
+                GeneAssociation::Gene(GeneIndex { id: 937 }),
             ]),
             GeneAssociation::And(vec![
-                GeneAssociation::Gene(GeneId { id: 941 }),
-                GeneAssociation::Gene(GeneId { id: 935 }),
+                GeneAssociation::Gene(GeneIndex { id: 941 }),
+                GeneAssociation::Gene(GeneIndex { id: 935 }),
             ]),
             GeneAssociation::And(vec![
-                GeneAssociation::Gene(GeneId { id: 941 }),
-                GeneAssociation::Gene(GeneId { id: 936 }),
+                GeneAssociation::Gene(GeneIndex { id: 941 }),
+                GeneAssociation::Gene(GeneIndex { id: 936 }),
             ]),
             GeneAssociation::And(vec![
-                GeneAssociation::Gene(GeneId { id: 940 }),
-                GeneAssociation::Gene(GeneId { id: 935 }),
+                GeneAssociation::Gene(GeneIndex { id: 940 }),
+                GeneAssociation::Gene(GeneIndex { id: 935 }),
             ]),
             GeneAssociation::And(vec![
-                GeneAssociation::Gene(GeneId { id: 450 }),
-                GeneAssociation::Gene(GeneId { id: 935 }),
+                GeneAssociation::Gene(GeneIndex { id: 450 }),
+                GeneAssociation::Gene(GeneIndex { id: 935 }),
             ]),
             GeneAssociation::And(vec![
-                GeneAssociation::Gene(GeneId { id: 450 }),
-                GeneAssociation::Gene(GeneId { id: 939 }),
+                GeneAssociation::Gene(GeneIndex { id: 450 }),
+                GeneAssociation::Gene(GeneIndex { id: 939 }),
             ]),
             GeneAssociation::And(vec![
-                GeneAssociation::Gene(GeneId { id: 940 }),
-                GeneAssociation::Gene(GeneId { id: 936 }),
+                GeneAssociation::Gene(GeneIndex { id: 940 }),
+                GeneAssociation::Gene(GeneIndex { id: 936 }),
             ]),
         ]);
         let tokens = Token::tokenize(EXAMPLE_RULE);
@@ -537,39 +597,39 @@ pub mod tests {
             GeneAssociation::Or(vec![
                 GeneAssociation::Or(vec![
                     GeneAssociation::And(vec![
-                        GeneAssociation::Gene(GeneId { id: 1674 }),
-                        GeneAssociation::Gene(GeneId { id: 1675 }),
-                        GeneAssociation::Gene(GeneId { id: 1676 }),
+                        GeneAssociation::Gene(GeneIndex { id: 1674 }),
+                        GeneAssociation::Gene(GeneIndex { id: 1675 }),
+                        GeneAssociation::Gene(GeneIndex { id: 1676 }),
                     ]),
                     GeneAssociation::And(vec![
-                        GeneAssociation::Gene(GeneId { id: 1674 }),
-                        GeneAssociation::Gene(GeneId { id: 1675 }),
-                        GeneAssociation::Gene(GeneId { id: 1677 }),
+                        GeneAssociation::Gene(GeneIndex { id: 1674 }),
+                        GeneAssociation::Gene(GeneIndex { id: 1675 }),
+                        GeneAssociation::Gene(GeneIndex { id: 1677 }),
                     ]),
                 ]),
                 GeneAssociation::And(vec![
-                    GeneAssociation::Gene(GeneId { id: 1674 }),
-                    GeneAssociation::Gene(GeneId { id: 1678 }),
-                    GeneAssociation::Gene(GeneId { id: 1679 }),
+                    GeneAssociation::Gene(GeneIndex { id: 1674 }),
+                    GeneAssociation::Gene(GeneIndex { id: 1678 }),
+                    GeneAssociation::Gene(GeneIndex { id: 1679 }),
                 ]),
             ]),
             GeneAssociation::Or(vec![
                 GeneAssociation::Or(vec![
                     GeneAssociation::And(vec![
-                        GeneAssociation::Gene(GeneId { id: 1674 }),
-                        GeneAssociation::Gene(GeneId { id: 1677 }),
-                        GeneAssociation::Gene(GeneId { id: 1678 }),
+                        GeneAssociation::Gene(GeneIndex { id: 1674 }),
+                        GeneAssociation::Gene(GeneIndex { id: 1677 }),
+                        GeneAssociation::Gene(GeneIndex { id: 1678 }),
                     ]),
                     GeneAssociation::And(vec![
-                        GeneAssociation::Gene(GeneId { id: 1675 }),
-                        GeneAssociation::Gene(GeneId { id: 1674 }),
-                        GeneAssociation::Gene(GeneId { id: 1679 }),
+                        GeneAssociation::Gene(GeneIndex { id: 1675 }),
+                        GeneAssociation::Gene(GeneIndex { id: 1674 }),
+                        GeneAssociation::Gene(GeneIndex { id: 1679 }),
                     ]),
                 ]),
                 GeneAssociation::And(vec![
-                    GeneAssociation::Gene(GeneId { id: 1674 }),
-                    GeneAssociation::Gene(GeneId { id: 1676 }),
-                    GeneAssociation::Gene(GeneId { id: 1678 }),
+                    GeneAssociation::Gene(GeneIndex { id: 1674 }),
+                    GeneAssociation::Gene(GeneIndex { id: 1676 }),
+                    GeneAssociation::Gene(GeneIndex { id: 1678 }),
                 ]),
             ]),
         ]);

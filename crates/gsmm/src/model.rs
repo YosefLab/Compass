@@ -1,14 +1,48 @@
 use std::{collections::BTreeMap, fmt::Display};
 
 pub struct Model {
-    species: Species,
-    // TODO: Use a polars dataframe for this instead? Or somet other data structure.
-    genes: BTreeMap<GeneId, Gene>,
+    pub species: Species,
+    // N.B. using Vec's here for efficiency, but they should be indexed by newtypes.
+    // e.g. MetaboliteId, ReactionId, GeneId
+    pub genes: Vec<Gene>,
+    pub reactions: Vec<Reaction>,
+    pub metabolites: Vec<Metabolite>,
 }
 
+#[derive(Debug)]
 pub enum Species {
     HomoSapiens,
     MusMusculus,
+}
+
+#[derive(Debug)]
+pub struct Metabolite {
+    pub id: String,
+    pub name: String,
+    pub kegg_id: String,
+    pub formula: String,
+}
+
+#[derive(Debug)]
+pub struct Reaction {
+    pub lb: f64,
+    pub ub: f64,
+    // TODO: replace String with a newtype?
+    pub id: String,
+    pub name: String,
+    pub subsystem: String,
+    // reactants and products are stored in S matrix, so leave them out for now.
+    //pub reactants: Vec<StoichiometricValue>,
+    //pub products: Vec<StoichiometricValue>,
+    pub rule: Option<GeneAssociation>,
+    // reverse reaction representation?
+}
+
+#[derive(Debug)]
+pub struct StoichiometricValue {
+    pub metabolite: MetaboliteIndex,
+    // should be positive.
+    pub coefficient: f64,
 }
 
 
@@ -21,20 +55,25 @@ pub struct Gene {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct GeneId {
+pub struct GeneIndex {
+    pub(super) id: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub struct MetaboliteIndex {
     pub(super) id: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum GeneAssociation {
-    Gene(GeneId),
+    Gene(GeneIndex),
     Or(Vec<GeneAssociation>),
     And(Vec<GeneAssociation>),
 }
 
 pub struct GeneAssociationWithInfo<'a> {
     pub(super) association: &'a GeneAssociation,
-    pub(super) info: &'a BTreeMap<GeneId, Gene>,
+    pub(super) info: &'a BTreeMap<GeneIndex, Gene>,
 }
 
 #[derive(Debug)]
@@ -56,7 +95,7 @@ impl GeneAssociation {
         &self,
         f: &mut std::fmt::Formatter<'_>,
         depth: usize,
-        info: Option<&BTreeMap<GeneId, Gene>>,
+        info: Option<&BTreeMap<GeneIndex, Gene>>,
     ) -> std::fmt::Result {
         write!(f, "{}", " ".repeat(depth * 4))?;
         match self {
