@@ -1,5 +1,9 @@
 use std::{collections::BTreeMap, fmt::Display, fs::read_to_string, mem};
 
+use gsmm::{
+    mat::parse_mat_model,
+    model::{Gene, Species},
+};
 use itertools::{izip, Group};
 
 // TODO: Remove hardcoded paths lol
@@ -9,182 +13,19 @@ const RECON1_MAT_PATH: &str = "../compass/Resources/Metabolic Models/RECON1_mat"
 // const RECON2_2_PATH: &str = "../compass/Resources/Metabolic Models/RECON2.2/MODEL1603150001.xml";
 const RECON2_MAT_PATH: &str = "../compass/Resources/Metabolic Models/RECON2_mat";
 
-pub enum Species {
-    HomoSapiens,
-    MusMusculus,
-}
-
-#[derive(Debug, Clone)]
-pub struct Gene {
-    id: String,
-    non_i: u32,
-    name: String,
-    alt_symbols: Vec<String>,
-}
-
 pub fn main() {
     println!("Hello from GSMM!");
 
     let species = Species::MusMusculus;
-
-    let top_dir = std::path::PathBuf::from(RECON2_MAT_PATH);
-    let model_dir = top_dir.join("model");
-
-    // Technically are numerical, but because they're fixed point we'll treat them as strings for now.
-    let genes = serde_json::from_str::<Vec<String>>(
-        &read_to_string(model_dir.join("model.genes.json")).unwrap(),
-    )
-    .unwrap();
-
-    let gtx = serde_json::from_str::<Vec<u32>>(
-        &read_to_string(top_dir.join("non2uniqueEntrez.json")).unwrap(),
-    )
-    .unwrap();
-    assert_eq!(genes.len(), gtx.len());
-
-    let (gene_symbols, gene_alt_symbols) = match species {
-        Species::HomoSapiens => {
-            let gene_symbols: Vec<String> = serde_json::from_str(
-                &read_to_string(top_dir.join("uniqueHumanGeneSymbol.json")).unwrap(),
-            )
-            .unwrap();
-            let gene_alt_symbols = Vec::new();
-            (gene_symbols, gene_alt_symbols)
-        }
-        Species::MusMusculus => {
-            let gene_symbols: Vec<String> = serde_json::from_str(
-                &read_to_string(top_dir.join("uniqueMouseGeneSymbol.json")).unwrap(),
-            )
-            .unwrap();
-            let gene_alt_symbols: Vec<Vec<String>> = serde_json::from_str(
-                &read_to_string(top_dir.join("uniqueMouseGeneSymbol_all.json")).unwrap(),
-            )
-            .unwrap();
-            (gene_symbols, gene_alt_symbols)
-        }
-    };
-
-    let genes = genes
-        .iter()
-        .zip(gtx)
-        .map(|(id, idx)| {
-            let non_i = idx - 1;
-            Gene {
-                id: id.to_string(),
-                non_i, // TODO: This index might be unused after this point
-                name: gene_symbols[non_i as usize].clone(),
-                alt_symbols: gene_alt_symbols
-                    .get(non_i as usize)
-                    .unwrap_or(&Vec::new())
-                    .to_vec(),
-            }
-        })
-        .collect::<Vec<Gene>>();
+    let top_dir = std::path::PathBuf::from(RECON1_MAT_PATH);
+    let model = parse_mat_model(&top_dir, species);
 
     println!(
-        "Number of genes: {}. First {:?}.",
-        genes.len(),
-        genes.first()
+        "Parsed model with {} genes, {} reactions, and {} metabolites",
+        model.genes.len(),
+        model.reactions.len(),
+        model.metabolites.len()
     );
-
-    let rxns = serde_json::from_str::<Vec<String>>(
-        &read_to_string(model_dir.join("model.rxns.json")).unwrap(),
-    )
-    .unwrap();
-    println!(
-        "Number of reactions: {}. First {:?}",
-        rxns.len(),
-        rxns.first()
-    );
-
-    let rxn_names = serde_json::from_str::<Vec<String>>(
-        &read_to_string(model_dir.join("model.rxnNames.json")).unwrap(),
-    )
-    .unwrap();
-    assert_eq!(rxns.len(), rxn_names.len());
-
-    let lb =
-        serde_json::from_str::<Vec<f64>>(&read_to_string(model_dir.join("model.lb.json")).unwrap())
-            .unwrap();
-    assert_eq!(rxns.len(), lb.len());
-    let ub =
-        serde_json::from_str::<Vec<f64>>(&read_to_string(model_dir.join("model.ub.json")).unwrap())
-            .unwrap();
-    assert_eq!(rxns.len(), ub.len());
-
-    let subsystems = serde_json::from_str::<Vec<String>>(
-        &read_to_string(model_dir.join("model.subSystems.json")).unwrap(),
-    )
-    .unwrap();
-    assert_eq!(rxns.len(), subsystems.len());
-
-    let rules = serde_json::from_str::<Vec<String>>(
-        &read_to_string(model_dir.join("model.rules.json")).unwrap(),
-    )
-    .unwrap();
-    assert_eq!(rxns.len(), rules.len());
-
-    let index = rxns.iter().position(|r| r == "2OXOADOXm").unwrap();
-    //println!("{index}: {}", &rules[index]);
-
-    let rules_0 = rules
-        .iter()
-        .map(|rule| parse_rule(&rule).as_ref().map(GeneAssociation::collapse))
-        .collect::<Vec<_>>();
-    let rule_0 = rules_0[index].as_ref().unwrap();
-
-    let rules_1 = rules
-        .iter()
-        .map(|rule| {
-            if rule.len() > 0 {
-                Some(tree_to_association(&tokens_to_tree(&tokenize(rule))))
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<_>>();
-    let rule_1 = rules_1[index].as_ref().unwrap();
-
-    let gene_info = genes
-        .iter()
-        .enumerate()
-        .map(|(id, g)| (GeneId { id: id as u32 }, g.clone()))
-        .collect();
-
-    println!(
-        "{}",
-        GeneAssociationWithInfo {
-            association: rule_0,
-            info: &gene_info,
-        }
-    );
-    println!(
-        "{}",
-        GeneAssociationWithInfo {
-            association: rule_1,
-            info: &gene_info,
-        }
-    );
-    /*let mut count = 0;
-    for (i, (a, b)) in rules_0.iter().zip(rules_1.iter()).enumerate() {
-        if a != b {
-            count += 1;
-            if let (Some(x), Some(y)) = (a,b) {
-                println!("{}", rules[i]);
-                println!("{}", GeneAssociationWithInfo {
-                    association: x,
-                    info: &gene_info,
-                });
-                println!("{}", GeneAssociationWithInfo {
-                    association: y,
-                    info: &gene_info,
-                });
-                return;
-            }
-
-        }
-    }
-    println!("{count} out of {}", rules_0.len());*/
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -235,7 +76,6 @@ pub enum GeneAssociation {
 }
 
 impl GeneAssociation {
-
     pub fn collapse(other: &GeneAssociationBinary) -> Self {
         match other {
             GeneAssociationBinary::Gene(gene_id) => Self::Gene(*gene_id),
@@ -741,11 +581,11 @@ mod test {
         let or_expected = GeneAssociationBinary::Or {
             left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 19 })),
             right: Box::new(GeneAssociationBinary::Or {
-            left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 16 })),
-            right: Box::new(GeneAssociationBinary::Or {
-                left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 18 })),
-                right: Box::new(GeneAssociationBinary::Gene(GeneId { id: 17 })),
-            }),
+                left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 16 })),
+                right: Box::new(GeneAssociationBinary::Or {
+                    left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 18 })),
+                    right: Box::new(GeneAssociationBinary::Gene(GeneId { id: 17 })),
+                }),
             }),
         };
         let or_parsed = parse_tokens(&TOKENS_OR).unwrap();
@@ -754,11 +594,11 @@ mod test {
         let and_expected = GeneAssociationBinary::And {
             left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 20 })),
             right: Box::new(GeneAssociationBinary::And {
-            left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 17 })),
-            right: Box::new(GeneAssociationBinary::And {
-                left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 21 })),
-                right: Box::new(GeneAssociationBinary::Gene(GeneId { id: 15 })),
-            }),
+                left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 17 })),
+                right: Box::new(GeneAssociationBinary::And {
+                    left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 21 })),
+                    right: Box::new(GeneAssociationBinary::Gene(GeneId { id: 15 })),
+                }),
             }),
         };
         let and_parsed = parse_tokens(&TOKENS_AND).unwrap();
@@ -767,11 +607,11 @@ mod test {
         let both_expected = GeneAssociationBinary::And {
             left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 0 })),
             right: Box::new(GeneAssociationBinary::Or {
-            left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 2 })),
-            right: Box::new(GeneAssociationBinary::And {
-                left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 3 })),
-                right: Box::new(GeneAssociationBinary::Gene(GeneId { id: 6 })),
-            }),
+                left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 2 })),
+                right: Box::new(GeneAssociationBinary::And {
+                    left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 3 })),
+                    right: Box::new(GeneAssociationBinary::Gene(GeneId { id: 6 })),
+                }),
             }),
         };
         let both_parsed = parse_tokens(&TOKENS_BOTH).unwrap();
@@ -795,16 +635,10 @@ mod test {
         // but the OR function is not neccesarily associative.
         // Ie ((x + y) / 2 + z) / 2 is not the same as (x + (y + z) / 2) / 2
         const VALUE: f64 = (5.0 + (2.0 + (3.0 + 6.0) / 2.0)) / 2.0;
-        assert_eq!(
-            evaluator.evaluate_binary(&rule),
-            Some(VALUE)
-        );
+        assert_eq!(evaluator.evaluate_binary(&rule), Some(VALUE));
 
         let rule_flat = GeneAssociation::collapse(&rule);
-        assert_eq!(
-            evaluator.evaluate(&rule_flat),
-            Some(VALUE)
-        );
+        assert_eq!(evaluator.evaluate(&rule_flat), Some(VALUE));
     }
 
     #[test]

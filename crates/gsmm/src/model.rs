@@ -19,7 +19,6 @@ pub enum Species {
 pub struct Metabolite {
     pub id: String,
     pub name: String,
-    pub kegg_id: String,
     pub formula: String,
 }
 

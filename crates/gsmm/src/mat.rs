@@ -68,11 +68,6 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
         &read_to_string(model_dir.join("model.rxns.json")).unwrap(),
     )
     .unwrap();
-    println!(
-        "Number of reactions: {}. First {:?}",
-        rxns.len(),
-        rxns.first()
-    );
 
     let rxn_names = serde_json::from_str::<Vec<String>>(
         &read_to_string(model_dir.join("model.rxnNames.json")).unwrap(),
@@ -144,11 +139,12 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
     .unwrap();
     assert_eq!(mets.len(), met_formulas.len());
 
-    let kegg_ids = serde_json::from_str::<Vec<String>>(
+    // Not in RECON1_mat, is in RECON2_mat
+    /*let kegg_ids = serde_json::from_str::<Vec<String>>(
         &read_to_string(model_dir.join("model.metKeggID.json")).unwrap(),
     )
     .unwrap();
-    assert_eq!(mets.len(), kegg_ids.len());
+    assert_eq!(mets.len(), kegg_ids.len());*/
 
     let met_names = serde_json::from_str::<Vec<String>>(
         &read_to_string(model_dir.join("model.metNames.json")).unwrap(),
@@ -156,12 +152,11 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
     .unwrap();
     assert_eq!(mets.len(), met_names.len());
 
-    let metabolites = izip!(mets, met_names, met_formulas, kegg_ids)
+    let metabolites = izip!(mets, met_names, met_formulas)
         .map(|(id, name, formula, kegg_id)| Metabolite {
             id,
             name,
             formula,
-            kegg_id,
         })
         .collect::<Vec<_>>();
 

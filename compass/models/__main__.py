@@ -3,7 +3,7 @@ from . import load_metabolic_model, init_model
 # Mucking about with this code while on a machine without cplex.
 if __name__ == '__main__':
     print("hello world")
-    model = load_metabolic_model("RECON1_mat")
+    model = load_metabolic_model("RECON2_mat")
     #assert len(model.reactions) == 7440
     #assert len(model.species) == 5063
     
