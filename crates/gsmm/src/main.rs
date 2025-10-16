@@ -25,7 +25,7 @@ pub struct Gene {
 pub fn main() {
     println!("Hello from GSMM!");
 
-    let species = Species::HomoSapiens;
+    let species = Species::MusMusculus;
 
     let top_dir = std::path::PathBuf::from(RECON2_MAT_PATH);
     let model_dir = top_dir.join("model");
@@ -667,60 +667,61 @@ pub fn sbml_parse() {
 mod test {
     use super::*;
 
+    // Note that the gene ids in the rules are 1-indexed, so subtract 1 to get the GeneId.
     const RULE_OR: &str = "(x(20)) | (x(17)) | (x(19)) | (x(18))";
     const TOKENS_OR: &[Token] = &[
-        Token::LeftParen,
-        Token::Gene(GeneId { id: 20 }),
-        Token::RightParen,
-        Token::Or,
-        Token::LeftParen,
-        Token::Gene(GeneId { id: 17 }),
-        Token::RightParen,
-        Token::Or,
         Token::LeftParen,
         Token::Gene(GeneId { id: 19 }),
         Token::RightParen,
         Token::Or,
         Token::LeftParen,
+        Token::Gene(GeneId { id: 16 }),
+        Token::RightParen,
+        Token::Or,
+        Token::LeftParen,
         Token::Gene(GeneId { id: 18 }),
+        Token::RightParen,
+        Token::Or,
+        Token::LeftParen,
+        Token::Gene(GeneId { id: 17 }),
         Token::RightParen,
     ];
 
     const RULE_AND: &str = "(x(21)) & (x(18)) & (x(22)) & (x(16))";
     const TOKENS_AND: &[Token] = &[
         Token::LeftParen,
+        Token::Gene(GeneId { id: 20 }),
+        Token::RightParen,
+        Token::And,
+        Token::LeftParen,
+        Token::Gene(GeneId { id: 17 }),
+        Token::RightParen,
+        Token::And,
+        Token::LeftParen,
         Token::Gene(GeneId { id: 21 }),
         Token::RightParen,
         Token::And,
         Token::LeftParen,
-        Token::Gene(GeneId { id: 18 }),
-        Token::RightParen,
-        Token::And,
-        Token::LeftParen,
-        Token::Gene(GeneId { id: 22 }),
-        Token::RightParen,
-        Token::And,
-        Token::LeftParen,
-        Token::Gene(GeneId { id: 16 }),
+        Token::Gene(GeneId { id: 15 }),
         Token::RightParen,
     ];
 
     const RULE_BOTH: &str = "(x(1)) & (x(3)) | (x(4)) & (x(7))";
     const TOKENS_BOTH: &[Token] = &[
         Token::LeftParen,
-        Token::Gene(GeneId { id: 1 }),
+        Token::Gene(GeneId { id: 0 }),
         Token::RightParen,
         Token::And,
         Token::LeftParen,
-        Token::Gene(GeneId { id: 3 }),
+        Token::Gene(GeneId { id: 2 }),
         Token::RightParen,
         Token::Or,
         Token::LeftParen,
-        Token::Gene(GeneId { id: 4 }),
+        Token::Gene(GeneId { id: 3 }),
         Token::RightParen,
         Token::And,
         Token::LeftParen,
-        Token::Gene(GeneId { id: 7 }),
+        Token::Gene(GeneId { id: 6 }),
         Token::RightParen,
     ];
 
@@ -737,39 +738,39 @@ mod test {
     #[test]
     pub fn test_parser() {
         let or_expected = GeneAssociationBinary::Or {
-            left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 20 })),
+            left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 19 })),
             right: Box::new(GeneAssociationBinary::Or {
-                left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 17 })),
-                right: Box::new(GeneAssociationBinary::Or {
-                    left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 19 })),
-                    right: Box::new(GeneAssociationBinary::Gene(GeneId { id: 18 })),
-                }),
+            left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 16 })),
+            right: Box::new(GeneAssociationBinary::Or {
+                left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 18 })),
+                right: Box::new(GeneAssociationBinary::Gene(GeneId { id: 17 })),
+            }),
             }),
         };
         let or_parsed = parse_tokens(&TOKENS_OR).unwrap();
         assert_eq!(or_parsed, or_expected);
 
         let and_expected = GeneAssociationBinary::And {
-            left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 21 })),
+            left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 20 })),
             right: Box::new(GeneAssociationBinary::And {
-                left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 18 })),
-                right: Box::new(GeneAssociationBinary::And {
-                    left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 22 })),
-                    right: Box::new(GeneAssociationBinary::Gene(GeneId { id: 16 })),
-                }),
+            left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 17 })),
+            right: Box::new(GeneAssociationBinary::And {
+                left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 21 })),
+                right: Box::new(GeneAssociationBinary::Gene(GeneId { id: 15 })),
+            }),
             }),
         };
         let and_parsed = parse_tokens(&TOKENS_AND).unwrap();
         assert_eq!(and_parsed, and_expected);
 
         let both_expected = GeneAssociationBinary::And {
-            left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 1 })),
+            left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 0 })),
             right: Box::new(GeneAssociationBinary::Or {
+            left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 2 })),
+            right: Box::new(GeneAssociationBinary::And {
                 left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 3 })),
-                right: Box::new(GeneAssociationBinary::And {
-                    left: Box::new(GeneAssociationBinary::Gene(GeneId { id: 4 })),
-                    right: Box::new(GeneAssociationBinary::Gene(GeneId { id: 7 })),
-                }),
+                right: Box::new(GeneAssociationBinary::Gene(GeneId { id: 6 })),
+            }),
             }),
         };
         let both_parsed = parse_tokens(&TOKENS_BOTH).unwrap();
@@ -781,7 +782,7 @@ mod test {
         let expr = [(1, 5.0), (3, 2.0), (4, 3.0), (7, 6.0)]
             .iter()
             .copied()
-            .map(|(id, val)| (GeneId { id }, val))
+            .map(|(id, val)| (GeneId { id: id - 1 }, val))
             .collect::<BTreeMap<_, _>>();
         let evaluator = GeneAssociationEvaluator {
             gene_expr: &expr,
@@ -809,7 +810,7 @@ mod test {
         let expr = [(1, 5.0), (2, 2.0), (3, 6.0)]
             .iter()
             .copied()
-            .map(|(id, val)| (GeneId { id }, val))
+            .map(|(id, val)| (GeneId { id: id - 1 }, val))
             .collect::<BTreeMap<_, _>>();
         let evaluator = GeneAssociationEvaluator {
             gene_expr: &expr,
