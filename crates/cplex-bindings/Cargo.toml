@@ -10,3 +10,4 @@ edition = "2021"
 [build-dependencies]
 bindgen.workspace = true
 regex.workspace = true
+anyhow.workspace = true

@@ -4,6 +4,7 @@ members = ["cplex-bindings", "compass", "cplex-rs", "gsmm"]
 resolver = "2"
 
 [workspace.dependencies]
+anyhow = { version = "1.0" }
 bindgen = { version = "0.70" }
 regex = { version = "1.11" }
 serde = { version = "1.0", features = ["derive"] }
