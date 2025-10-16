@@ -123,25 +123,13 @@ pub enum Token {
     Gene(GeneId),
 }
 
+// The token tree applies parentheses, but no other semantics.
 #[derive(Debug)]
 enum TokenTree {
     Gene(GeneId),
     Or,
     And,
-    Tree(Vec<TokenTree>),
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum GeneAssociationBinary {
-    Gene(GeneId),
-    Or {
-        left: Box<GeneAssociationBinary>,
-        right: Box<GeneAssociationBinary>,
-    },
-    And {
-        left: Box<GeneAssociationBinary>,
-        right: Box<GeneAssociationBinary>,
-    },
+    TreeVec(Vec<TokenTree>),
 }
 
 impl Token {
@@ -209,7 +197,7 @@ impl TokenTree {
                         Some(prev) => prev,
                         v => panic!("Expected a group, not {v:?}"),
                     };
-                    prev.push(TokenTree::Tree(mem::take(&mut curr)));
+                    prev.push(TokenTree::TreeVec(mem::take(&mut curr)));
                     curr = prev;
                 }
                 Token::Or => curr.push(TokenTree::Or),
@@ -226,7 +214,7 @@ impl TokenTree {
         if tree.len() == 1 {
             match &tree[0] {
                 TokenTree::Gene(gene_id) => return GeneAssociation::Gene(gene_id.clone()),
-                TokenTree::Tree(nodes) => return Self::tree_to_association(&nodes),
+                TokenTree::TreeVec(nodes) => return Self::tree_to_association(&nodes),
                 TokenTree::Or | TokenTree::And => panic!("Invalid Token Tree"),
             }
         }
@@ -243,7 +231,7 @@ impl TokenTree {
                     }
                     assert_eq!(i % 2, 1, "{i} % 2 != 1");
                 }
-                TokenTree::Gene(_) | TokenTree::Tree(_) => {
+                TokenTree::Gene(_) | TokenTree::TreeVec(_) => {
                     assert_eq!(i % 2, 0, "{i} % 2 != 0");
                 }
             }
@@ -271,7 +259,7 @@ impl TokenTree {
                 .step_by(2)
                 .map(|node| match node {
                     TokenTree::Gene(gene_id) => GeneAssociation::Gene(gene_id.clone()),
-                    TokenTree::Tree(nodes) => Self::tree_to_association(nodes),
+                    TokenTree::TreeVec(nodes) => Self::tree_to_association(nodes),
                     TokenTree::Or | TokenTree::And => unreachable!(),
                 })
                 .collect();
@@ -284,119 +272,311 @@ impl TokenTree {
     }
 }
 
-impl GeneAssociationBinary {
-    fn parse_tokens(mut tokens: impl Iterator<Item = Token>) -> Option<Self> {
-        // Internal type only for the operations stack.
-        enum Operations {
-            Or,
-            And,
-            LeftParen,
-        }
-        let mut operations = Vec::new();
-        let mut output = Vec::new();
-        loop {
-            match tokens.next() {
-                Some(Token::LeftParen) => {
-                    operations.push(Operations::LeftParen);
-                    //(res, tokens) = parse_tokens(&tokens[1..]);
-                    //assert!(tokens.first() == Some(&Token::RightParen));
-                }
-                Some(Token::RightParen) => {
-                    // Pop until we find the left paren
-                    loop {
-                        match operations.pop() {
-                            Some(Operations::LeftParen) => {
-                                break;
-                            }
-                            Some(op @ Operations::Or) | Some(op @ Operations::And) => {
-                                let right = Box::new(output.pop().expect("Expected right operand"));
-                                let left = Box::new(output.pop().expect("Expected left operand"));
-                                let op = match op {
-                                    Operations::Or => GeneAssociationBinary::Or { left, right },
-                                    Operations::And => GeneAssociationBinary::And { left, right },
-                                    _ => unreachable!(),
-                                };
-                                output.push(op);
-                            }
-                            None => {
-                                panic!("Unmatched right paren");
-                            }
-                        }
-                    }
-                }
-                Some(Token::Or) => {
-                    operations.push(Operations::Or);
-                }
-                Some(Token::And) => {
-                    operations.push(Operations::And);
-                }
-                Some(Token::Gene(gene_id)) => {
-                    output.push(GeneAssociationBinary::Gene(gene_id.clone()));
-                }
-                None => {
-                    break;
-                }
-            }
-        }
-        loop {
-            match operations.pop() {
-                Some(op @ Operations::Or) | Some(op @ Operations::And) => {
-                    let right = Box::new(output.pop().expect("Expected right operand"));
-                    let left = Box::new(output.pop().expect("Expected left operand"));
-                    let op = match op {
-                        Operations::Or => GeneAssociationBinary::Or { left, right },
-                        Operations::And => GeneAssociationBinary::And { left, right },
-                        _ => unreachable!(),
-                    };
-                    output.push(op);
-                }
-                None => {
-                    break;
-                }
-                Some(Operations::LeftParen) => {
-                    panic!("Unmatched left paren");
-                }
-            }
-        }
-        assert!(output.len() <= 1);
-        output.first().cloned()
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+    #[test]
+    pub fn test_tokenizer_or() {
+        const RULE_OR: &str = "(x(20)) | (x(17)) | (x(19)) | (x(18))";
+        const TOKENS_OR: &[Token] = &[
+            Token::LeftParen,
+            Token::Gene(GeneId { id: 19 }),
+            Token::RightParen,
+            Token::Or,
+            Token::LeftParen,
+            Token::Gene(GeneId { id: 16 }),
+            Token::RightParen,
+            Token::Or,
+            Token::LeftParen,
+            Token::Gene(GeneId { id: 18 }),
+            Token::RightParen,
+            Token::Or,
+            Token::LeftParen,
+            Token::Gene(GeneId { id: 17 }),
+            Token::RightParen,
+        ];
+
+        let tokens = Token::tokenize(RULE_OR);
+        assert_eq!(tokens, TOKENS_OR);
     }
 
-    fn flatten(&self) -> GeneAssociation {
-        match self {
-            GeneAssociationBinary::Gene(gene_id) => GeneAssociation::Gene(*gene_id),
-            GeneAssociationBinary::Or { left, right } => {
-                let mut operands = Vec::new();
-                let left = left.flatten();
-                if let GeneAssociation::Or(mut operands_left) = left {
-                    operands.append(&mut operands_left);
-                } else {
-                    operands.push(left);
-                }
-                let right = right.flatten();
-                if let GeneAssociation::Or(mut operands_right) = right {
-                    operands.append(&mut operands_right);
-                } else {
-                    operands.push(right);
-                }
-                GeneAssociation::Or(operands)
-            }
-            GeneAssociationBinary::And { left, right } => {
-                let mut operands = Vec::new();
-                let left = left.flatten();
-                if let GeneAssociation::And(mut operands_left) = left {
-                    operands.append(&mut operands_left);
-                } else {
-                    operands.push(left);
-                }
-                let right = right.flatten();
-                if let GeneAssociation::And(mut operands_right) = right {
-                    operands.append(&mut operands_right);
-                } else {
-                    operands.push(right);
-                }
-                GeneAssociation::And(operands)
-            }
-        }
+    #[test]
+    pub fn test_tokenizer_and() {
+        const RULE_AND: &str = "(x(21)) & (x(18)) & (x(22)) & (x(16))";
+        const TOKENS_AND: &[Token] = &[
+            Token::LeftParen,
+            Token::Gene(GeneId { id: 20 }),
+            Token::RightParen,
+            Token::And,
+            Token::LeftParen,
+            Token::Gene(GeneId { id: 17 }),
+            Token::RightParen,
+            Token::And,
+            Token::LeftParen,
+            Token::Gene(GeneId { id: 21 }),
+            Token::RightParen,
+            Token::And,
+            Token::LeftParen,
+            Token::Gene(GeneId { id: 15 }),
+            Token::RightParen,
+        ];
+
+        let tokens = Token::tokenize(RULE_AND);
+        assert_eq!(tokens, TOKENS_AND);
+    }
+
+    #[test]
+    pub fn test_tokenizer_both() {
+        const RULE_BOTH: &str = "(x(1)) & (x(3)) | (x(4)) & (x(7))";
+        const TOKENS_BOTH: &[Token] = &[
+            Token::LeftParen,
+            Token::Gene(GeneId { id: 0 }),
+            Token::RightParen,
+            Token::And,
+            Token::LeftParen,
+            Token::Gene(GeneId { id: 2 }),
+            Token::RightParen,
+            Token::Or,
+            Token::LeftParen,
+            Token::Gene(GeneId { id: 3 }),
+            Token::RightParen,
+            Token::And,
+            Token::LeftParen,
+            Token::Gene(GeneId { id: 6 }),
+            Token::RightParen,
+        ];
+
+        let tokens = Token::tokenize(RULE_BOTH);
+        assert_eq!(tokens, TOKENS_BOTH);
+    }
+
+    #[test]
+    #[expect(non_snake_case, reason = "using name of chemical reaction")]
+    pub fn test_recon1_2OXOADOXm() {
+        const EXAMPLE_RULE: &str =
+            "(x(972)) & (x(318) & x(1662)) & (x(319)) | (x(973)) & (x(318) & x(1662)) & (x(319))";
+
+        /* Here is the python code result for comparison:
+        or: 
+            and: 
+                gene: 4967.1 {'OGDH'}
+                and: 
+                    gene: 1738.1 {'DLD'}
+                    gene: 8050.1 {'PDHX'}
+                gene: 1743.1 {'DLST'}
+            and: 
+                gene: 4967.2 {'OGDH'}
+                and: 
+                    gene: 1738.1 {'DLD'}
+                    gene: 8050.1 {'PDHX'}
+                gene: 1743.1 {'DLST'}
+        */
+        #[rustfmt::skip]
+        let expected : GeneAssociation = 
+        GeneAssociation::Or(vec![
+            GeneAssociation::And(vec![
+                GeneAssociation::Gene(GeneId { id: 971 }),
+                GeneAssociation::And(vec![
+                    GeneAssociation::Gene(GeneId { id: 317 }),
+                    GeneAssociation::Gene(GeneId { id: 1661 }),
+                ]),
+                GeneAssociation::Gene(GeneId { id: 318 }),
+            ]),
+            GeneAssociation::And(vec![
+                GeneAssociation::Gene(GeneId { id: 972 }),
+                GeneAssociation::And(vec![
+                    GeneAssociation::Gene(GeneId { id: 317 }),
+                    GeneAssociation::Gene(GeneId { id: 1661 }),
+                ]),
+                GeneAssociation::Gene(GeneId { id: 318 }),
+            ]),
+        ]);
+        let tokens = Token::tokenize(EXAMPLE_RULE);
+        let tree = TokenTree::from_tokens(tokens.into_iter());
+        let association = TokenTree::tree_to_association(&tree);
+        assert_eq!(association, expected);
+    }
+
+    #[test]
+    #[expect(non_snake_case, reason = "using name of chemical reaction")]
+    pub fn test_recon1_NaKt() {
+        const EXAMPLE_RULE: &str =
+            "(x(941) & x(938)) | (x(937) & x(451)) | (x(943) & x(936)) | (x(941) & x(940)) | (x(942) & x(938)) | (x(942) & x(936)) | (x(942) & x(937)) | (x(941) & x(936)) | (x(451) & x(936)) | (x(451) & x(940)) | (x(941) & x(937))";
+
+        /* Here is the python code result for comparison:
+        or: 
+            and: 
+                gene: 481.1 {'ATP1B1'}
+                gene: 478.1 {'ATP1A3'}
+            and: 
+                gene: 477.1 {'ATP1A2'}
+                gene: 23439.1 {'ATP1B4'}
+            and: 
+                gene: 483.1 {'ATP1B3'}
+                gene: 476.1 {'ATP1A1'}
+            and: 
+                gene: 481.1 {'ATP1B1'}
+                gene: 480.1 {'ATP1A4'}
+            and: 
+                gene: 482.1 {'ATP1B2'}
+                gene: 478.1 {'ATP1A3'}
+            and: 
+                gene: 482.1 {'ATP1B2'}
+                gene: 476.1 {'ATP1A1'}
+            and: 
+                gene: 482.1 {'ATP1B2'}
+                gene: 477.1 {'ATP1A2'}
+            and: 
+                gene: 481.1 {'ATP1B1'}
+                gene: 476.1 {'ATP1A1'}
+            and: 
+                gene: 23439.1 {'ATP1B4'}
+                gene: 476.1 {'ATP1A1'}
+            and: 
+                gene: 23439.1 {'ATP1B4'}
+                gene: 480.1 {'ATP1A4'}
+            and: 
+                gene: 481.1 {'ATP1B1'}
+                gene: 477.1 {'ATP1A2'}
+        */
+        #[rustfmt::skip]
+        let expected : GeneAssociation = 
+        GeneAssociation::Or(vec![
+            GeneAssociation::And(vec![
+                GeneAssociation::Gene(GeneId { id: 940 }),
+                GeneAssociation::Gene(GeneId { id: 937 }),
+            ]),
+            GeneAssociation::And(vec![
+                GeneAssociation::Gene(GeneId { id: 936 }),
+                GeneAssociation::Gene(GeneId { id: 450 }),
+            ]),
+            GeneAssociation::And(vec![
+                GeneAssociation::Gene(GeneId { id: 942 }),
+                GeneAssociation::Gene(GeneId { id: 935 }),
+            ]),
+            GeneAssociation::And(vec![
+                GeneAssociation::Gene(GeneId { id: 940 }),
+                GeneAssociation::Gene(GeneId { id: 939 }),
+            ]),
+            GeneAssociation::And(vec![
+                GeneAssociation::Gene(GeneId { id: 941 }),
+                GeneAssociation::Gene(GeneId { id: 937 }),
+            ]),
+            GeneAssociation::And(vec![
+                GeneAssociation::Gene(GeneId { id: 941 }),
+                GeneAssociation::Gene(GeneId { id: 935 }),
+            ]),
+            GeneAssociation::And(vec![
+                GeneAssociation::Gene(GeneId { id: 941 }),
+                GeneAssociation::Gene(GeneId { id: 936 }),
+            ]),
+            GeneAssociation::And(vec![
+                GeneAssociation::Gene(GeneId { id: 940 }),
+                GeneAssociation::Gene(GeneId { id: 935 }),
+            ]),
+            GeneAssociation::And(vec![
+                GeneAssociation::Gene(GeneId { id: 450 }),
+                GeneAssociation::Gene(GeneId { id: 935 }),
+            ]),
+            GeneAssociation::And(vec![
+                GeneAssociation::Gene(GeneId { id: 450 }),
+                GeneAssociation::Gene(GeneId { id: 939 }),
+            ]),
+            GeneAssociation::And(vec![
+                GeneAssociation::Gene(GeneId { id: 940 }),
+                GeneAssociation::Gene(GeneId { id: 936 }),
+            ]),
+        ]);
+        let tokens = Token::tokenize(EXAMPLE_RULE);
+        let tree = TokenTree::from_tokens(tokens.into_iter());
+        let association = TokenTree::tree_to_association(&tree);
+        assert_eq!(association, expected);
+    }
+
+    #[test]
+    #[expect(non_snake_case, reason = "using name of chemical reaction")]
+    pub fn test_recon1_PNTEH() {
+        const EXAMPLE_RULE: &str =
+    "(x(1675)) & (x(1676)) & (x(1677)) | (x(1675)) & (x(1676)) & (x(1678)) | (x(1675)) & (x(1679)) & (x(1680)) | (x(1675)) & (x(1678)) & (x(1679)) | (x(1676)) & (x(1675)) & (x(1680)) | (x(1675)) & (x(1677)) & (x(1679))";
+
+        /*  Here is the python code result for comparison:
+        or: 
+            or: 
+                or: 
+                    and: 
+                        gene: 8876.1 {'VNN1'}
+                        gene: 8875.2 {''}
+                        gene: 55350.3 {''}
+                    and: 
+                        gene: 8876.1 {'VNN1'}
+                        gene: 8875.2 {''}
+                        gene: 55350.2 {''}
+                and: 
+                    gene: 8876.1 {'VNN1'}
+                    gene: 8875.1 {''}
+                    gene: 55350.1 {''}
+            or: 
+                or: 
+                    and: 
+                        gene: 8876.1 {'VNN1'}
+                        gene: 55350.2 {''}
+                        gene: 8875.1 {''}
+                    and: 
+                        gene: 8875.2 {''}
+                        gene: 8876.1 {'VNN1'}
+                        gene: 55350.1 {''}
+                and: 
+                    gene: 8876.1 {'VNN1'}
+                    gene: 55350.3 {''}
+                    gene: 8875.1 {''}
+        */
+        #[rustfmt::skip]
+        let expected : GeneAssociation =
+        GeneAssociation::Or(vec![
+            GeneAssociation::Or(vec![
+                GeneAssociation::Or(vec![
+                    GeneAssociation::And(vec![
+                        GeneAssociation::Gene(GeneId { id: 1674 }),
+                        GeneAssociation::Gene(GeneId { id: 1675 }),
+                        GeneAssociation::Gene(GeneId { id: 1676 }),
+                    ]),
+                    GeneAssociation::And(vec![
+                        GeneAssociation::Gene(GeneId { id: 1674 }),
+                        GeneAssociation::Gene(GeneId { id: 1675 }),
+                        GeneAssociation::Gene(GeneId { id: 1677 }),
+                    ]),
+                ]),
+                GeneAssociation::And(vec![
+                    GeneAssociation::Gene(GeneId { id: 1674 }),
+                    GeneAssociation::Gene(GeneId { id: 1678 }),
+                    GeneAssociation::Gene(GeneId { id: 1679 }),
+                ]),
+            ]),
+            GeneAssociation::Or(vec![
+                GeneAssociation::Or(vec![
+                    GeneAssociation::And(vec![
+                        GeneAssociation::Gene(GeneId { id: 1674 }),
+                        GeneAssociation::Gene(GeneId { id: 1677 }),
+                        GeneAssociation::Gene(GeneId { id: 1678 }),
+                    ]),
+                    GeneAssociation::And(vec![
+                        GeneAssociation::Gene(GeneId { id: 1675 }),
+                        GeneAssociation::Gene(GeneId { id: 1674 }),
+                        GeneAssociation::Gene(GeneId { id: 1679 }),
+                    ]),
+                ]),
+                GeneAssociation::And(vec![
+                    GeneAssociation::Gene(GeneId { id: 1674 }),
+                    GeneAssociation::Gene(GeneId { id: 1676 }),
+                    GeneAssociation::Gene(GeneId { id: 1678 }),
+                ]),
+            ]),
+        ]);
+
+        let tokens = Token::tokenize(EXAMPLE_RULE);
+        let tree = TokenTree::from_tokens(tokens.into_iter());
+        let association = TokenTree::tree_to_association(&tree);
+        assert_eq!(association, expected);
     }
 }

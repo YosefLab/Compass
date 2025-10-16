@@ -119,3 +119,16 @@ Using miniforge'd conda. install:
 ```
  numpy pandas python-libsbml
 ```
+
+## Revisiting this
+So initial thoughts are that I should just stop using the binary tree stuff? Just use the arbitrarily shaped tree. Seems like that will work better. After double checking the SBML, I can see very clearly things like this in Recon1:
+``` xml
+        <fbc:geneProductAssociation xmlns:fbc="http://www.sbml.org/sbml/level3/version1/fbc/version2">
+          <fbc:or sboTerm="SBO:0000174">
+            <fbc:geneProductRef fbc:geneProduct="G_2572_AT1" />
+            <fbc:geneProductRef fbc:geneProduct="G_51380_AT1" />
+            <fbc:geneProductRef fbc:geneProduct="G_2571_AT1" />
+            <fbc:geneProductRef fbc:geneProduct="G_2571_AT2" />
+          </fbc:or>
+        </fbc:geneProductAssociation>
+```

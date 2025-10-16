@@ -235,6 +235,7 @@ pub enum GeneAssociation {
 }
 
 impl GeneAssociation {
+
     pub fn collapse(other: &GeneAssociationBinary) -> Self {
         match other {
             GeneAssociationBinary::Gene(gene_id) => Self::Gene(*gene_id),
@@ -793,15 +794,16 @@ mod test {
         // Hmm, this seems a bit off. I suppose my AST is constructed assuming associativity,
         // but the OR function is not neccesarily associative.
         // Ie ((x + y) / 2 + z) / 2 is not the same as (x + (y + z) / 2) / 2
+        const VALUE: f64 = (5.0 + (2.0 + (3.0 + 6.0) / 2.0)) / 2.0;
         assert_eq!(
             evaluator.evaluate_binary(&rule),
-            Some((5.0 + (2.0 + (3.0 + 6.0) / 2.0)) / 2.0)
+            Some(VALUE)
         );
 
         let rule_flat = GeneAssociation::collapse(&rule);
         assert_eq!(
             evaluator.evaluate(&rule_flat),
-            Some((5.0 + (2.0 + (3.0 + 6.0) / 2.0)) / 2.0)
+            Some(VALUE)
         );
     }
 
