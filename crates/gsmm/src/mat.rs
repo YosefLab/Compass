@@ -153,7 +153,7 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
     assert_eq!(mets.len(), met_names.len());
 
     let metabolites = izip!(mets, met_names, met_formulas)
-        .map(|(id, name, formula, kegg_id)| Metabolite {
+        .map(|(id, name, formula)| Metabolite {
             id,
             name,
             formula,

@@ -70,9 +70,15 @@ pub enum GeneAssociation {
     And(Vec<GeneAssociation>),
 }
 
+pub struct GeneAssociationEvaluator<'a> {
+    gene_expr: &'a BTreeMap<GeneIndex, f64>,
+    or_op: OrOp,
+    and_op: AndOp,
+}
+
 pub struct GeneAssociationWithInfo<'a> {
     pub(super) association: &'a GeneAssociation,
-    pub(super) info: &'a BTreeMap<GeneIndex, Gene>,
+    pub(super) info: &'a Vec<Gene>,
 }
 
 #[derive(Debug)]
@@ -94,13 +100,12 @@ impl GeneAssociation {
         &self,
         f: &mut std::fmt::Formatter<'_>,
         depth: usize,
-        info: Option<&BTreeMap<GeneIndex, Gene>>,
+        info: Option<&Vec<Gene>>,
     ) -> std::fmt::Result {
         write!(f, "{}", " ".repeat(depth * 4))?;
         match self {
-            GeneAssociation::Gene(gene_id) => match info.map(|m| m.get(gene_id)) {
-                Some(Some(g)) => writeln!(f, "{gene_id:?}: {g:?}")?,
-                Some(None) => writeln!(f, "{gene_id:?}: Missing info")?,
+            GeneAssociation::Gene(gene_id) => match info.map(|m| &m[gene_id.id]) {
+                Some(g) => writeln!(f, "{gene_id:?}: {g:?}")?,
                 None => writeln!(f, "{gene_id:?}")?,
             },
             GeneAssociation::And(vec) | GeneAssociation::Or(vec) => {
@@ -122,5 +127,44 @@ impl<'a> Display for GeneAssociationWithInfo<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.association
             .display_with_gene_info(f, 0, Some(self.info))
+    }
+}
+
+impl<'a> GeneAssociationEvaluator<'a> {
+    pub fn evaluate(&self, node: &GeneAssociation) -> Option<f64> {
+        match node {
+            GeneAssociation::Gene(gene_id) => self.gene_expr.get(gene_id).copied(),
+            GeneAssociation::Or(vec) => {
+                Some(self.or_op.apply(vec.iter().map(|x| self.evaluate(x))))
+            }
+            GeneAssociation::And(vec) => {
+                Some(self.and_op.apply(vec.iter().map(|x| self.evaluate(x))))
+            }
+        }
+    }
+}
+
+impl AndOp {
+    fn apply<I: Iterator<Item = Option<f64>>>(&self, iter: I) -> f64 {
+        let values: Vec<f64> = iter.filter_map(|x| x).collect();
+        match self {
+            AndOp::Min => values.into_iter().fold(f64::INFINITY, f64::min),
+            AndOp::Mean => {
+                if values.is_empty() {
+                    0.0
+                } else {
+                    values.iter().sum::<f64>() / (values.len() as f64)
+                }
+            }
+        }
+    }
+}
+
+impl OrOp {
+    fn apply<I: Iterator<Item = Option<f64>>>(&self, iter: I) -> f64 {
+        let values: Vec<f64> = iter.filter_map(|x| x).collect();
+        match self {
+            OrOp::Sum => values.iter().sum(),
+        }
     }
 }
