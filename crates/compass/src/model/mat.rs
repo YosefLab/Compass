@@ -11,39 +11,35 @@ use crate::model::model::StoichiometricMatrix;
 
 use super::model::{Gene, GeneAssociation, GeneIndex, Metabolite, Model, Reaction, Species};
 
+fn parse_json_file<T: serde::de::DeserializeOwned>(path: &Path) -> T {
+    match read_to_string(path) {
+        Err(e) => panic!("Failed to read {}: {}", path.display(), e),
+        Ok(s) => {
+            return serde_json::from_str::<T>(&s).unwrap_or_else(|e| {
+                panic!("Failed to parse {}: {}", path.display(), e);
+            });
+        }
+    }
+}
+
 pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
     let model_dir = top_dir.join("model");
 
-    let genes = serde_json::from_str::<Vec<String>>(
-        &read_to_string(model_dir.join("model.genes.json")).unwrap(),
-    )
-    .unwrap();
+    let genes = parse_json_file::<Vec<String>>(&model_dir.join("model.genes.json"));
 
-    let gtx = serde_json::from_str::<Vec<u32>>(
-        &read_to_string(top_dir.join("non2uniqueEntrez.json")).unwrap(),
-    )
-    .unwrap();
+    let gtx = parse_json_file::<Vec<u32>>(&top_dir.join("non2uniqueEntrez.json"));
     assert_eq!(genes.len(), gtx.len());
 
     let (gene_symbols, gene_alt_symbols) = match species {
         Species::HomoSapiens => {
-            let gene_symbols: Vec<String> = serde_json::from_str(
-                &read_to_string(top_dir.join("uniqueHumanGeneSymbol.json")).unwrap(),
-            )
-            .unwrap();
+            let gene_symbols = parse_json_file::<Vec<String>>(&top_dir.join("uniqueHumanGeneSymbol.json"));
             // No alt symbols for human in the mat models
             let gene_alt_symbols = Vec::new();
             (gene_symbols, gene_alt_symbols)
         }
         Species::MusMusculus => {
-            let gene_symbols: Vec<String> = serde_json::from_str(
-                &read_to_string(top_dir.join("uniqueMouseGeneSymbol.json")).unwrap(),
-            )
-            .unwrap();
-            let gene_alt_symbols: Vec<Vec<String>> = serde_json::from_str(
-                &read_to_string(top_dir.join("uniqueMouseGeneSymbol_all.json")).unwrap(),
-            )
-            .unwrap();
+            let gene_symbols = parse_json_file::<Vec<String>>(&top_dir.join("uniqueMouseGeneSymbol.json"));
+            let gene_alt_symbols = parse_json_file::<Vec<Vec<String>>>(&top_dir.join("uniqueMouseGeneSymbol_all.json"));
             (gene_symbols, gene_alt_symbols)
         }
     };
@@ -66,36 +62,20 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
         })
         .collect::<Vec<Gene>>();
 
-    let rxns = serde_json::from_str::<Vec<String>>(
-        &read_to_string(model_dir.join("model.rxns.json")).unwrap(),
-    )
-    .unwrap();
+    let rxns = parse_json_file::<Vec<String>>(&model_dir.join("model.rxns.json"));
 
-    let rxn_names = serde_json::from_str::<Vec<String>>(
-        &read_to_string(model_dir.join("model.rxnNames.json")).unwrap(),
-    )
-    .unwrap();
+    let rxn_names = parse_json_file::<Vec<String>>(&model_dir.join("model.rxnNames.json"));
     assert_eq!(rxns.len(), rxn_names.len());
 
-    let lb =
-        serde_json::from_str::<Vec<f64>>(&read_to_string(model_dir.join("model.lb.json")).unwrap())
-            .unwrap();
+    let lb = parse_json_file::<Vec<f64>>(&model_dir.join("model.lb.json"));
     assert_eq!(rxns.len(), lb.len());
-    let ub =
-        serde_json::from_str::<Vec<f64>>(&read_to_string(model_dir.join("model.ub.json")).unwrap())
-            .unwrap();
+    let ub = parse_json_file::<Vec<f64>>(&model_dir.join("model.ub.json"));
     assert_eq!(rxns.len(), ub.len());
 
-    let subsystems = serde_json::from_str::<Vec<String>>(
-        &read_to_string(model_dir.join("model.subSystems.json")).unwrap(),
-    )
-    .unwrap();
+    let subsystems = parse_json_file::<Vec<String>>(&model_dir.join("model.subSystems.json"));
     assert_eq!(rxns.len(), subsystems.len());
 
-    let rules_text = serde_json::from_str::<Vec<String>>(
-        &read_to_string(model_dir.join("model.rules.json")).unwrap(),
-    )
-    .unwrap();
+    let rules_text = parse_json_file::<Vec<String>>(&model_dir.join("model.rules.json"));
     assert_eq!(rxns.len(), rules_text.len());
 
     let rules = rules_text
@@ -112,7 +92,7 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
         .collect::<Vec<_>>();
     assert_eq!(rxns.len(), rules.len());
 
-    let reactions = izip!(
+    let reactions: Vec<Reaction> = izip!(
         rxns,
         rxn_names,
         lb,
@@ -130,15 +110,9 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
         }
     }).collect();
 
-    let mets = serde_json::from_str::<Vec<String>>(
-        &read_to_string(model_dir.join("model.mets.json")).unwrap(),
-    )
-    .unwrap();
+    let mets = parse_json_file::<Vec<String>>(&model_dir.join("model.mets.json"));
 
-    let met_formulas = serde_json::from_str::<Vec<String>>(
-        &read_to_string(model_dir.join("model.metFormulas.json")).unwrap(),
-    )
-    .unwrap();
+    let met_formulas = parse_json_file::<Vec<String>>(&model_dir.join("model.metFormulas.json"));
     assert_eq!(mets.len(), met_formulas.len());
 
     // Not in RECON1_mat, is in RECON2_mat
@@ -148,10 +122,7 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
     .unwrap();
     assert_eq!(mets.len(), kegg_ids.len());*/
 
-    let met_names = serde_json::from_str::<Vec<String>>(
-        &read_to_string(model_dir.join("model.metNames.json")).unwrap(),
-    )
-    .unwrap();
+    let met_names = parse_json_file::<Vec<String>>(&model_dir.join("model.metNames.json"));
     assert_eq!(mets.len(), met_names.len());
 
     let metabolites = izip!(mets, met_names, met_formulas)
@@ -162,10 +133,14 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
         })
         .collect::<Vec<_>>();
 
-    let s_mat_coords = serde_json::from_str::<Vec<(usize, usize, f64)>>(
-        &read_to_string(model_dir.join("model.S.json")).unwrap(),
-    )
-    .unwrap();
+    let mut s_mat_coords = parse_json_file::<Vec<(usize, usize, f64)>>(&model_dir.join("model.S.json"));
+    // Adjust for 1-based indexing
+    for (row, col, _v) in s_mat_coords.iter_mut() {
+        assert!(*row > 0 && *row <= metabolites.len(), "Row index {row} out of bounds");
+        *row -= 1;
+        assert!(*col > 0 && *col <= reactions.len(), "Col index {col} out of bounds");
+        *col -= 1;
+    }
 
     Model {
         genes,

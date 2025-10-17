@@ -158,7 +158,6 @@ impl OrOp {
     }
 }
 
-
 impl AndOp {
     pub fn apply(&self, operands: impl Iterator<Item = Option<f64>>) -> f64 {
         let nan_to_zero = |x: f64| if x.is_nan() { 0.0 } else { x };
