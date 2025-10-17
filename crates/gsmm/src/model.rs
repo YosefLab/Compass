@@ -44,7 +44,6 @@ pub struct StoichiometricValue {
     pub coefficient: f64,
 }
 
-
 #[derive(Debug, Clone)]
 pub struct Gene {
     pub(super) id: String,
@@ -71,14 +70,14 @@ pub enum GeneAssociation {
 }
 
 pub struct GeneAssociationEvaluator<'a> {
-    gene_expr: &'a BTreeMap<GeneIndex, f64>,
-    or_op: OrOp,
-    and_op: AndOp,
+    pub gene_expr: &'a BTreeMap<GeneIndex, f64>,
+    pub or_op: OrOp,
+    pub and_op: AndOp,
 }
 
 pub struct GeneAssociationWithInfo<'a> {
-    pub(super) association: &'a GeneAssociation,
-    pub(super) info: &'a Vec<Gene>,
+    pub association: &'a GeneAssociation,
+    pub info: &'a Vec<Gene>,
 }
 
 #[derive(Debug)]
@@ -144,27 +143,123 @@ impl<'a> GeneAssociationEvaluator<'a> {
     }
 }
 
-impl AndOp {
-    fn apply<I: Iterator<Item = Option<f64>>>(&self, iter: I) -> f64 {
-        let values: Vec<f64> = iter.filter_map(|x| x).collect();
+impl OrOp {
+    pub fn apply(&self, operands: impl Iterator<Item = Option<f64>>) -> f64 {
+        let nan_to_zero = |x: f64| if x.is_nan() { 0.0 } else { x };
         match self {
-            AndOp::Min => values.into_iter().fold(f64::INFINITY, f64::min),
+            OrOp::Sum => operands.map(|x| x.map(nan_to_zero).unwrap_or(0.0)).sum(),
+        }
+    }
+}
+
+
+impl AndOp {
+    pub fn apply(&self, operands: impl Iterator<Item = Option<f64>>) -> f64 {
+        let nan_to_zero = |x: f64| if x.is_nan() { 0.0 } else { x };
+        match self {
+            AndOp::Min => operands
+                .map(|x| x.unwrap_or(0.0))
+                .fold(f64::INFINITY, |acc, val| acc.min(val)),
             AndOp::Mean => {
-                if values.is_empty() {
+                let (mut sum, mut len) = (0.0, 0);
+                for operand in operands {
+                    sum += operand.map(nan_to_zero).unwrap_or(0.0);
+                    len += 1;
+                }
+                if len == 0 {
                     0.0
                 } else {
-                    values.iter().sum::<f64>() / (values.len() as f64)
+                    sum / len as f64
                 }
             }
         }
     }
 }
 
-impl OrOp {
-    fn apply<I: Iterator<Item = Option<f64>>>(&self, iter: I) -> f64 {
-        let values: Vec<f64> = iter.filter_map(|x| x).collect();
-        match self {
-            OrOp::Sum => values.iter().sum(),
+#[cfg(test)]
+mod tests {
+    use rand::{prelude::*, rand_core::le};
+    use rand_xoshiro::Xoroshiro128Plus;
+
+    use super::*;
+
+    #[test]
+    pub fn test_binary_eval() {
+        let mut rng = Xoroshiro128Plus::seed_from_u64(133771331);
+        let rule = GeneAssociation::Or(vec![
+            GeneAssociation::Gene(GeneIndex { id: 0 }),
+            GeneAssociation::And(vec![
+                GeneAssociation::Gene(GeneIndex { id: 1 }),
+                GeneAssociation::Gene(GeneIndex { id: 2 }),
+            ]),
+            GeneAssociation::Gene(GeneIndex { id: 3 }),
+        ]);
+        let test_inner = |vals: [f64; 4]| {
+            let expr = vals
+                .iter()
+                .copied()
+                .enumerate()
+                .map(|(i, v)| (GeneIndex { id: i }, v))
+                .collect();
+            let evaluator = GeneAssociationEvaluator {
+                gene_expr: &expr,
+                or_op: OrOp::Sum,
+                and_op: AndOp::Mean,
+            };
+            let result = evaluator.evaluate(&rule);
+            let expected = vals[0] + (vals[1] + vals[2]) / 2.0 + vals[3];
+            assert_eq!(result, Some(expected));
+        };
+        for _ in 0..10 {
+            let vals = std::array::from_fn(|_| rng.random_range(0..100usize) as f64 / 10.0);
+            println!("Testing with vals: {:?}", vals);
+            test_inner(vals);
+        }
+    }
+
+    #[test]
+    pub fn test_nested_eval() {
+        let mut rng = Xoroshiro128Plus::seed_from_u64(133771331);
+        let rule = GeneAssociation::And(vec![
+            GeneAssociation::Gene(GeneIndex { id: 0 }),
+            GeneAssociation::Or(vec![
+                GeneAssociation::Gene(GeneIndex { id: 0 }),
+                GeneAssociation::Gene(GeneIndex { id: 1 }),
+                GeneAssociation::Gene(GeneIndex { id: 2 }),
+            ]),
+            GeneAssociation::And(vec![
+                GeneAssociation::Gene(GeneIndex { id: 3 }),
+                GeneAssociation::Gene(GeneIndex { id: 4 }),
+            ]),
+            GeneAssociation::Or(vec![
+                GeneAssociation::Gene(GeneIndex { id: 1 }),
+                GeneAssociation::Gene(GeneIndex { id: 3 }),
+            ]),
+        ]);
+        let test_inner = |vals: [f64; 5]| {
+            let expr = vals
+                .iter()
+                .copied()
+                .enumerate()
+                .map(|(i, v)| (GeneIndex { id: i }, v))
+                .collect();
+            let evaluator = GeneAssociationEvaluator {
+                gene_expr: &expr,
+                or_op: OrOp::Sum,
+                and_op: AndOp::Mean,
+            };
+            let result = evaluator.evaluate(&rule);
+            let expected = (vals[0]
+                + (vals[0] + vals[1] + vals[2])
+                + ((vals[3] + vals[4]) / 2.0)
+                + (vals[1] + vals[3]))
+                / 4.0;
+            assert_eq!(result, Some(expected));
+        };
+        for _ in 0..10 {
+            let vals = std::array::from_fn(|_| rng.random_range(0..100usize) as f64 / 10.0);
+            println!("Testing with vals: {:?}", vals);
+            test_inner(vals);
         }
     }
 }
