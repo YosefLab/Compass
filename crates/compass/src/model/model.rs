@@ -7,6 +7,12 @@ pub struct Model {
     pub genes: Vec<Gene>,
     pub reactions: Vec<Reaction>,
     pub metabolites: Vec<Metabolite>,
+    pub s_mat: StoichiometricMatrix,
+}
+
+pub struct StoichiometricMatrix {
+    // using COO format for now
+    pub(super) coordinates: Vec<(usize, usize, f64)>, // (row, col, value)
 }
 
 #[derive(Debug)]
@@ -176,9 +182,15 @@ impl AndOp {
     }
 }
 
+impl StoichiometricMatrix {
+    pub fn nnz(&self) -> usize {
+        self.coordinates.len()
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use rand::{prelude::*, rand_core::le};
+    use rand::{prelude::*};
     use rand_xoshiro::Xoroshiro128Plus;
 
     use super::*;

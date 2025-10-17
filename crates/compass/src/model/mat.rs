@@ -7,7 +7,9 @@ use std::{fs::read_to_string, mem, path::Path};
 
 use itertools::izip;
 
-use crate::model::{Gene, GeneAssociation, GeneIndex, Metabolite, Model, Reaction, Species};
+use crate::model::model::StoichiometricMatrix;
+
+use super::model::{Gene, GeneAssociation, GeneIndex, Metabolite, Model, Reaction, Species};
 
 pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
     let model_dir = top_dir.join("model");
@@ -160,10 +162,16 @@ pub fn parse_mat_model(top_dir: &Path, species: Species) -> Model {
         })
         .collect::<Vec<_>>();
 
+    let s_mat_coords = serde_json::from_str::<Vec<(usize, usize, f64)>>(
+        &read_to_string(model_dir.join("model.S.json")).unwrap(),
+    )
+    .unwrap();
+
     Model {
         genes,
         reactions,
         metabolites,
+        s_mat: StoichiometricMatrix { coordinates: s_mat_coords },
         species,
     }
 }

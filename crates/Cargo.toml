@@ -1,5 +1,5 @@
 [workspace]
-members = ["cplex-bindings", "compass", "cplex-rs", "gsmm"]
+members = ["cplex-bindings", "compass", "cplex-rs"]
 
 resolver = "2"
 
@@ -16,4 +16,3 @@ rand_xoshiro = { version = "0.7" }
 
 # Intra-workspace dependencies
 cplex-bindings = { path = "cplex-bindings" }
-gsmm = { path = "gsmm" }
