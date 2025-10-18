@@ -108,6 +108,9 @@ dependencies = [
 [[package]]
 name = "cuopt-rs"
 version = "0.1.0"
+dependencies = [
+ "cuopt-bindings",
+]
 
 [[package]]
 name = "either"

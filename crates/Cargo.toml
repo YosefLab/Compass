@@ -16,3 +16,4 @@ rand_xoshiro = { version = "0.7" }
 
 # Intra-workspace dependencies
 cplex-bindings = { path = "cplex-bindings" }
+cuopt-bindings = { path = "cuopt-bindings" }

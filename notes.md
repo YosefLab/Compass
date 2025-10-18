@@ -168,3 +168,23 @@ $ conda list cuopt
 # Name                    Version                   Build  Channel
 libcuopt                  25.10.00        cuda13_251014_99e549ce    nvidia
 ```
+
+### Getting libcusparse
+Then as I am using WSL 2 I will also need to [install CUDA toolkit](https://docs.nvidia.com/cuda/wsl-user-guide/index.html). In this case, go to https://developer.nvidia.com/cuda-downloads and select the appropriate version (in my case: Operating System: Linux; Architecture: x86_64; Distribution: WSL-Ubuntu; Version: 2.0).
+
+For ease of the reader:
+```
+wget https://developer.download.nvidia.com/compute/cuda/repos/wsl-ubuntu/x86_64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt-get update
+sudo apt-get -y install cuda-toolkit-13-0
+```
+
+
+## Linking debugging
+So usually I try to statically link things to avoid issues with dynamic linking.
+
+1. libcuopt.so: "error while loading shared libraries: libcuopt.so: cannot open shared object file: No such file or directory"
+   1. This library is installed at $CONDA_PREFIX/lib. On linux use the `LD_LIBRARY_PATH` (on Mac it should be `DYLD_LIBRARY_PATH`) variable: `LD_LIBRARY_PATH="$CONDA_PREFIX/lib" cargo run`. Note that [conda discourages settings this persistently](https://docs.conda.io/projects/conda-build/en/stable/resources/use-shared-libraries.html#shared-libraries-in-macos-and-linux), as it can interfere with resolving system libraries (ie /usr/lib/), so I generally set the variable only for the commands that require it.
+1. libcupsparse.so : error while loading shared libraries: libcusparse.so.12: cannot open shared object file: No such file or director
+    1.

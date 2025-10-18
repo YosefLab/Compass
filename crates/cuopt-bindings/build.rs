@@ -1,7 +1,7 @@
 use std::{env, path::PathBuf};
 
 use anyhow::{Context, anyhow};
-use bindgen::callbacks::{MacroParsingBehavior, ParseCallbacks};
+use bindgen::{callbacks::{MacroParsingBehavior, ParseCallbacks}, MacroTypeVariation};
 
 const FP_EXCLUDE_MACROS: &[&str] = &[
     "FP_NAN",
@@ -78,6 +78,9 @@ pub fn main_inner() -> Result<(), anyhow::Error> {
         .clang_arg(format!("-I{}", cuopt.include_dir.display()))
         .parse_callbacks(Box::new(FpMacroExcluder))
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
+        // Used signed for consistency with cuopt_int_t
+        .default_macro_constant_type(MacroTypeVariation::Signed)
+        .generate_cstr(true)
         .generate()
         .context("Generating bindings")?;
 
