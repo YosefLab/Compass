@@ -1,27 +1,58 @@
 use std::{env, path::PathBuf};
 
 use anyhow::{Context, anyhow};
-use bindgen::{callbacks::{MacroParsingBehavior, ParseCallbacks}, MacroTypeVariation};
+use bindgen::{
+    MacroTypeVariation,
+    callbacks::{MacroParsingBehavior, ParseCallbacks},
+};
 
-const FP_EXCLUDE_MACROS: &[&str] = &[
-    "FP_NAN",
-    "FP_INFINITE",
-    "FP_ZERO",
-    "FP_SUBNORMAL",
-    "FP_NORMAL",
-];
 
-// Bindgen has issues with anonymous enum and define colliding
+
+
 #[derive(Debug)]
-pub struct FpMacroExcluder;
+pub struct CuoptCallbacks;
 
-impl ParseCallbacks for FpMacroExcluder {
+impl ParseCallbacks for CuoptCallbacks {
     fn will_parse_macro(&self, name: &str) -> MacroParsingBehavior {
-        if FP_EXCLUDE_MACROS.contains(&name) {
+        const FP_EXCLUDE_MACROS: &[&str] = &[
+            "FP_NAN",
+            "FP_INFINITE",
+            "FP_ZERO",
+            "FP_SUBNORMAL",
+            "FP_NORMAL",
+        ];
+        // Bindgen generates a u8 for these, while nvidia functions expecta c_char
+        // I define a const char X_d = X; and then strip the _d in `fn generated_name_override`
+        const CHAR_MACROS: &[&str] = &[
+            "CUOPT_LESS_THAN",
+            "CUOPT_GREATER_THAN",
+            "CUOPT_EQUAL",
+            "CUOPT_CONTINUOUS",
+            "CUOPT_INTEGER",
+        ];
+        // Bindgen has issues with anonymous enum and define colliding
+        // There are C enums and macros defined with the various FP_ constants
+        // Without this, bindgen will generate two versions with the same name.
+        if FP_EXCLUDE_MACROS.contains(&name) || CHAR_MACROS.contains(&name)  {
             MacroParsingBehavior::Ignore
         } else {
             MacroParsingBehavior::Default
         }
+    }
+
+    fn generated_name_override(
+            &self,
+            item_info: bindgen::callbacks::ItemInfo<'_>,
+        ) -> Option<String> {
+        match item_info.name {
+            "CUOPT_INFINITY_d" => Some("CUOPT_INFINITY"),
+            "CUOPT_LESS_THAN_d" => Some("CUOPT_LESS_THAN"),
+            "CUOPT_GREATER_THAN_d" => Some("CUOPT_GREATER_THAN"),
+            "CUOPT_EQUAL_d" => Some("CUOPT_EQUAL"),
+            "CUOPT_CONTINUOUS_d" => Some("CUOPT_CONTINUOUS"),
+            "CUOPT_INTEGER_d" => Some("CUOPT_INTEGER"),
+            _ => None,
+        }.map(|s| s.to_string())
     }
 }
 
@@ -41,8 +72,7 @@ fn find_cuopt_conda() -> Result<cuOpt, anyhow::Error> {
         println!("Found CONDA_PREFIX at {:?}", conda_prefix);
         let conda_path = std::path::PathBuf::from(conda_prefix);
         let cuopt_lib_path = conda_path.join("lib");
-        let cuopt_include_path = conda_path
-            .join("include");
+        let cuopt_include_path = conda_path.join("include");
         let lib_exists = cuopt_lib_path.exists();
         let include_exists = cuopt_include_path.exists();
         if lib_exists && include_exists {
@@ -76,7 +106,7 @@ pub fn main_inner() -> Result<(), anyhow::Error> {
     let bindings = bindgen::Builder::default()
         .header("cuopt_wrapper.h")
         .clang_arg(format!("-I{}", cuopt.include_dir.display()))
-        .parse_callbacks(Box::new(FpMacroExcluder))
+        .parse_callbacks(Box::new(CuoptCallbacks))
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         // Used signed for consistency with cuopt_int_t
         .default_macro_constant_type(MacroTypeVariation::Signed)

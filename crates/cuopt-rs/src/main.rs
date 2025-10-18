@@ -1,5 +1,5 @@
 use cuopt_bindings::*;
-use std::{ffi::c_char, ptr};
+use std::ptr;
 
 /// Test simple LP problem
 /// Solve the following LP:
@@ -35,15 +35,15 @@ pub fn main() {
     // 3.0*x1 + 4.0*x2 <= 5.4
     // 2.7*x1 + 10.1*x2 <= 4.9
     let constraint_upper_bounds: [cuopt_float_t; 2] = [5.4, 4.9];
-    let constraint_lower_bounds: [cuopt_float_t; 2] = [f64::NEG_INFINITY, f64::NEG_INFINITY];
+    let constraint_lower_bounds = [cuopt_float_t::NEG_INFINITY, cuopt_float_t::NEG_INFINITY];
 
     // Variable bounds
     // From the constraints: x1, x2 >= 0
     let var_lower_bounds: [cuopt_float_t; 2] = [0.0, 0.0];
-    let var_upper_bounds: [cuopt_float_t; 2] = [f64::INFINITY, f64::INFINITY];
+    let var_upper_bounds = [cuopt_float_t::INFINITY, cuopt_float_t::INFINITY];
 
     // Variable types (continuous)
-    let variable_types: [c_char; 2] = [CUOPT_CONTINUOUS as c_char, CUOPT_CONTINUOUS as c_char];
+    let variable_types = [CUOPT_CONTINUOUS, CUOPT_CONTINUOUS];
 
     println!("Creating and solving simple LP problem...");
 

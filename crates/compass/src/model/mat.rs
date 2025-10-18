@@ -1,8 +1,5 @@
 //! Parses the _mat folder with GSMM info.
-//! Contains two ways of parsing the GPR
-//!     1. Prefers OR over AND and appears to be correct. This is how the python code does it.
-//!     2. Parses the operations, applying operations left to right.
-
+//! Aims to match the behavior of the python code and has tests to verify.
 use std::{fs::read_to_string, mem, path::Path};
 
 use itertools::izip;

@@ -180,11 +180,16 @@ sudo apt-get update
 sudo apt-get -y install cuda-toolkit-13-0
 ```
 
+Then the [Post-installation actions](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/#post-installation-actions)
+```sh
+export PATH=${PATH}:/usr/local/cuda-13.0/bin
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/cuda-13.0/lib64
+```
 
 ## Linking debugging
-So usually I try to statically link things to avoid issues with dynamic linking.
+Usually I try to statically link things to avoid issues with dynamic linking, but given nvidia only distributes dynamic libraries, static linking is not very practical.
 
 1. libcuopt.so: "error while loading shared libraries: libcuopt.so: cannot open shared object file: No such file or directory"
-   1. This library is installed at $CONDA_PREFIX/lib. On linux use the `LD_LIBRARY_PATH` (on Mac it should be `DYLD_LIBRARY_PATH`) variable: `LD_LIBRARY_PATH="$CONDA_PREFIX/lib" cargo run`. Note that [conda discourages settings this persistently](https://docs.conda.io/projects/conda-build/en/stable/resources/use-shared-libraries.html#shared-libraries-in-macos-and-linux), as it can interfere with resolving system libraries (ie /usr/lib/), so I generally set the variable only for the commands that require it.
+   1. This library is installed at $CONDA_PREFIX/lib. On linux use the `LD_LIBRARY_PATH` (on Mac it should be `DYLD_LIBRARY_PATH`) variable: `LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib cargo run`. Note that [conda discourages settings this persistently](https://docs.conda.io/projects/conda-build/en/stable/resources/use-shared-libraries.html#shared-libraries-in-macos-and-linux), as it can interfere with resolving system libraries (ie /usr/lib/), so I generally set the variable only for the commands that require it.
 1. libcupsparse.so : error while loading shared libraries: libcusparse.so.12: cannot open shared object file: No such file or director
-    1.
+    1. These are installed with the CUDA toolkit.
