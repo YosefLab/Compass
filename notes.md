@@ -132,3 +132,39 @@ So initial thoughts are that I should just stop using the binary tree stuff? Jus
           </fbc:or>
         </fbc:geneProductAssociation>
 ```
+## Setting up my venv again
+### Compass
+From the repo root
+```bash
+conda create -n compass_env python=3.12 
+conda activate compass_env
+conda install numpy pandas python-libsbml
+pip install .
+```
+### Cplex
+Hmm, it seems like the community version lacks the python directory? That will be a problem. Oh, you can install that one with pip it looks like. So with the community version (which probably won't work with compass anyways)
+```
+conda install ibmdecisionoptimization::cplex
+```
+Then you can at least do `python -m compass.main`
+
+### cuOPT
+Note you need cuda installed. 
+
+I am simply following the [docs](https://docs.nvidia.com/cuopt/user-guide/latest/cuopt-c/quick-start.html)
+```
+# CUDA 13
+conda install -c rapidsai -c conda-forge -c nvidia libcuopt=25.10.* cuda-version=13.0
+``` 
+Then I find the C headers with a
+```sh
+find $CONDA_PREFIX/include -type f -name '*.h' | grep cuopt
+```
+For replicability, I have this package
+```sh
+$ conda list cuopt
+# packages in environment at /home/bschel/miniforge3/envs/compass_env:
+#
+# Name                    Version                   Build  Channel
+libcuopt                  25.10.00        cuda13_251014_99e549ce    nvidia
+```

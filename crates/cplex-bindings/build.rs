@@ -14,6 +14,7 @@ const FP_EXCLUDE_MACROS: &[&str] = &[
 // Default CPLEX installation path
 const DEFAULT_CPLEX_PATH: &str = "/opt/ibm/ILOG";
 
+// Bindgen has issues with anonymous enum and define colliding
 #[derive(Debug)]
 pub struct FpMacroExcluder;
 

@@ -92,7 +92,6 @@ pub enum AndOp {
     Min,
     /// Treats nans as 0
     Mean,
-    // Because I am representating operations as a binary tree, I do not support median.
 }
 
 #[derive(Debug)]

@@ -1,0 +1,4 @@
+
+[env]
+# For cuopt linkage to work:
+# CONDA_PREFIX = "/path/to/your/conda/env"
