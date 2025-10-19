@@ -193,3 +193,36 @@ Usually I try to statically link things to avoid issues with dynamic linking, bu
    1. This library is installed at $CONDA_PREFIX/lib. On linux use the `LD_LIBRARY_PATH` (on Mac it should be `DYLD_LIBRARY_PATH`) variable: `LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib cargo run`. Note that [conda discourages settings this persistently](https://docs.conda.io/projects/conda-build/en/stable/resources/use-shared-libraries.html#shared-libraries-in-macos-and-linux), as it can interfere with resolving system libraries (ie /usr/lib/), so I generally set the variable only for the commands that require it.
 1. libcupsparse.so : error while loading shared libraries: libcusparse.so.12: cannot open shared object file: No such file or director
     1. These are installed with the CUDA toolkit.
+
+
+# Compass algorithm
+
+1. Get gene expression data - I should have some sitting around
+1. Parse - probably into polars data frame (hmm, where did I put that code. I should have pushed that stuff to git)
+1. Group gene symbols
+1. Isoform summing and dealing with reversible reactions
+1. Simple single cell penalty computation
+1. Compute max throughput of reactions
+1. Construct flux balance analysis problem and solve
+
+Optional steps
+1. Cache maximum flux through model
+    1. Probably required for even half decent performance
+1. Smoothing, over lambda > 0
+    1. Latent space input: simple
+    1. PCA: I can implement that fine.
+    1. tsne: Tricky to do, ideally find a library.
+    1. knn: Hard to do it fast, ideally find a library.
+
+## Some design thoughts:
+
+1. Probably want to use python calling into Rust. Which parts should be py and which rs?
+    1. CLI? I like clap, but probably should be python, as it's the entry point. Argparse stil suffices.
+    1. Data loading - eh we'll use polars in python may as well.
+    1. Data preprocessing also python to make use of the various packages
+    1. Do gsmm part in rust as a polars extension - should be interesting
+    1. Caching doesn't make a big difference
+    1. Optimization engine
+        1. So obviously writing one myself would be Rust
+        1. GLPK has a C interface, while technically C could do it, it's probably easier for me to use Rust so I can ensure the type layouts match.
+        1. Hmm, probably call into the gsmm rust module to get numpy arrays to feed to the optimization engines.

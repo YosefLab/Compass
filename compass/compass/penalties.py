@@ -155,7 +155,7 @@ def eval_reaction_penalties_shared(model, expression,
     # Compute reaction expression for each sample
 
     reaction_expression = []
-    for name, expression_data in expression.iteritems():
+    for name, expression_data in expression.items():
         reaction_expression.append(
             eval_reaction_expression_single(
                 model, expression_data, and_function

@@ -562,20 +562,12 @@ def entry():
         end_time = datetime.datetime.now()
         logger.debug("\nElapsed Time: {}".format(end_time-start_time))
         return
-
+    
     #Check if the cache for (model, media) exists already:
+    #But we can skip the cache preloading if we're only calculating penalties
     size_of_cache = len(cache.load(init_model(model=args['model'], species=args['species'],
                     exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
                     isoform_summing=args['isoform_summing']), args['media']))
-    if size_of_cache == 0 or args['precache']:
-        logger.info("Building up model cache")
-        precacheCompass(args=args)
-        end_time = datetime.datetime.now()
-        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
-        if not args['data']:
-            return
-    else:
-        logger.info("Cache for model and media already built")
 
     # Time to evaluate the reaction expression
     success_token = os.path.join(args['temp_dir'], 'success_token_penalties')
@@ -595,6 +587,16 @@ def entry():
     args['penalties_file'] = penalties_file
     if args['only_penalties']:
         return
+    
+    if size_of_cache == 0 or args['precache']:
+        logger.info("Building up model cache")
+        precacheCompass(args=args)
+        end_time = datetime.datetime.now()
+        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
+        if not args['data']:
+            return
+    else:
+        logger.info("Cache for model and media already built")
 
     # Now run the individual cells through cplex in parallel
     # This is either done by sending to Torque queue, or running on the

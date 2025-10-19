@@ -17,16 +17,18 @@ setup(
                   ['compass = compass.main:entry']},
 
     install_requires=[
-        'numpy>=1.12',
-        'pandas>=0.20',
-        'tqdm>=4.11',
+        'numpy>=2.3.3',
+        'pandas>=2.3.3',
+        'tqdm>=4.67',
         'python-libsbml>=5.13',
         'six>=1.10',
         'scikit-learn>=0.19',
-        'scipy>=1.0',
-        'python-igraph>=0.9', #Need the version to be high enough fgo
-        'leidenalg>=0.8.2',
-        'anndata'],
+        'scipy>=1.16',
+        'python-igraph>=0.11', 
+        'leidenalg>=0.10',
+        'polars>=1.34',
+        'anndata'
+    ],
 
         # 'cplex>=12.7.0.0' also required, but installed separately
 
