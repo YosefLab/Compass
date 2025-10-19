@@ -18,6 +18,8 @@ from tqdm import tqdm
 from six import string_types
 from math import ceil
 
+from compass.compass.cuopt_solver import cuOptLinearProgram
+
 from .compass import cache
 from ._version import __version__
 from .compass.torque import submitCompassTorque
@@ -568,6 +570,15 @@ def entry():
     size_of_cache = len(cache.load(init_model(model=args['model'], species=args['species'],
                     exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
                     isoform_summing=args['isoform_summing']), args['media']))
+    
+    # For testing cuopt
+    model = init_model(model=args['model'], species=args['species'],
+        exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
+        isoform_summing=args['isoform_summing'])
+    cuopt_problem = cuOptLinearProgram()
+    cuopt_problem.initialize_problem(model)
+    if len(cuopt_problem.maximize_reactions([0])) > -1:
+        return
 
     # Time to evaluate the reaction expression
     success_token = os.path.join(args['temp_dir'], 'success_token_penalties')

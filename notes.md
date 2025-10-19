@@ -153,8 +153,10 @@ Note you need cuda installed.
 
 I am simply following the [docs](https://docs.nvidia.com/cuopt/user-guide/latest/cuopt-c/quick-start.html)
 ```
-# CUDA 13
+# CUDA 13 - C library
 conda install -c rapidsai -c conda-forge -c nvidia libcuopt=25.10.* cuda-version=13.0
+# CUDA 13 - python
+conda install -c rapidsai -c conda-forge -c nvidia cuopt=25.10.* cuda-version=13.0
 ``` 
 Then I find the C headers with a
 ```sh
@@ -163,9 +165,11 @@ find $CONDA_PREFIX/include -type f -name '*.h' | grep cuopt
 For replicability, I have this package
 ```sh
 $ conda list cuopt
-# packages in environment at /home/bschel/miniforge3/envs/compass_env:
+# packages in environment at /home/user/miniforge3/envs/compass_env:
 #
 # Name                    Version                   Build  Channel
+cuopt                     25.10.00        cuda13_py312_251014_99e549ce    nvidia
+cuopt-mps-parser          25.10.00        py312_251014_99e549ce    nvidia
 libcuopt                  25.10.00        cuda13_251014_99e549ce    nvidia
 ```
 
