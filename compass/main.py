@@ -577,7 +577,9 @@ def entry():
         isoform_summing=args['isoform_summing'])
     cuopt_problem = cuOptLinearProgram()
     cuopt_problem.initialize_problem(model)
-    if len(cuopt_problem.maximize_reactions([0])) > -1:
+    rxn_maxes = cuopt_problem.maximize_reactions(list(range(100)))
+    if len(rxn_maxes) > 0:
+        print(rxn_maxes)
         return
 
     # Time to evaluate the reaction expression
