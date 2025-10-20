@@ -230,3 +230,29 @@ Optional steps
         1. So obviously writing one myself would be Rust
         1. GLPK has a C interface, while technically C could do it, it's probably easier for me to use Rust so I can ensure the type layouts match.
         1. Hmm, probably call into the gsmm rust module to get numpy arrays to feed to the optimization engines.
+
+### Misc: cuOPT error
+I have gotten this error probably 1 in 3 runs.
+```sh
+terminate called after throwing an instance of 'raft::cusparse_error'
+  what():  cuSparse error encountered at: file=/tmp/conda-bld-output/bld/rattler-build_libmps-parser/work/cpp/src/dual_simplex/sparse_matrix_kernels.cuh line=134: call='cusparseSpGEMM_compute(handle->get_cusparse_handle(), CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_NON_TRANSPOSE, cusparse_data.alpha.data(), cusparse_data.matA_descr, cusparse_data.matDAT_descr, cusparse_data.beta.data(), cusparse_data.matADAT_descr, CUDA_R_64F, CUSPARSE_SPGEMM_ALG3, cusparse_data.spgemm_descr, &cusparse_data.buffer_size_2_size, cusparse_data.buffer_size_2.data())', Reason=7:internal error
+Obtained 11 stack frames
+#1 in /home/bschel/miniforge3/envs/compass_env/lib/python3.12/site-packages/cuopt/linear_programming/solver/../../../../../libcuopt.so: raft::cusparse_error::cusparse_error(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) +0x5a [0x7ac15f62ce0a]
+#2 in /home/bschel/miniforge3/envs/compass_env/lib/python3.12/site-packages/cuopt/linear_programming/solver/../../../../../libcuopt.so(+0x89c11f) [0x7ac15fc9c11f]
+#3 in /home/bschel/miniforge3/envs/compass_env/lib/python3.12/site-packages/cuopt/linear_programming/solver/../../../../../libcuopt.so: cuopt::linear_programming::dual_simplex::iteration_data_t<int, double>::form_adat(bool) +0x4ad [0x7ac15fcc08bd]
+#4 in /home/bschel/miniforge3/envs/compass_env/lib/python3.12/site-packages/cuopt/linear_programming/solver/../../../../../libcuopt.so: cuopt::linear_programming::dual_simplex::iteration_data_t<int, double>::iteration_data_t(cuopt::linear_programming::dual_simplex::lp_problem_t<int, double> const&, int, cuopt::linear_programming::dual_simplex::simplex_solver_settings_t<int, double> const&) +0x295d [0x7ac15fcd2d5d]
+#5 in /home/bschel/miniforge3/envs/compass_env/lib/python3.12/site-packages/cuopt/linear_programming/solver/../../../../../libcuopt.so: cuopt::linear_programming::dual_simplex::barrier_solver_t<int, double>::solve(double, cuopt::linear_programming::dual_simplex::barrier_solver_settings_t<int, double> const&, cuopt::linear_programming::dual_simplex::lp_solution_t<int, double>&) +0x26c [0x7ac15fcdc22c]
+#6 in /home/bschel/miniforge3/envs/compass_env/lib/python3.12/site-packages/cuopt/linear_programming/solver/../../../../../libcuopt.so: cuopt::linear_programming::dual_simplex::lp_status_t cuopt::linear_programming::dual_simplex::solve_linear_program_with_barrier<int, double>(cuopt::linear_programming::dual_simplex::user_problem_t<int, double> const&, cuopt::linear_programming::dual_simplex::simplex_solver_settings_t<int, double> const&, cuopt::linear_programming::dual_simplex::lp_solution_t<int, double>&) +0xad4 [0x7ac15fd3b294]
+#7 in /home/bschel/miniforge3/envs/compass_env/lib/python3.12/site-packages/cuopt/linear_programming/solver/../../../../../libcuopt.so: std::tuple<cuopt::linear_programming::dual_simplex::lp_solution_t<int, double>, cuopt::linear_programming::dual_simplex::lp_status_t, double, double, double> cuopt::linear_programming::run_barrier<int, double>(cuopt::linear_programming::dual_simplex::user_problem_t<int, double>&, cuopt::linear_programming::pdlp_solver_settings_t<int, double> const&, cuopt::timer_t const&) +0x4de [0x7ac15f631a9e]
+#8 in /home/bschel/miniforge3/envs/compass_env/lib/python3.12/site-packages/cuopt/linear_programming/solver/../../../../../libcuopt.so: void cuopt::linear_programming::run_barrier_thread<int, double>(cuopt::linear_programming::dual_simplex::user_problem_t<int, double>&, cuopt::linear_programming::pdlp_solver_settings_t<int, double> const&, std::unique_ptr<std::tuple<cuopt::linear_programming::dual_simplex::lp_solution_t<int, double>, cuopt::linear_programming::dual_simplex::lp_status_t, double, double, double>, std::default_delete<std::tuple<cuopt::linear_programming::dual_simplex::lp_solution_t<int, double>, cuopt::linear_programming::dual_simplex::lp_status_t, double, double, double> > >&, cuopt::timer_t const&) +0x27 [0x7ac15f631fc7]
+#9 in /home/bschel/miniforge3/envs/compass_env/lib/python3.12/site-packages/numpy/_core/../../../../libstdc++.so.6(+0xd828c) [0x7ac30509b28c]
+#10 in /lib/x86_64-linux-gnu/libc.so.6(+0x9caa4) [0x7ac30889caa4]
+#11 in /lib/x86_64-linux-gnu/libc.so.6(+0x129c6c) [0x7ac308929c6c]
+```
+
+Another error:
+```
+CUDA Error detected. CUDA Error detected. cudaErrorIllegalAddress cudaErrorIllegalAddress an illegal memory access was encounteredan illegal memory access was encountered
+
+python: /tmp/conda-bld-output/bld/rattler-build_libmps-parser/host_env_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_pl/include/rmm/mr/device/cuda_memory_resource.hpp:80: virtual void rmm::mr::cuda_memory_resource::do_deallocate(void*, std::size_t, rmm::cuda_stream_view): Assertion `status__ == cudaSuccess' failed.
+```
