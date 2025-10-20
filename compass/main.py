@@ -18,7 +18,7 @@ from tqdm import tqdm
 from six import string_types
 from math import ceil
 
-from compass.compass.cuopt_solver import cuOptLinearProgram
+from compass.compass.cuopt_solver import cuOptSolver
 
 from .compass import cache
 from ._version import __version__
@@ -575,7 +575,7 @@ def entry():
     model = init_model(model=args['model'], species=args['species'],
         exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
         isoform_summing=args['isoform_summing'])
-    cuopt_problem = cuOptLinearProgram()
+    cuopt_problem = cuOptSolver()
     cuopt_problem.initialize_problem(model)
     rxn_maxes = cuopt_problem.maximize_reactions(list(model.reactions.values())[:100])
     if len(rxn_maxes) > 0:
