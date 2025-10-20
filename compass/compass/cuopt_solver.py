@@ -1,74 +1,140 @@
-from cuopt.linear_programming.problem import Problem, CONTINUOUS, MAXIMIZE
+from dataclasses import dataclass, field
+from build.lib.compass.globals import EXCHANGE_LIMIT
+from cuopt.linear_programming.problem import Problem, CONTINUOUS, MAXIMIZE, MINIMIZE
 from cuopt.linear_programming.solver_settings import SolverSettings
+
+@dataclass
+class LinearProgramDelta:
+    """Track deltas to the GSMM-derived linear program.
+    This enables changes that a solver does not support in place, like editing constraints."""
+    # Reaction ID -> coefficient
+    objective: dict
+    # Sense of optimization: max or min
+    sense: str
+    # Metabolite ID -> reaction ID
+    added_secretion: dict = field(default_factory=dict)
+    # Metabolite ID -> reaction ID
+    added_uptake: dict = field(default_factory=dict)
+    # Reaction IDs
+    blocked_reactions: set = field(default_factory=set)
 
 class cuOptSolver:
     """Concrete implementation of LinearProgram using cuOpt solver."""
 
-    def __init__(self):
+    def __init__(self, model):
         """Initialize the cuOpt linear program."""
+        self.model = model
         self.settings = SolverSettings()
         # Time limit is in seconds.
         self.settings.set_parameter('time_limit', 300)
         self.settings.set_parameter('log_to_console', False)
         # Note that there are several tolerance settings, which are generally larger than cplex
-
-    # This function must be called first. All following calls should re-establish invariants
-    # I.e., reinit problem if you destructively edit the LP
-    def initialize_problem(self, model):
-        """Initialize the cuOpt linear program with the given metabolic model."""
-        self.problem = Problem("Flux Balance Analysis LP")
-        # TODO: Configurable settings
-
-        variables = {}
-        for id, reaction in model.reactions.items():
-            print(f"Handling reaction {reaction.id}, {reaction.name}")
-            var = self.problem.addVariable(lb=reaction.lower_bound,
-                                             ub=reaction.upper_bound,
-                                             vtype=CONTINUOUS,
-                                             name=reaction.id)
-            variables[id] = var
-        self.variables = variables
-
-        s_mat = model.getSMAT()
-        constraints = {}
+        
+        s_mat = self.model.getSMAT()
         metab_nonzero = {}
         for metab, rx in s_mat.items():
-            print(f"Handling {metab}: {rx};")
+            if len(rx) == 0:
+                continue
+            # rx is a list of (reaction_index, stoichiometric_coeff) tuples
+            metab_nonzero[metab] = [id for id, _ in rx]
+        self.metab_nonzero = metab_nonzero
+
+        # Create a base problem that can be modified for some deltas
+        # For cuopt, we can easily change the upper/lower bounds and objective
+        # Changing constraints is much harder, so for any metabolites we reconstruct the whole problem
+        self.base_problem = None
+        # self.solve_problem(LinearProgramDelta(objective=dict(), sense="max"))
+
+    def solve_problem(self, delta: LinearProgramDelta) -> Problem:
+        """Creates a linear program based on the model and the provided delta.
+        Consult self.problem after calling to get solution status and objective value."""
+        problem = Problem("Flux Balance Analysis LP")
+
+        # See if we can apply the delta to the base problem
+        reuse_base = len(delta.added_secretion) == 0 and len(delta.added_uptake) == 0 and self.base_problem is not None
+        if reuse_base:
+            self.problem = self.base_problem
+
+        else:
+        variables = {}
+        for id, reaction in self.model.reactions.items():
+            #print(f"Handling reaction {reaction.id}, {reaction.name}")
+            lb = reaction.lower_bound
+            ub = reaction.upper_bound
+            if id in delta.blocked_reactions:
+                ub = reaction.lower_bound
+            var = problem.addVariable(lb=lb,
+                                             ub=ub,
+                                             vtype=CONTINUOUS,
+                                             name=reaction.id)
+                                             
+            variables[id] = var
+
+        # TODO: Double check EXCHANGE_LIMIT vs maximum_flux asymmetry
+        # Probably due to limited physical uptake rates vs arbitrary secretion
+        for (met_id, rxn_id) in delta.added_secretion.items():
+            #print(f"Adding secretion reaction {rxn_id} for metabolite {met_id}")
+            secretion_var = self.problem.addVariable(lb=0.0, 
+                                            ub=self.model.maximum_flux,
+                                            vtype=CONTINUOUS,
+                                            name=rxn_id)
+            variables[rxn_id] = secretion_var
+        for (met_id, rxn_id) in delta.added_uptake.items():
+            #print(f"Adding uptake reaction {rxn_id} for metabolite {met_id}")
+            uptake_var = self.problem.addVariable(
+                                            lb=0.0, 
+                                            ub=EXCHANGE_LIMIT,
+                                            vtype=CONTINUOUS,
+                                            name=rxn_id)
+            variables[rxn_id] = uptake_var
+
+        self.variables = variables
+
+        s_mat = self.model.getSMAT()
+        constraints = {}
+        for metab, rx in s_mat.items():
+            #print(f"Handling {metab}: {rx};")
+            # Add stoichiometry for added secretion/uptake reactions
+            if metab in delta.added_secretion:
+                rx.append( (delta.added_secretion[metab], -1.0) )
+            if metab in delta.added_uptake:
+                rx.append( (delta.added_uptake[metab], 1.0) )
             if len(rx) == 0:
                 continue
             
             # rx is a list of (reaction_index, stoichiometric_coeff) tuples
-            metab_nonzero[metab] = [id for id, _ in rx]
             expr = sum([coeff * variables[id] for id, coeff in rx])
 
             self.problem.addConstraint(expr == 0, name=metab)
             constraints[metab] = expr
 
-        self.contstraints = constraints
-        # Used for maximize_metabolites
-        self.metab_nonzero = metab_nonzero
+        objective_expr = sum([coeff * variables[id] for id, coeff in delta.objective.items()])
+        if delta.sense == "max":
+            self.problem.setObjective(objective_expr, sense=MAXIMIZE)
+        else:
+            self.problem.setObjective(objective_expr, sense=MINIMIZE)
+        self.constraints = constraints
 
-
-    def maximize_reactions(self, model, reactions: list) -> dict:
+    def maximize_reactions(self, reactions: list) -> dict:
         """Maximize the flux through the given reactions using cuOpt."""
-        # Keeping model as parameter for consistency, but this implementation does not need it
-        _ = model
-
         results = {}
         for rxn in reactions:
+            blocked_reactions = set()
+            objective = {rxn.id: 1.0}
+            sense = "max"
+
             print(f"Maximizing {rxn.id}")
-            self.problem.setObjective(self.variables[rxn.id], sense = MAXIMIZE)
 
             # Zero out reverse reaction, otherwise extra flux is caused by increasing reverse
             rev_rxn = rxn.reverse_reaction
             if rev_rxn is not None:
-                rev_var = self.variables[rev_rxn.id]  # Fixed typo: varabies -> variables
-                old_rev_ub = rev_var.getUpperBound()
-                old_rev_lb = rev_var.getLowerBound()
-                # Set to 0, or to lower bound, in case lower bound was nonzero
-                # This avoids having up = 0 < lb, if the gsmm has unusual bounds
-                rev_var.setUpperBound(max(old_rev_lb, 0))
+                blocked_reactions.add(rev_rxn.id)
 
+            self.solve_problem(LinearProgramDelta(
+                blocked_reactions=blocked_reactions,
+                objective=objective,
+                sense=sense,
+            ))
             self.problem.solve(self.settings)
 
             if self.problem.Status.name == "Optimal":
@@ -78,19 +144,14 @@ class cuOptSolver:
             else:
                 print(f"Solver ended with status {self.problem.Status.name}")
 
-            if rev_rxn is not None:
-                rev_var.setUpperBound(old_rev_ub)
-
         return results
 
     def maximize_metabolites(self, model, metabolites: list) -> dict:
         """Maximize the production of the given metabolites using cuOpt."""
-        
-        used_in_reactions = { c.getConstraintName() for c in self.constraints }
-
+        results = {}
         for met in metabolites:
 
-            if met.id not in used_in_reactions:
+            if met.id not in self.metab_nonzero:
                 # If the metabolite does not appear in any reactions (this occurs in RECON2)
                 # we can skip processing this metabolite.
                 continue
@@ -100,9 +161,6 @@ class cuOptSolver:
             extra_uptake_rxns = []
             secretion_rxn = None
             extra_secretion_rxns = []
-
-            added_uptake = False     # Did we add an uptake reaction?
-            added_secretion = False  # "   "   "  "  secretion reaction?
 
             # Note cuopt python does not expose a way to directly get nonzero variables in constraints
             # Though you could iterate over all variables to check
@@ -128,8 +186,7 @@ class cuOptSolver:
                                             ub=model.maximum_flux,
                                             vtype=CONTINUOUS,
                                             name=secretion_rxn)
-                # Then here you need to edit the LP. This does not appear to be something cuopt
-                # supports, so it will requre some refactoring.
+
 
 
 

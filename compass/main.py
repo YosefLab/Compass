@@ -566,7 +566,6 @@ def entry():
         return
     
     #Check if the cache for (model, media) exists already:
-    #But we can skip the cache preloading if we're only calculating penalties
     size_of_cache = len(cache.load(init_model(model=args['model'], species=args['species'],
                     exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
                     isoform_summing=args['isoform_summing']), args['media']))
@@ -575,8 +574,7 @@ def entry():
     model = init_model(model=args['model'], species=args['species'],
         exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
         isoform_summing=args['isoform_summing'])
-    cuopt_problem = cuOptSolver()
-    cuopt_problem.initialize_problem(model)
+    cuopt_problem = cuOptSolver(model)
     rxn_maxes = cuopt_problem.maximize_reactions(list(model.reactions.values())[:100])
     if len(rxn_maxes) > 0:
         print(rxn_maxes)
