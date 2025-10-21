@@ -256,3 +256,8 @@ CUDA Error detected. CUDA Error detected. cudaErrorIllegalAddress cudaErrorIlleg
 
 python: /tmp/conda-bld-output/bld/rattler-build_libmps-parser/host_env_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_placehold_pl/include/rmm/mr/device/cuda_memory_resource.hpp:80: virtual void rmm::mr::cuda_memory_resource::do_deallocate(void*, std::size_t, rmm::cuda_stream_view): Assertion `status__ == cudaSuccess' failed.
 ```
+But after retrying with CUDA_LAUNCH_BLOCKING=1, it seems to work.
+
+When I use CUDA_LAUNCH_BLOCKING=0, I also get PrimalInfeasible issues as well as crashes. This seems like either I am doing something wrong/unexpected or they are.
+
+The cuda computer-sanitizer tool seems to just be too slow, no problem completed after about an hour, though it does at least start the solver. At least with memcheck. synccheck, racecheck, and initcheck all also take a significant amount of time.

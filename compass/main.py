@@ -577,10 +577,10 @@ def entry():
             exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
             isoform_summing=args['isoform_summing'])
         cuopt_problem = cuOptSolver(model)
-        rxn_maxes = cuopt_problem.maximize_reactions(list(model.reactions.values())[:10])
+        rxn_maxes = cuopt_problem.maximize_reactions(list(model.reactions.values())[:20])
         if len(rxn_maxes) > 0:
             print(rxn_maxes)
-        metab_maxes = cuopt_problem.maximize_metabolites(list(model.species.values())[:10])
+        metab_maxes = cuopt_problem.maximize_metabolites(list(model.species.values())[:20])
         if len(metab_maxes) > 0:
             print(metab_maxes)
             return
