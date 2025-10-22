@@ -571,22 +571,15 @@ def entry():
                     exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
                     isoform_summing=args['isoform_summing']), args['media']))
     
-    # For testing cuopt
-    try:
-        model = init_model(model=args['model'], species=args['species'],
-            exchange_limit=globals.EXCHANGE_LIMIT, media=args['media'], 
-            isoform_summing=args['isoform_summing'])
-        cuopt_problem = cuOptSolver(model)
-        rxn_maxes = cuopt_problem.maximize_reactions(list(model.reactions.values())[:20])
-        if len(rxn_maxes) > 0:
-            print(rxn_maxes)
-        metab_maxes = cuopt_problem.maximize_metabolites(list(model.species.values())[:20])
-        if len(metab_maxes) > 0:
-            print(metab_maxes)
+    if size_of_cache == 0 or args['precache']:
+        logger.info("Building up model cache")
+        precacheCompass(args=args)
+        end_time = datetime.datetime.now()
+        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
+        if not args['data']:
             return
-    except Exception as e:
-        traceback.print_exception(e)
-        raise e
+    else:
+        logger.info("Cache for model and media already built")
 
     # Time to evaluate the reaction expression
     success_token = os.path.join(args['temp_dir'], 'success_token_penalties')
@@ -607,15 +600,6 @@ def entry():
     if args['only_penalties']:
         return
     
-    if size_of_cache == 0 or args['precache']:
-        logger.info("Building up model cache")
-        precacheCompass(args=args)
-        end_time = datetime.datetime.now()
-        logger.debug("\nElapsed Time: {}".format(end_time-start_time))
-        if not args['data']:
-            return
-    else:
-        logger.info("Cache for model and media already built")
 
     # Now run the individual cells through cplex in parallel
     # This is either done by sending to Torque queue, or running on the
@@ -879,12 +863,15 @@ def precacheCompass(args):
 
     n_processes = args['num_processes'] #max(1, args['num_processes'] - 1) #for later multithreading
     n_reactions = len(model.reactions.values())
-    # Not all metabolites in the model are neccesarily involved in reactions
-    # This allows for generating the cache only for neccesary metabolites
-    problem = initialize_cplex_problem(model, args['num_threads'], args['lpmethod'])
-    n_metabs = len(problem.linear_constraints.get_names())
+    
+   
     
     if n_processes > 1:
+        # Not all metabolites in the model are neccesarily involved in reactions
+        # This allows for generating the cache only for neccesary metabolites
+        problem = initialize_cplex_problem(model, args['num_threads'], args['lpmethod'])
+        n_metabs = len(problem.linear_constraints.get_names())
+    
         reaction_chunk_size = int(ceil(n_reactions / n_processes))
         reaction_chunks = [(i*reaction_chunk_size, min(n_reactions, (i+1)*reaction_chunk_size)) for i in range(n_processes)]
 
@@ -908,8 +895,9 @@ def precacheCompass(args):
         cache.save(model) 
 
     else:
-        metab_cache = maximize_metab_range((0, n_metabs), args)
-        reaction_cache = maximize_reaction_range((0, n_reactions), args)
+        solver = cuOptSolver(model)
+        reaction_cache = solver.maximize_reactions(list(model.reactions.values()))
+        metab_cache = solver.maximize_metabolites(list(model.species.values()))
         cache.clear(model)
         model_cache = cache.load(model)
         model_cache.update(reaction_cache)

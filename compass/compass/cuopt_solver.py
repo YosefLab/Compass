@@ -1,5 +1,7 @@
 from dataclasses import dataclass, field
 import logging
+import gc
+import cupy
 
 import numpy as np
 from build.lib.compass.globals import EXCHANGE_LIMIT
@@ -63,6 +65,7 @@ class cuOptSolver:
         # See if we can apply the delta to the base problem
         reuse_base = len(delta.added_secretion) == 0 and len(delta.added_uptake) == 0
         restore_upper_bounds = {}
+        
         if reuse_base:
             problem = self.base_problem
             for rxn_id in delta.blocked_reactions:
@@ -92,6 +95,11 @@ class cuOptSolver:
         # Restore problem's constraints
         for (rxn_id, ub) in restore_upper_bounds.items():
             problem.getVariable(rxn_id).setUpperBound(ub)
+        
+        # Clean up created problem
+        # I am optimistic this will limit the observed increasing memory usage
+        if not reuse_base:
+            del problem
         
         return sol
         
@@ -153,6 +161,8 @@ class cuOptSolver:
     def maximize_reactions(self, reactions: list) -> dict:
         """Maximize the flux through the given reactions using cuOpt."""
         results = {}
+        solve_count = 0
+        
         for rxn in reactions:
             blocked_reactions = set()
             objective = {rxn.id: 1.0}
@@ -164,7 +174,6 @@ class cuOptSolver:
                 blocked_reactions.add(rev_rxn.id)
 
             sol = self.solve_problem(LinearProgramDelta(
-
                 blocked_reactions=blocked_reactions,
                 objective=objective,
                 sense=sense,
@@ -175,12 +184,20 @@ class cuOptSolver:
                 results[rxn.id] = sol.obj_value
             else:
                 logger.info(f"Reaction {rxn.id}: Solver ended with status {sol.obj_status}")
+            
+            # Periodic garbage collection to prevent memory buildup
+            solve_count += 1
+            if solve_count % 100 == 0:
+                logger.debug(f"Completed {solve_count} reactions, triggered GC")
+                self.cleanup_memory_and_gpu()
 
         return results
 
     def maximize_metabolites(self, metabolites: list) -> dict:
         """Maximize the production of the given metabolites using cuOpt."""
         results = {}
+        solve_count = 0
+        
         for met in metabolites:
 
             if met.id not in self.metab_nonzero:
@@ -266,12 +283,30 @@ class cuOptSolver:
                 results[uptake_rxn] = sol.obj_value
             else:
                 logger.warning(f"Uptake {uptake_rxn}: Solver ended with status {sol.obj_status}")
+            
+            # Periodic garbage collection to prevent memory buildup
+            solve_count += 1  #
+            if solve_count % 50 == 0:
+                logger.debug(f"Completed {solve_count} metabolites, triggered GC")
+                self.cleanup_memory_and_gpu()
 
         return results
-
-
-
-            
+    
+    def cleanup_memory_and_gpu(self):
+        """Force cleanup of GPU memory. Call this periodically during long runs."""
+        try:
+            # Synchronize all GPU operations
+            cupy.cuda.Device(0).synchronize()
+            # Clear memory pool
+            mempool = cupy.get_default_memory_pool()
+            mempool.free_all_blocks()
+            logger.debug(f"GPU memory pool cleared")
+        except Exception as e:
+            logger.warning(f"Error during GPU cleanup: {e}")
+        
+        # Force Python garbage collection
+        gc.collect()
+        logger.debug("Python GC triggered")
 
 
 

@@ -261,3 +261,6 @@ But after retrying with CUDA_LAUNCH_BLOCKING=1, it seems to work.
 When I use CUDA_LAUNCH_BLOCKING=0, I also get PrimalInfeasible issues as well as crashes. This seems like either I am doing something wrong/unexpected or they are.
 
 The cuda computer-sanitizer tool seems to just be too slow, no problem completed after about an hour, though it does at least start the solver. At least with memcheck. synccheck, racecheck, and initcheck all also take a significant amount of time.
+
+### Memory usage
+Seems to be some memory usage issues from running it long enough to cache everything in one process. On my laptop, it ended up using a lot more RAM than availible and swapping to disk significantly. Probably the simplest fix is to spawn multiple processes that process a smaller portion. Unsure if this is cuOpt leaking memory or if it's python.
