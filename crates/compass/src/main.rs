@@ -414,6 +414,10 @@ fn gene_expr(
                     [col(GENE_INDEX_KEY)],
                     JoinArgs::new(JoinType::Right),
                 )
+                /*.select([
+                    col("*").exclude_dtype([DataType::Float64]),
+                    dtype_cols([DataType::Float64]).fill_null(null_filler),
+                ])*/
                 .sort([GENE_INDEX_KEY], Default::default());
 
             let combined_expr = combined_expr.select(
